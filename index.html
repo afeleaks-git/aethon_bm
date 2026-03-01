@@ -5,1214 +5,896 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Pok&eacute;mon Chess</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;color:#fff;overflow-x:hidden;padding:8px;-webkit-tap-highlight-color:transparent;user-select:none}
+h1{font-size:1.7em;margin:6px 0;text-align:center;text-shadow:2px 2px 4px rgba(0,0,0,.5);background:linear-gradient(90deg,#ffcb05,#ff6b35,#ffcb05);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:420px}
+.screen.active{display:flex}
+.subtitle{color:#ffcb05;font-size:1.1em;margin:8px 0 4px;text-align:center}
+.section-label{color:#aaa;font-size:.8em;margin:10px 0 4px;text-transform:uppercase;letter-spacing:1px}
+.name-input{width:80%;max-width:260px;padding:9px 14px;border:2px solid #ffcb05;border-radius:12px;background:rgba(255,255,255,.08);color:#fff;font-size:1.05em;text-align:center;outline:none}
+.name-input::placeholder{color:rgba(255,255,255,.3)}
+.name-input:focus{border-color:#ff6b35}
+.avatar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0;width:100%;max-width:300px}
+.avatar-option{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:2px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.04);cursor:pointer;transition:all .15s}
+.avatar-option:active{transform:scale(.95)}
+.avatar-option.selected{border-color:#ffcb05;background:rgba(255,203,5,.15)}
+.avatar-option img{width:44px;height:44px;image-rendering:pixelated}
+.avatar-option span{font-size:.55em;color:#ccc;margin-top:1px}
+.region-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%;margin:4px 0}
+.region-card{border:2px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 6px;background:rgba(255,255,255,.04);cursor:pointer;transition:all .15s;text-align:center}
+.region-card:active{transform:scale(.97)}
+.region-card.selected{border-color:#ffcb05;background:rgba(255,203,5,.12)}
+.region-card .rname{font-weight:bold;color:#ffcb05;font-size:.9em;margin-bottom:4px}
+.region-card .rpoke{display:flex;justify-content:center;gap:1px;flex-wrap:wrap}
+.region-card .rpoke img{width:24px;height:24px;image-rendering:pixelated}
+.btn{padding:9px 24px;border:2px solid #ffcb05;border-radius:22px;background:linear-gradient(135deg,rgba(255,203,5,.18),rgba(255,107,53,.18));color:#ffcb05;font-size:1em;font-weight:bold;cursor:pointer;transition:all .2s;margin:10px 0}
+.btn:active{background:rgba(255,203,5,.4);transform:scale(.95)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.small{padding:7px 16px;font-size:.85em;margin:6px 4px}
 
-  body {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #fff;
-    overflow-x: hidden;
-    padding: 10px;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-  }
+/* Campaign map */
+.map-scroll{width:100%;max-height:65vh;overflow-y:auto;padding:4px 0}
+.map-region{border:2px solid rgba(255,255,255,.1);border-radius:12px;margin:6px 0;padding:8px 10px;background:rgba(255,255,255,.04)}
+.map-region.locked{opacity:.4}
+.map-region.current{border-color:#ffcb05}
+.map-region .mr-name{font-weight:bold;color:#ffcb05;font-size:.95em;margin-bottom:4px}
+.map-region .mr-pokemon{display:flex;gap:2px;margin-bottom:6px}
+.map-region .mr-pokemon img{width:20px;height:20px;image-rendering:pixelated}
+.map-opp{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;margin:3px 0;background:rgba(255,255,255,.04);cursor:pointer;transition:all .15s}
+.map-opp:active{transform:scale(.98)}
+.map-opp.beaten{opacity:.55}
+.map-opp.beaten::after{content:'\\2713';color:#4caf50;font-weight:bold;margin-left:auto;font-size:1.1em}
+.map-opp.current-opp{border:1px solid #ffcb05;background:rgba(255,203,5,.1)}
+.map-opp.locked-opp{opacity:.3;pointer-events:none}
+.map-opp img{width:32px;height:32px;image-rendering:pixelated}
+.map-opp .mo-name{font-size:.8em;font-weight:bold}
+.map-opp .mo-type{font-size:.65em;color:#aaa}
+.map-final{border:2px solid #da70d6;background:rgba(218,112,214,.1);border-radius:12px;margin:6px 0;padding:10px;text-align:center;cursor:pointer}
+.map-final.locked{opacity:.3;pointer-events:none}
+.map-final img{width:48px;height:48px;image-rendering:pixelated}
+.map-final .mf-name{color:#da70d6;font-weight:bold;font-size:1.1em}
 
-  h1 {
-    font-size: 1.8em;
-    margin: 8px 0;
-    text-align: center;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    background: linear-gradient(90deg, #ffcb05, #ff6b35, #ffcb05);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* Pre-battle */
+.prebattle-card{text-align:center;margin:10px 0;padding:16px;border:2px solid #ffcb05;border-radius:16px;background:rgba(255,255,255,.06);width:100%}
+.prebattle-card img{width:64px;height:64px;image-rendering:pixelated}
+.prebattle-card .pb-name{font-size:1.1em;font-weight:bold;color:#ffcb05;margin:6px 0 2px}
+.prebattle-card .pb-type{color:#aaa;font-size:.8em}
+.prebattle-card .pb-quote{color:#ccc;font-size:.85em;font-style:italic;margin:6px 0}
+.prebattle-card .pb-pokemon{display:flex;justify-content:center;gap:3px;margin-top:6px}
+.prebattle-card .pb-pokemon img{width:28px;height:28px}
+.tv-badge{background:#e040fb;color:#fff;font-size:.65em;padding:2px 8px;border-radius:10px;font-weight:bold;display:inline-block;margin:4px 0}
 
-  /* ===== SETUP SCREENS ===== */
-  .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 420px; }
-  .screen.active { display: flex; }
+/* VS screen */
+.vs-banner{display:flex;align-items:center;gap:14px;margin:16px 0}
+.vs-trainer{text-align:center}
+.vs-trainer img{width:56px;height:56px;image-rendering:pixelated}
+.vs-trainer .vs-name{font-weight:bold;font-size:.85em;color:#ffcb05}
+.vs-trainer .vs-region{font-size:.65em;color:#aaa}
+.vs-text{font-size:1.8em;font-weight:bold;color:#ff6b35;text-shadow:0 0 10px rgba(255,107,53,.5)}
 
-  .subtitle {
-    color: #ffcb05;
-    font-size: 1.1em;
-    margin: 10px 0 6px;
-    text-align: center;
-  }
+/* Game screen */
+#status{font-size:1em;margin:3px 0;padding:5px 16px;border-radius:18px;background:rgba(255,255,255,.1);backdrop-filter:blur(10px);text-align:center;min-height:30px;display:flex;align-items:center;justify-content:center;transition:background .3s}
+#status.red-turn{background:rgba(220,50,50,.3)}
+#status.blue-turn{background:rgba(50,100,220,.3)}
+#status.check{background:rgba(255,200,0,.4)}
+#status.gameover{background:rgba(255,215,0,.4)}
+.player-bar{display:flex;align-items:center;gap:5px;width:100%;max-width:420px;padding:3px 4px;font-size:.75em}
+.player-bar img.pav{width:26px;height:26px;image-rendering:pixelated;border-radius:50%;border:2px solid rgba(255,255,255,.2)}
+.player-bar.active-turn img.pav{border-color:#ffcb05}
+.player-bar .pname{font-weight:bold}
+.player-bar .pregion{color:#aaa;font-size:.8em}
+.player-bar .captured-row{display:flex;flex-wrap:wrap;gap:1px;margin-left:auto}
+.player-bar .captured-row img{width:16px;height:16px;image-rendering:pixelated}
+#board-container{position:relative;width:min(95vw,420px);height:min(95vw,420px)}
+#board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:100%;height:100%;border:3px solid #ffcb05;border-radius:6px;overflow:hidden;box-shadow:0 0 25px rgba(255,203,5,.3)}
+.cell{display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:background .15s}
+.cell.light{background:#f0d9b5}
+.cell.dark{background:#b58863}
+.cell.selected{background:#ffeb3b!important;box-shadow:inset 0 0 10px rgba(255,200,0,.6)}
+.cell.legal{background:radial-gradient(circle,rgba(0,0,0,.25) 22%,transparent 23%) center/100% 100% no-repeat,inherit}
+.cell.capture-legal{background:radial-gradient(circle,transparent 50%,rgba(0,0,0,.25) 51%) center/100% 100% no-repeat,inherit}
+.cell.last-from{background:rgba(255,255,100,.45)!important}
+.cell.last-to{background:rgba(255,255,100,.55)!important}
+.cell.in-check{background:radial-gradient(circle,#f00 0%,#ff000088 40%,transparent 70%) center/100% 100% no-repeat,inherit!important}
+.cell img{width:85%;height:85%;image-rendering:pixelated;pointer-events:none;filter:drop-shadow(1px 1px 2px rgba(0,0,0,.4));transition:transform .15s}
+.cell:active img{transform:scale(1.1)}
+.cell .piece-label{position:absolute;bottom:0;font-size:.4em;font-weight:bold;color:#333;text-shadow:0 0 3px #fff;pointer-events:none;line-height:1}
+#controls{margin:4px 0;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+#controls button{padding:6px 14px;border:2px solid #ffcb05;border-radius:18px;background:rgba(255,203,5,.12);color:#ffcb05;font-size:.8em;font-weight:bold;cursor:pointer;transition:all .2s}
+#controls button:active{background:rgba(255,203,5,.35);transform:scale(.95)}
 
-  .section-label {
-    color: #aaa;
-    font-size: 0.85em;
-    margin: 12px 0 6px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
+/* Promotion overlay */
+#promotion-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
+#promotion-overlay.active{display:flex}
+#promotion-box{background:linear-gradient(135deg,#2a2a4a,#1a1a3e);border:3px solid #ffcb05;border-radius:16px;padding:18px;text-align:center}
+#promotion-box h2{margin-bottom:12px;color:#ffcb05;font-size:1.1em}
+#promotion-options{display:flex;gap:8px;justify-content:center}
+.promo-choice{width:60px;height:60px;border:2px solid #ffcb05;border-radius:10px;background:rgba(255,255,255,.1);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3px}
+.promo-choice:active{background:rgba(255,203,5,.3);transform:scale(.95)}
+.promo-choice img{width:36px;height:36px;image-rendering:pixelated}
+.promo-choice span{font-size:.5em;color:#ccc;margin-top:1px}
 
-  .name-input {
-    width: 80%;
-    max-width: 260px;
-    padding: 10px 16px;
-    border: 2px solid #ffcb05;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-    font-size: 1.1em;
-    text-align: center;
-    outline: none;
-    transition: border-color 0.2s;
-  }
+/* Capture move text */
+#move-announce{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);font-size:1.15em;font-weight:bold;color:#ffcb05;text-shadow:2px 2px 6px rgba(0,0,0,.9),0 0 20px rgba(255,203,5,.4);z-index:50;pointer-events:none;white-space:nowrap;opacity:0;transition:none}
+#move-announce.show{animation:moveAnim 1.6s ease-out forwards}
+@keyframes moveAnim{0%{opacity:1;transform:translate(-50%,-50%) scale(.8)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
 
-  .name-input::placeholder { color: rgba(255,255,255,0.35); }
-  .name-input:focus { border-color: #ff6b35; }
+/* Legend */
+#legend{margin-top:3px;display:grid;grid-template-columns:1fr 1fr;gap:1px 14px;font-size:.62em;color:#aaa;max-width:420px;width:100%}
+.legend-item{display:flex;align-items:center;gap:3px}
+.legend-item img{width:16px;height:16px;image-rendering:pixelated}
+.legend-hdr{grid-column:1/-1;font-size:1.1em;color:#ffcb05;font-weight:bold;margin:3px 0 1px}
 
-  .avatar-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin: 4px 0;
-    width: 100%;
-    max-width: 300px;
-  }
+/* Campaign complete */
+.champion-screen{text-align:center;padding:20px}
+.champion-screen img{width:80px;height:80px;image-rendering:pixelated}
+.champion-screen h2{color:#ffcb05;margin:10px 0}
 
-  .avatar-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 8px 4px;
-    border: 2px solid rgba(255,255,255,0.15);
-    border-radius: 12px;
-    background: rgba(255,255,255,0.05);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .avatar-option:active { transform: scale(0.95); }
-  .avatar-option.selected { border-color: #ffcb05; background: rgba(255,203,5,0.15); }
-  .avatar-option img { width: 48px; height: 48px; image-rendering: pixelated; }
-  .avatar-option span { font-size: 0.6em; color: #ccc; margin-top: 2px; }
-
-  .region-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    width: 100%;
-    margin: 4px 0;
-  }
-
-  .region-card {
-    border: 2px solid rgba(255,255,255,0.15);
-    border-radius: 14px;
-    padding: 10px 8px;
-    background: rgba(255,255,255,0.05);
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
-  }
-
-  .region-card:active { transform: scale(0.97); }
-  .region-card.selected { border-color: #ffcb05; background: rgba(255,203,5,0.12); }
-
-  .region-card .region-name {
-    font-weight: bold;
-    color: #ffcb05;
-    font-size: 0.95em;
-    margin-bottom: 6px;
-  }
-
-  .region-card .region-pokemon {
-    display: flex;
-    justify-content: center;
-    gap: 2px;
-    flex-wrap: wrap;
-  }
-
-  .region-card .region-pokemon img {
-    width: 28px;
-    height: 28px;
-    image-rendering: pixelated;
-  }
-
-  .btn {
-    padding: 10px 28px;
-    border: 2px solid #ffcb05;
-    border-radius: 24px;
-    background: linear-gradient(135deg, rgba(255,203,5,0.2), rgba(255,107,53,0.2));
-    color: #ffcb05;
-    font-size: 1.05em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin: 12px 0;
-  }
-
-  .btn:active { background: rgba(255,203,5,0.4); transform: scale(0.95); }
-  .btn:disabled { opacity: 0.4; cursor: default; }
-
-  .trainer-preview {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 8px 14px;
-    margin: 6px 0;
-  }
-
-  .trainer-preview img {
-    width: 40px;
-    height: 40px;
-    image-rendering: pixelated;
-  }
-
-  .trainer-preview .tp-info { font-size: 0.85em; }
-  .trainer-preview .tp-name { font-weight: bold; color: #ffcb05; }
-  .trainer-preview .tp-region { color: #aaa; font-size: 0.85em; }
-
-  /* ===== GAME SCREEN ===== */
-  #status {
-    font-size: 1.05em;
-    margin: 4px 0;
-    padding: 6px 18px;
-    border-radius: 20px;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
-    text-align: center;
-    min-height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.3s;
-  }
-
-  #status.red-turn { background: rgba(220, 50, 50, 0.3); }
-  #status.blue-turn { background: rgba(50, 100, 220, 0.3); }
-  #status.check { background: rgba(255, 200, 0, 0.4); }
-  #status.gameover { background: rgba(255, 215, 0, 0.4); }
-
-  .player-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    max-width: 420px;
-    padding: 4px 6px;
-    font-size: 0.8em;
-  }
-
-  .player-bar img {
-    width: 28px;
-    height: 28px;
-    image-rendering: pixelated;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.2);
-  }
-
-  .player-bar.active-turn img { border-color: #ffcb05; }
-
-  .player-bar .pname { font-weight: bold; }
-  .player-bar .pregion { color: #aaa; font-size: 0.85em; }
-
-  .player-bar .captured-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1px;
-    margin-left: auto;
-  }
-
-  .player-bar .captured-row img {
-    width: 18px;
-    height: 18px;
-    border: none;
-    border-radius: 0;
-  }
-
-  #board-container {
-    position: relative;
-    width: min(95vw, 420px);
-    height: min(95vw, 420px);
-  }
-
-  #board {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(8, 1fr);
-    width: 100%;
-    height: 100%;
-    border: 3px solid #ffcb05;
-    border-radius: 6px;
-    overflow: hidden;
-    box-shadow: 0 0 30px rgba(255, 203, 5, 0.3);
-  }
-
-  .cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .cell.light { background: #f0d9b5; }
-  .cell.dark  { background: #b58863; }
-  .cell.selected { background: #ffeb3b !important; box-shadow: inset 0 0 12px rgba(255,200,0,0.6); }
-  .cell.legal   { background: radial-gradient(circle, rgba(0,0,0,0.25) 22%, transparent 23%) center/100% 100% no-repeat, inherit; }
-  .cell.capture-legal { background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.25) 51%) center/100% 100% no-repeat, inherit; }
-  .cell.last-from { background: rgba(255, 255, 100, 0.45) !important; }
-  .cell.last-to   { background: rgba(255, 255, 100, 0.55) !important; }
-  .cell.in-check  { background: radial-gradient(circle, #ff0000 0%, #ff000088 40%, transparent 70%) center/100% 100% no-repeat, inherit !important; }
-
-  .cell img {
-    width: 85%;
-    height: 85%;
-    image-rendering: pixelated;
-    pointer-events: none;
-    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.4));
-    transition: transform 0.15s;
-  }
-
-  .cell:active img { transform: scale(1.1); }
-
-  .cell .piece-label {
-    position: absolute;
-    bottom: 1px;
-    font-size: 0.45em;
-    font-weight: bold;
-    color: #333;
-    text-shadow: 0 0 3px #fff;
-    pointer-events: none;
-    line-height: 1;
-  }
-
-  #controls {
-    margin: 6px 0;
-    display: flex;
-    gap: 8px;
-  }
-
-  #controls button {
-    padding: 7px 16px;
-    border: 2px solid #ffcb05;
-    border-radius: 20px;
-    background: rgba(255,203,5,0.15);
-    color: #ffcb05;
-    font-size: 0.85em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  #controls button:active {
-    background: rgba(255,203,5,0.4);
-    transform: scale(0.95);
-  }
-
-  #promotion-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.75);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-  }
-
-  #promotion-overlay.active { display: flex; }
-
-  #promotion-box {
-    background: linear-gradient(135deg, #2a2a4a, #1a1a3e);
-    border: 3px solid #ffcb05;
-    border-radius: 16px;
-    padding: 20px;
-    text-align: center;
-  }
-
-  #promotion-box h2 { margin-bottom: 15px; color: #ffcb05; font-size: 1.2em; }
-
-  #promotion-options {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-  }
-
-  .promo-choice {
-    width: 65px;
-    height: 65px;
-    border: 2px solid #ffcb05;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.1);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-    padding: 4px;
-  }
-
-  .promo-choice:active { background: rgba(255,203,5,0.3); transform: scale(0.95); }
-  .promo-choice img { width: 40px; height: 40px; image-rendering: pixelated; }
-  .promo-choice span { font-size: 0.55em; color: #ccc; margin-top: 2px; }
-
-  #legend {
-    margin-top: 4px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px 16px;
-    font-size: 0.68em;
-    color: #aaa;
-    max-width: 420px;
-    width: 100%;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-  }
-
-  .legend-item img {
-    width: 18px;
-    height: 18px;
-    image-rendering: pixelated;
-  }
-
-  .title-pokeball {
-    font-size: 3em;
-    margin: 10px 0;
-    animation: float 3s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-10px) rotate(10deg); }
-  }
-
-  .vs-banner {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin: 10px 0;
-  }
-
-  .vs-trainer {
-    text-align: center;
-  }
-
-  .vs-trainer img {
-    width: 56px;
-    height: 56px;
-    image-rendering: pixelated;
-  }
-
-  .vs-trainer .vs-name {
-    font-weight: bold;
-    font-size: 0.9em;
-    color: #ffcb05;
-  }
-
-  .vs-trainer .vs-region {
-    font-size: 0.7em;
-    color: #aaa;
-  }
-
-  .vs-text {
-    font-size: 1.8em;
-    font-weight: bold;
-    color: #ff6b35;
-    text-shadow: 0 0 10px rgba(255,107,53,0.5);
-  }
+.title-pokeball{font-size:2.5em;margin:8px 0;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(10deg)}}
 </style>
 </head>
 <body>
-
 <h1>Pok&eacute;mon Chess</h1>
 
-<!-- ===== TITLE SCREEN ===== -->
+<!-- TITLE -->
 <div class="screen active" id="screen-title">
   <div class="title-pokeball">&#9898;</div>
-  <p style="color:#aaa; text-align:center; margin: 8px 0; font-size:0.95em;">
-    Choose your trainer &amp; region, then battle with Pok&eacute;mon on the chessboard!
+  <p style="color:#aaa;text-align:center;margin:6px 0;font-size:.9em">
+    Choose your trainer, pick your region, and battle with Pok&eacute;mon on the chessboard!
   </p>
-  <button class="btn" onclick="startSetup()">Start Game</button>
+  <button class="btn" onclick="startCampaign()">Campaign Mode</button>
+  <button class="btn" onclick="start2Player()" style="border-color:#5bc0de;color:#5bc0de">2 Player Battle</button>
 </div>
 
-<!-- ===== PLAYER 1 SETUP ===== -->
+<!-- CAMPAIGN SETUP (player only) -->
+<div class="screen" id="screen-camp-setup">
+  <div class="subtitle">Create Your Trainer</div>
+  <div class="section-label">Your Name</div>
+  <input class="name-input" id="cs-name" placeholder="Enter name..." maxlength="16" autocomplete="off">
+  <div class="section-label">Partner Pok&eacute;mon</div>
+  <div class="avatar-grid" id="cs-avatars"></div>
+  <div class="section-label">Choose Your Region</div>
+  <div class="region-grid" id="cs-regions"></div>
+  <button class="btn" id="cs-go" disabled onclick="finishCampSetup()">Begin Journey!</button>
+</div>
+
+<!-- CAMPAIGN MAP -->
+<div class="screen" id="screen-map">
+  <div class="subtitle" id="map-title">Campaign Map</div>
+  <div class="map-scroll" id="map-scroll"></div>
+  <button class="btn small" onclick="showScreen('screen-title')">Back to Title</button>
+</div>
+
+<!-- PRE-BATTLE -->
+<div class="screen" id="screen-prebattle">
+  <div class="subtitle">Trainer Battle!</div>
+  <div class="prebattle-card" id="pb-card"></div>
+  <button class="btn" id="pb-battle" onclick="launchBattle()">Battle!</button>
+  <button class="btn small" onclick="showScreen('screen-map')">Back to Map</button>
+</div>
+
+<!-- VS SCREEN -->
+<div class="screen" id="screen-vs">
+  <div style="margin-top:16px;color:#aaa;font-size:.85em">GET READY!</div>
+  <div class="vs-banner" id="vs-banner"></div>
+</div>
+
+<!-- 2 PLAYER SETUP (P1) -->
 <div class="screen" id="screen-p1">
   <div class="subtitle">Player 1 &mdash; Create Your Trainer</div>
-
   <div class="section-label">Your Name</div>
   <input class="name-input" id="p1-name" placeholder="Enter name..." maxlength="16" autocomplete="off">
-
-  <div class="section-label">Choose Your Partner</div>
+  <div class="section-label">Partner Pok&eacute;mon</div>
   <div class="avatar-grid" id="p1-avatars"></div>
-
   <div class="section-label">Choose Your Region</div>
   <div class="region-grid" id="p1-regions"></div>
-
-  <button class="btn" id="p1-next" onclick="finishP1()" disabled>Next &rarr;</button>
+  <button class="btn" id="p1-next" disabled onclick="finishP1()">Next &rarr;</button>
 </div>
 
-<!-- ===== PLAYER 2 SETUP ===== -->
+<!-- 2 PLAYER SETUP (P2) -->
 <div class="screen" id="screen-p2">
   <div class="subtitle">Player 2 &mdash; Create Your Trainer</div>
-
   <div class="section-label">Your Name</div>
   <input class="name-input" id="p2-name" placeholder="Enter name..." maxlength="16" autocomplete="off">
-
-  <div class="section-label">Choose Your Partner</div>
+  <div class="section-label">Partner Pok&eacute;mon</div>
   <div class="avatar-grid" id="p2-avatars"></div>
-
   <div class="section-label">Choose Your Region</div>
   <div class="region-grid" id="p2-regions"></div>
-
-  <button class="btn" id="p2-next" onclick="finishP2()" disabled>Battle! &#9889;</button>
+  <button class="btn" id="p2-next" disabled onclick="finishP2()">Battle! &#9889;</button>
 </div>
 
-<!-- ===== VS SCREEN ===== -->
-<div class="screen" id="screen-vs">
-  <div style="margin-top:20px; color:#aaa; font-size:0.9em;">GET READY!</div>
-  <div class="vs-banner" id="vs-banner"></div>
-  <p style="color:#aaa; font-size:0.85em; margin:10px 0;">The board is set...</p>
-</div>
-
-<!-- ===== GAME SCREEN ===== -->
+<!-- GAME -->
 <div class="screen" id="screen-game">
   <div class="player-bar" id="bar-top"></div>
-  <div id="status" class="red-turn">Player 1's Turn</div>
-  <div id="board-container">
-    <div id="board"></div>
-  </div>
-  <div id="status-bottom"></div>
+  <div id="status"></div>
+  <div id="board-container"><div id="board"></div></div>
   <div class="player-bar" id="bar-bottom"></div>
-  <div id="controls">
-    <button onclick="undoMove()">Undo</button>
-    <button onclick="goToSetup()">New Game</button>
-  </div>
+  <div id="controls"></div>
   <div id="legend"></div>
 </div>
 
-<!-- ===== PROMOTION OVERLAY ===== -->
-<div id="promotion-overlay">
-  <div id="promotion-box">
-    <h2>Choose Evolution!</h2>
-    <div id="promotion-options"></div>
-  </div>
+<!-- CHAMPION -->
+<div class="screen" id="screen-champion">
+  <div class="champion-screen" id="champ-content"></div>
 </div>
+
+<div id="promotion-overlay"><div id="promotion-box"><h2>Choose Evolution!</h2><div id="promotion-options"></div></div></div>
+<div id="move-announce"></div>
 
 <script>
 // ============================================================
-// POKÉMON CHESS - with Trainer Creator & Regional Teams
+// POKÉMON CHESS — Campaign + 2-Player + AI Engine
 // ============================================================
 
-const SPRITE_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+const S = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+function sprite(id) { return S + id + '.png'; }
 
-// --- Regional Pokémon teams ---
+// ===== REGIONS =====
 const REGIONS = {
-  kanto: {
-    name: 'Kanto',
-    pieces: {
-      K: { id: 25,  name: 'Pikachu' },
-      Q: { id: 150, name: 'Mewtwo' },
-      R: { id: 143, name: 'Snorlax' },
-      B: { id: 94,  name: 'Gengar' },
-      N: { id: 78,  name: 'Rapidash' },
-      P: { id: 133, name: 'Eevee' },
-    }
-  },
-  johto: {
-    name: 'Johto',
-    pieces: {
-      K: { id: 157, name: 'Typhlosion' },
-      Q: { id: 249, name: 'Lugia' },
-      R: { id: 208, name: 'Steelix' },
-      B: { id: 196, name: 'Espeon' },
-      N: { id: 181, name: 'Ampharos' },
-      P: { id: 155, name: 'Cyndaquil' },
-    }
-  },
-  hoenn: {
-    name: 'Hoenn',
-    pieces: {
-      K: { id: 257, name: 'Blaziken' },
-      Q: { id: 384, name: 'Rayquaza' },
-      R: { id: 306, name: 'Aggron' },
-      B: { id: 282, name: 'Gardevoir' },
-      N: { id: 359, name: 'Absol' },
-      P: { id: 258, name: 'Mudkip' },
-    }
-  },
-  sinnoh: {
-    name: 'Sinnoh',
-    pieces: {
-      K: { id: 448, name: 'Lucario' },
-      Q: { id: 483, name: 'Dialga' },
-      R: { id: 445, name: 'Garchomp' },
-      B: { id: 468, name: 'Togekiss' },
-      N: { id: 405, name: 'Luxray' },
-      P: { id: 393, name: 'Piplup' },
-    }
-  },
-  unova: {
-    name: 'Unova',
-    pieces: {
-      K: { id: 571, name: 'Zoroark' },
-      Q: { id: 644, name: 'Zekrom' },
-      R: { id: 537, name: 'Seismitoad' },
-      B: { id: 579, name: 'Reuniclus' },
-      N: { id: 523, name: 'Zebstrika' },
-      P: { id: 501, name: 'Oshawott' },
-    }
-  },
-  kalos: {
-    name: 'Kalos',
-    pieces: {
-      K: { id: 658, name: 'Greninja' },
-      Q: { id: 716, name: 'Xerneas' },
-      R: { id: 713, name: 'Avalugg' },
-      B: { id: 700, name: 'Sylveon' },
-      N: { id: 668, name: 'Pyroar' },
-      P: { id: 656, name: 'Froakie' },
-    }
-  },
+  kanto: { name:'Kanto', pieces:{
+    K:{id:25,name:'Pikachu',move:'Thunderbolt'},Q:{id:150,name:'Mewtwo',move:'Psystrike'},
+    R:{id:143,name:'Snorlax',move:'Body Slam'},B:{id:94,name:'Gengar',move:'Shadow Ball'},
+    N:{id:78,name:'Rapidash',move:'Fire Blast'},P:{id:133,name:'Eevee',move:'Quick Attack'}}},
+  johto: { name:'Johto', pieces:{
+    K:{id:157,name:'Typhlosion',move:'Eruption'},Q:{id:249,name:'Lugia',move:'Aeroblast'},
+    R:{id:208,name:'Steelix',move:'Iron Tail'},B:{id:196,name:'Espeon',move:'Psybeam'},
+    N:{id:234,name:'Stantler',move:'Zen Headbutt'},P:{id:175,name:'Togepi',move:'Metronome'}}},
+  hoenn: { name:'Hoenn', pieces:{
+    K:{id:257,name:'Blaziken',move:'Blaze Kick'},Q:{id:384,name:'Rayquaza',move:'Dragon Ascent'},
+    R:{id:306,name:'Aggron',move:'Iron Head'},B:{id:282,name:'Gardevoir',move:'Moonblast'},
+    N:{id:359,name:'Absol',move:'Night Slash'},P:{id:258,name:'Mudkip',move:'Water Gun'}}},
+  sinnoh: { name:'Sinnoh', pieces:{
+    K:{id:448,name:'Lucario',move:'Aura Sphere'},Q:{id:483,name:'Dialga',move:'Roar of Time'},
+    R:{id:411,name:'Bastiodon',move:'Metal Burst'},B:{id:468,name:'Togekiss',move:'Air Slash'},
+    N:{id:405,name:'Luxray',move:'Thunder Fang'},P:{id:393,name:'Piplup',move:'Bubble Beam'}}},
+  unova: { name:'Unova', pieces:{
+    K:{id:571,name:'Zoroark',move:'Night Daze'},Q:{id:644,name:'Zekrom',move:'Bolt Strike'},
+    R:{id:623,name:'Golurk',move:'Shadow Punch'},B:{id:609,name:'Chandelure',move:'Inferno'},
+    N:{id:523,name:'Zebstrika',move:'Wild Charge'},P:{id:501,name:'Oshawott',move:'Razor Shell'}}},
+  kalos: { name:'Kalos', pieces:{
+    K:{id:658,name:'Greninja',move:'Water Shuriken'},Q:{id:716,name:'Xerneas',move:'Moonblast'},
+    R:{id:713,name:'Avalugg',move:'Avalanche'},B:{id:655,name:'Delphox',move:'Mystical Fire'},
+    N:{id:673,name:'Gogoat',move:'Horn Leech'},P:{id:656,name:'Froakie',move:'Bubble'}}},
+  legendary: { name:'Legendary', pieces:{
+    K:{id:151,name:'Mew',move:'Psychic'},Q:{id:493,name:'Arceus',move:'Judgment'},
+    R:{id:383,name:'Groudon',move:'Precipice Blades'},B:{id:484,name:'Palkia',move:'Spacial Rend'},
+    N:{id:245,name:'Suicune',move:'Hydro Pump'},P:{id:251,name:'Celebi',move:'Leaf Storm'}}},
 };
 
-const ROLE_NAMES = { K: 'King', Q: 'Queen', R: 'Rook', B: 'Bishop', N: 'Knight', P: 'Pawn' };
+const ROLE = {K:'King',Q:'Queen',R:'Rook',B:'Bishop',N:'Knight',P:'Pawn'};
 
-// --- Partner Pokémon (avatars) ---
 const AVATARS = [
-  { id: 25,  name: 'Pikachu' },
-  { id: 6,   name: 'Charizard' },
-  { id: 150, name: 'Mewtwo' },
-  { id: 448, name: 'Lucario' },
-  { id: 133, name: 'Eevee' },
-  { id: 658, name: 'Greninja' },
-  { id: 384, name: 'Rayquaza' },
-  { id: 94,  name: 'Gengar' },
-  { id: 249, name: 'Lugia' },
-  { id: 257, name: 'Blaziken' },
-  { id: 571, name: 'Zoroark' },
-  { id: 282, name: 'Gardevoir' },
+  {id:25,name:'Pikachu'},{id:6,name:'Charizard'},{id:150,name:'Mewtwo'},{id:448,name:'Lucario'},
+  {id:133,name:'Eevee'},{id:658,name:'Greninja'},{id:384,name:'Rayquaza'},{id:94,name:'Gengar'},
+  {id:249,name:'Lugia'},{id:257,name:'Blaziken'},{id:571,name:'Zoroark'},{id:282,name:'Gardevoir'},
 ];
 
-function sprite(id) { return SPRITE_URL + id + '.png'; }
-
-// --- Player state ---
-let players = [
-  { name: '', avatarId: null, region: null },
-  { name: '', avatarId: null, region: null },
+// ===== CAMPAIGN OPPONENTS =====
+const CAMPAIGN = [
+  // Kanto
+  {region:'kanto',name:'Bug Catcher Sam',avatarId:10,depth:2,mistakes:.45,quote:"My bugs are ready to battle!"},
+  {region:'kanto',name:'Lass Jenny',avatarId:35,depth:2,mistakes:.35,quote:"Don't underestimate me!"},
+  {region:'kanto',name:'Gym Leader Brock',avatarId:95,depth:2,mistakes:.18,quote:"My rock-solid defense is unbreakable!",gym:true},
+  // Johto
+  {region:'johto',name:'Youngster Joey',avatarId:19,depth:2,mistakes:.3,quote:"My Rattata is in the top percentage!"},
+  {region:'johto',name:'Kimono Girl Naoko',avatarId:197,depth:2,mistakes:.2,quote:"The dance of battle begins..."},
+  {region:'johto',name:'Gym Leader Whitney',avatarId:241,depth:2,mistakes:.1,quote:"Everyone says I'm really strong!",gym:true},
+  // Hoenn
+  {region:'hoenn',name:'Swimmer Darcy',avatarId:320,depth:2,mistakes:.18,quote:"The waves brought me a challenger!"},
+  {region:'hoenn',name:'Ninja Boy Hiro',avatarId:291,depth:3,mistakes:.25,quote:"You won't see my moves coming!"},
+  {region:'hoenn',name:'Gym Leader Norman',avatarId:289,depth:3,mistakes:.15,quote:"As a father and a leader, I won't hold back!",gym:true},
+  // Sinnoh
+  {region:'sinnoh',name:'Aroma Lady Rose',avatarId:407,depth:2,mistakes:.15,quote:"My garden taught me patience!"},
+  {region:'sinnoh',name:'Ace Trainer Kenji',avatarId:398,depth:3,mistakes:.15,quote:"I've trained for this moment!"},
+  {region:'sinnoh',name:'Gym Leader Volkner',avatarId:466,depth:3,mistakes:.05,quote:"Finally, a challenger worth my time!",gym:true},
+  // Unova
+  {region:'unova',name:'Scientist Colress',avatarId:601,depth:3,mistakes:.12,quote:"I shall analyze your every move!"},
+  {region:'unova',name:'Veteran Rosa',avatarId:612,depth:3,mistakes:.06,quote:"I've defeated countless trainers!"},
+  {region:'unova',name:'Gym Leader Elesa',avatarId:587,depth:3,mistakes:0,quote:"Prepare to be dazzled!",gym:true},
+  // Kalos
+  {region:'kalos',name:'Tourist Alexa',avatarId:695,depth:3,mistakes:.05,quote:"I've traveled the world for this!"},
+  {region:'kalos',name:'Battle Girl Korrina',avatarId:701,depth:3,mistakes:0,quote:"My fighting spirit is unmatched!"},
+  {region:'kalos',name:'Gym Leader Diantha',avatarId:700,depth:4,mistakes:.05,quote:"As Champion, I accept your challenge!",gym:true},
+  // Mew
+  {region:'legendary',name:'Mew',avatarId:151,depth:4,mistakes:0,quote:"Mew! Mew mew mew!",final:true},
 ];
 
-// Active POKEMON config (set after setup)
-let POKEMON = { w: {}, b: {} };
+const REGION_ORDER = ['kanto','johto','hoenn','sinnoh','unova','kalos'];
 
-function spriteUrl(color, piece) {
-  return sprite(POKEMON[color][piece].id);
+// ===== TV CHARACTERS (5% random encounter) =====
+const TV_CHARS = [
+  {name:'Ash Ketchum',avatarId:25,region:'kanto',depth:3,mistakes:.1,quote:"I'm gonna be a Pokémon Master!"},
+  {name:'Misty',avatarId:121,region:'kanto',depth:2,mistakes:.15,quote:"I'm the Cerulean City Gym Leader!"},
+  {name:'Gary Oak',avatarId:9,region:'kanto',depth:3,mistakes:.05,quote:"Smell ya later! ...After I beat you!"},
+  {name:'Jessie & James',avatarId:52,region:null,depth:2,mistakes:.35,quote:"Prepare for trouble! And make it double!"},
+  {name:'May',avatarId:267,region:'hoenn',depth:2,mistakes:.2,quote:"I'm gonna win this contest... I mean battle!"},
+  {name:'Dawn',avatarId:394,region:'sinnoh',depth:2,mistakes:.2,quote:"No need to worry!"},
+  {name:'Cynthia',avatarId:445,region:'sinnoh',depth:4,mistakes:0,quote:"I, the Champion, accept your challenge!"},
+  {name:'Lance',avatarId:149,region:'johto',depth:3,mistakes:.05,quote:"I am Lance, the Dragon Master!"},
+];
+
+// ===== PIECE-SQUARE TABLES =====
+const MAT = {P:100,N:320,B:330,R:500,Q:900,K:20000};
+const PST = {
+  P:[0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,10,10,20,30,30,20,10,10,5,5,10,25,25,10,5,5,0,0,0,20,20,0,0,0,5,-5,-10,0,0,-10,-5,5,5,10,10,-20,-20,10,10,5,0,0,0,0,0,0,0,0],
+  N:[-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,0,0,0,-20,-40,-30,0,10,15,15,10,0,-30,-30,5,15,20,20,15,5,-30,-30,0,15,20,20,15,0,-30,-30,5,10,15,15,10,5,-30,-40,-20,0,5,5,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50],
+  B:[-20,-10,-10,-10,-10,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,10,10,10,10,0,-10,-10,5,5,10,10,5,5,-10,-10,0,5,10,10,5,0,-10,-10,10,5,10,10,5,10,-10,-10,5,0,0,0,0,5,-10,-20,-10,-10,-10,-10,-10,-10,-20],
+  R:[0,0,0,0,0,0,0,0,5,10,10,10,10,10,10,5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,0,0,0,5,5,0,0,0],
+  Q:[-20,-10,-10,-5,-5,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,5,5,5,0,-10,-5,0,5,5,5,5,0,-5,0,0,5,5,5,5,0,-5,-10,5,5,5,5,5,0,-10,-10,0,5,0,0,0,0,-10,-20,-10,-10,-5,-5,-10,-10,-20],
+  K:[-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-20,-30,-30,-40,-40,-30,-30,-20,-10,-20,-20,-20,-20,-20,-20,-10,20,20,0,0,0,0,20,20,20,30,10,0,0,10,30,20],
+};
+
+// ===== STATE =====
+let mode = ''; // 'campaign' | '2player'
+let players = [{name:'',avatarId:null,region:null},{name:'',avatarId:null,region:null}];
+let POKEMON = {w:{},b:{}};
+let board=[],turn='w',selected=null,legalCache=[],history=[],lastMove=null;
+let castleRights={w:{K:true,Q:true},b:{K:true,Q:true}};
+let enPassantTarget=null,capturedPieces={w:[],b:[]},gameOver=false,promotionPending=null;
+let aiMode=false,aiConfig=null,aiThinking=false;
+let campaignProgress=0, currentOpponent=null, isTvEncounter=false;
+
+// ===== SCREEN MANAGEMENT =====
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// ===== SAVE/LOAD =====
+function saveCampaign(){
+  localStorage.setItem('pokechess',JSON.stringify({progress:campaignProgress,player:players[0]}));
+}
+function loadCampaign(){
+  try{const d=JSON.parse(localStorage.getItem('pokechess'));if(d&&d.player&&d.player.name){players[0]=d.player;campaignProgress=d.progress||0;return true;}}catch(e){}return false;
 }
 
-function pokemonName(color, piece) {
-  return POKEMON[color][piece].name;
+// ===== CAMPAIGN FLOW =====
+function startCampaign(){
+  mode='campaign';
+  if(loadCampaign()){showCampaignMap();return;}
+  buildSetup('cs',0,false);
+  showScreen('screen-camp-setup');
 }
 
-// ============================================================
-// SETUP SCREENS
-// ============================================================
-
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function finishCampSetup(){
+  campaignProgress=0;saveCampaign();showCampaignMap();
 }
 
-function startSetup() {
-  buildSetupScreen(0);
-  showScreen('screen-p1');
-}
+function showCampaignMap(){
+  const scroll=document.getElementById('map-scroll');
+  scroll.innerHTML='';
+  document.getElementById('map-title').textContent=`${esc(players[0].name)}'s Journey`;
 
-function buildSetupScreen(playerIdx) {
-  const prefix = playerIdx === 0 ? 'p1' : 'p2';
-  const avatarGrid = document.getElementById(prefix + '-avatars');
-  const regionGrid = document.getElementById(prefix + '-regions');
-  const nameInput = document.getElementById(prefix + '-name');
-  const nextBtn = document.getElementById(prefix + '-next');
+  let allGymsBeaten=true;
+  REGION_ORDER.forEach((rk,ri)=>{
+    const reg=REGIONS[rk];
+    const opps=CAMPAIGN.filter(o=>o.region===rk);
+    const startIdx=CAMPAIGN.indexOf(opps[0]);
+    const regionUnlocked=campaignProgress>=startIdx;
+    if(opps.some(o=>o.gym&&CAMPAIGN.indexOf(o)>=campaignProgress))allGymsBeaten=false;
 
-  players[playerIdx] = { name: '', avatarId: null, region: null };
-  nameInput.value = '';
+    const div=document.createElement('div');
+    div.className='map-region'+(regionUnlocked?'':' locked')+(regionUnlocked&&campaignProgress>=startIdx&&campaignProgress<startIdx+opps.length?' current':'');
 
-  // Avatars
-  avatarGrid.innerHTML = '';
-  AVATARS.forEach(av => {
-    const div = document.createElement('div');
-    div.className = 'avatar-option';
-    div.innerHTML = `<img src="${sprite(av.id)}" alt="${av.name}"><span>${av.name}</span>`;
-    div.addEventListener('click', () => {
-      avatarGrid.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
-      div.classList.add('selected');
-      players[playerIdx].avatarId = av.id;
-      checkReady(playerIdx);
+    let pokHtml='';
+    for(const p of['K','Q','R','B','N','P'])pokHtml+=`<img src="${sprite(reg.pieces[p].id)}" alt="${reg.pieces[p].name}" title="${reg.pieces[p].name}">`;
+
+    let oppsHtml='';
+    opps.forEach((opp,oi)=>{
+      const idx=startIdx+oi;
+      const beaten=idx<campaignProgress;
+      const isCurrent=idx===campaignProgress&&regionUnlocked;
+      const locked=idx>campaignProgress;
+      oppsHtml+=`<div class="map-opp${beaten?' beaten':''}${isCurrent?' current-opp':''}${locked?' locked-opp':''}" onclick="${isCurrent?`selectOpponent(${idx})`:''}">
+        <img src="${sprite(opp.avatarId)}" alt="${esc(opp.name)}">
+        <div><div class="mo-name">${esc(opp.name)}</div><div class="mo-type">${opp.gym?'Gym Leader':'Trainer'}</div></div>
+      </div>`;
     });
-    avatarGrid.appendChild(div);
+
+    div.innerHTML=`<div class="mr-name">${regionUnlocked?'':'&#128274; '}${reg.name}</div><div class="mr-pokemon">${pokHtml}</div>${oppsHtml}`;
+    scroll.appendChild(div);
   });
 
-  // Regions
-  regionGrid.innerHTML = '';
-  const regionKeys = Object.keys(REGIONS);
-  regionKeys.forEach(key => {
-    const reg = REGIONS[key];
-    const card = document.createElement('div');
-    card.className = 'region-card';
+  // Mew
+  const mewOpp=CAMPAIGN[CAMPAIGN.length-1];
+  const mewUnlocked=campaignProgress>=CAMPAIGN.length-1;
+  const mewDiv=document.createElement('div');
+  mewDiv.className='map-final'+(mewUnlocked?'':' locked');
+  mewDiv.innerHTML=`<img src="${sprite(151)}" alt="Mew"><div class="mf-name">${mewUnlocked?'Mew Awaits...':'???'}</div>`;
+  if(mewUnlocked)mewDiv.onclick=()=>selectOpponent(CAMPAIGN.length-1);
+  scroll.appendChild(mewDiv);
 
-    // If other player already picked this region, dim it
-    const otherIdx = 1 - playerIdx;
-    const taken = players[otherIdx].region === key;
-
-    let pokemonImgs = '';
-    for (const p of ['K','Q','R','B','N','P']) {
-      pokemonImgs += `<img src="${sprite(reg.pieces[p].id)}" alt="${reg.pieces[p].name}" title="${reg.pieces[p].name}">`;
-    }
-
-    card.innerHTML = `<div class="region-name">${reg.name}</div><div class="region-pokemon">${pokemonImgs}</div>`;
-
-    if (taken) {
-      card.style.opacity = '0.35';
-      card.style.pointerEvents = 'none';
-    } else {
-      card.addEventListener('click', () => {
-        regionGrid.querySelectorAll('.region-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        players[playerIdx].region = key;
-        checkReady(playerIdx);
-      });
-    }
-    regionGrid.appendChild(card);
-  });
-
-  // Name input
-  nameInput.oninput = () => {
-    players[playerIdx].name = nameInput.value.trim();
-    checkReady(playerIdx);
-  };
-
-  nextBtn.disabled = true;
+  showScreen('screen-map');
 }
 
-function checkReady(playerIdx) {
-  const p = players[playerIdx];
-  const prefix = playerIdx === 0 ? 'p1' : 'p2';
-  document.getElementById(prefix + '-next').disabled = !(p.name && p.avatarId && p.region);
-}
+function selectOpponent(idx){
+  let opp=CAMPAIGN[idx];
+  isTvEncounter=false;
 
-function finishP1() {
-  buildSetupScreen(1);
-  showScreen('screen-p2');
-}
-
-function finishP2() {
-  showVsScreen();
-}
-
-function showVsScreen() {
-  const banner = document.getElementById('vs-banner');
-  banner.innerHTML = `
-    <div class="vs-trainer">
-      <img src="${sprite(players[0].avatarId)}" alt="${players[0].name}">
-      <div class="vs-name">${escHtml(players[0].name)}</div>
-      <div class="vs-region">${REGIONS[players[0].region].name}</div>
-    </div>
-    <div class="vs-text">VS</div>
-    <div class="vs-trainer">
-      <img src="${sprite(players[1].avatarId)}" alt="${players[1].name}">
-      <div class="vs-name">${escHtml(players[1].name)}</div>
-      <div class="vs-region">${REGIONS[players[1].region].name}</div>
-    </div>
-  `;
-  showScreen('screen-vs');
-  setTimeout(() => {
-    setupGame();
-    showScreen('screen-game');
-  }, 2000);
-}
-
-function escHtml(s) {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
-}
-
-function goToSetup() {
-  buildSetupScreen(0);
-  showScreen('screen-p1');
-}
-
-// ============================================================
-// CHESS GAME LOGIC
-// ============================================================
-
-let board = [];
-let turn = 'w';
-let selected = null;
-let legalCache = [];
-let history = [];
-let lastMove = null;
-let castleRights = { w: { K: true, Q: true }, b: { K: true, Q: true } };
-let enPassantTarget = null;
-let capturedPieces = { w: [], b: [] };
-let gameOver = false;
-let promotionPending = null;
-
-function setupGame() {
-  // Build POKEMON config from chosen regions
-  const r1 = REGIONS[players[0].region].pieces;
-  const r2 = REGIONS[players[1].region].pieces;
-  POKEMON = { w: {}, b: {} };
-  for (const p of ['K','Q','R','B','N','P']) {
-    POKEMON.w[p] = { id: r1[p].id, name: r1[p].name, role: ROLE_NAMES[p] };
-    POKEMON.b[p] = { id: r2[p].id, name: r2[p].name, role: ROLE_NAMES[p] };
+  // 5% TV character chance (not for gym leaders or Mew)
+  if(!opp.gym&&!opp.final&&Math.random()<0.05){
+    const tv=TV_CHARS[Math.floor(Math.random()*TV_CHARS.length)];
+    opp={...tv,region:tv.region||opp.region,_tvChar:true};
+    isTvEncounter=true;
   }
+
+  currentOpponent={...opp,campIdx:idx};
+
+  // Build pre-battle card
+  const card=document.getElementById('pb-card');
+  const reg=REGIONS[opp.region];
+  let pokHtml='';
+  for(const p of['K','Q','R','B','N','P'])pokHtml+=`<img src="${sprite(reg.pieces[p].id)}" title="${reg.pieces[p].name}">`;
+
+  card.innerHTML=`
+    ${isTvEncounter?'<div class="tv-badge">TV CHARACTER!</div>':''}
+    <img src="${sprite(opp.avatarId)}" alt="${esc(opp.name)}">
+    <div class="pb-name">${esc(opp.name)}</div>
+    <div class="pb-type">${opp.gym?'Gym Leader':opp.final?'Final Boss':isTvEncounter?'Special Encounter':'Trainer'} &mdash; ${reg.name}</div>
+    <div class="pb-quote">"${esc(opp.quote)}"</div>
+    <div class="pb-pokemon">${pokHtml}</div>
+  `;
+  showScreen('screen-prebattle');
+}
+
+function launchBattle(){
+  const opp=currentOpponent;
+  const playerReg=REGIONS[players[0].region];
+  const oppReg=REGIONS[opp.region];
+
+  players[1]={name:opp.name,avatarId:opp.avatarId,region:opp.region};
+  POKEMON={w:{},b:{}};
+  for(const p of['K','Q','R','B','N','P']){
+    POKEMON.w[p]={...playerReg.pieces[p],role:ROLE[p]};
+    POKEMON.b[p]={...oppReg.pieces[p],role:ROLE[p]};
+  }
+  aiMode=true;
+  aiConfig={depth:opp.depth,mistakes:opp.mistakes};
   preloadSprites();
   initBoard();
-  setStatus(`${escHtml(players[0].name)}'s Turn`, 'red-turn');
-  renderBars();
-  render();
-  renderLegend();
+  showVsThen(()=>{showScreen('screen-game');renderGame();});
 }
 
-function initBoard() {
-  const back = ['R','N','B','Q','K','B','N','R'];
-  board = Array.from({ length: 8 }, () => Array(8).fill(null));
-  for (let c = 0; c < 8; c++) {
-    board[0][c] = { color: 'b', piece: back[c] };
-    board[1][c] = { color: 'b', piece: 'P' };
-    board[6][c] = { color: 'w', piece: 'P' };
-    board[7][c] = { color: 'w', piece: back[c] };
+// ===== 2-PLAYER FLOW =====
+function start2Player(){
+  mode='2player';aiMode=false;
+  buildSetup('p1',0,false);showScreen('screen-p1');
+}
+function finishP1(){buildSetup('p2',1,true);showScreen('screen-p2')}
+function finishP2(){
+  const r1=REGIONS[players[0].region],r2=REGIONS[players[1].region];
+  POKEMON={w:{},b:{}};
+  for(const p of['K','Q','R','B','N','P']){
+    POKEMON.w[p]={...r1.pieces[p],role:ROLE[p]};
+    POKEMON.b[p]={...r2.pieces[p],role:ROLE[p]};
   }
-  turn = 'w';
-  selected = null;
-  legalCache = [];
-  history = [];
-  lastMove = null;
-  castleRights = { w: { K: true, Q: true }, b: { K: true, Q: true } };
-  enPassantTarget = null;
-  capturedPieces = { w: [], b: [] };
-  gameOver = false;
-  promotionPending = null;
+  preloadSprites();initBoard();
+  showVsThen(()=>{showScreen('screen-game');renderGame();});
 }
 
-function cloneBoard(b) { return b.map(r => r.map(c => c ? { ...c } : null)); }
-function cloneCastleRights(cr) { return { w: { ...cr.w }, b: { ...cr.b } }; }
+// ===== SETUP BUILDER =====
+function buildSetup(prefix,pIdx,excludeTaken){
+  players[pIdx]={name:'',avatarId:null,region:null};
+  const nameEl=document.getElementById(prefix+'-name');
+  const avEl=document.getElementById(prefix+'-avatars');
+  const rgEl=document.getElementById(prefix+'-regions');
+  const btn=document.getElementById(prefix+(prefix==='cs'?'-go':'-next'));
+  nameEl.value='';
+  btn.disabled=true;
 
-function findKing(b, color) {
-  for (let r = 0; r < 8; r++)
-    for (let c = 0; c < 8; c++)
-      if (b[r][c] && b[r][c].color === color && b[r][c].piece === 'K')
-        return { r, c };
+  avEl.innerHTML='';
+  AVATARS.forEach(av=>{
+    const d=document.createElement('div');d.className='avatar-option';
+    d.innerHTML=`<img src="${sprite(av.id)}" alt="${av.name}"><span>${av.name}</span>`;
+    d.onclick=()=>{avEl.querySelectorAll('.avatar-option').forEach(a=>a.classList.remove('selected'));d.classList.add('selected');players[pIdx].avatarId=av.id;checkBtn()};
+    avEl.appendChild(d);
+  });
+
+  rgEl.innerHTML='';
+  Object.keys(REGIONS).forEach(k=>{
+    if(k==='legendary')return;
+    const r=REGIONS[k],taken=excludeTaken&&players[1-pIdx].region===k;
+    const card=document.createElement('div');card.className='region-card';
+    let imgs='';for(const p of['K','Q','R','B','N','P'])imgs+=`<img src="${sprite(r.pieces[p].id)}">`;
+    card.innerHTML=`<div class="rname">${r.name}</div><div class="rpoke">${imgs}</div>`;
+    if(taken){card.style.opacity='.3';card.style.pointerEvents='none';}
+    else card.onclick=()=>{rgEl.querySelectorAll('.region-card').forEach(c=>c.classList.remove('selected'));card.classList.add('selected');players[pIdx].region=k;checkBtn()};
+    rgEl.appendChild(card);
+  });
+
+  nameEl.oninput=()=>{players[pIdx].name=nameEl.value.trim();checkBtn()};
+  function checkBtn(){btn.disabled=!(players[pIdx].name&&players[pIdx].avatarId&&players[pIdx].region)}
+}
+
+// ===== VS SCREEN =====
+function showVsThen(cb){
+  const b=document.getElementById('vs-banner');
+  b.innerHTML=`
+    <div class="vs-trainer"><img src="${sprite(players[0].avatarId)}"><div class="vs-name">${esc(players[0].name)}</div><div class="vs-region">${REGIONS[players[0].region].name}</div></div>
+    <div class="vs-text">VS</div>
+    <div class="vs-trainer"><img src="${sprite(players[1].avatarId)}"><div class="vs-name">${esc(players[1].name)}</div><div class="vs-region">${REGIONS[players[1].region].name}</div></div>`;
+  showScreen('screen-vs');
+  setTimeout(cb,2000);
+}
+
+// ===== CAPTURE MOVE ANNOUNCEMENT =====
+function announceMove(color,piece){
+  const info=POKEMON[color][piece];
+  if(!info||!info.move)return;
+  const el=document.getElementById('move-announce');
+  el.textContent=`${info.name} used ${info.move}!`;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1700);
+}
+
+// ============================================================
+// CHESS ENGINE
+// ============================================================
+
+function initBoard(){
+  const back=['R','N','B','Q','K','B','N','R'];
+  board=Array.from({length:8},()=>Array(8).fill(null));
+  for(let c=0;c<8;c++){
+    board[0][c]={color:'b',piece:back[c]};board[1][c]={color:'b',piece:'P'};
+    board[6][c]={color:'w',piece:'P'};board[7][c]={color:'w',piece:back[c]};
+  }
+  turn='w';selected=null;legalCache=[];history=[];lastMove=null;
+  castleRights={w:{K:true,Q:true},b:{K:true,Q:true}};
+  enPassantTarget=null;capturedPieces={w:[],b:[]};gameOver=false;promotionPending=null;aiThinking=false;
+}
+
+function cloneBoard(b){return b.map(r=>r.map(c=>c?{...c}:null))}
+function cloneCR(cr){return{w:{...cr.w},b:{...cr.b}}}
+
+function findKing(b,col){
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(b[r][c]&&b[r][c].color===col&&b[r][c].piece==='K')return{r,c};
   return null;
 }
 
-function isAttacked(b, r, c, byColor) {
-  const pawnDir = byColor === 'w' ? 1 : -1;
-  for (const dc of [-1, 1]) {
-    const pr = r + pawnDir, pc = c + dc;
-    if (pr >= 0 && pr < 8 && pc >= 0 && pc < 8) {
-      const p = b[pr][pc];
-      if (p && p.color === byColor && p.piece === 'P') return true;
-    }
-  }
-  for (const [dr, dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) {
-    const nr = r + dr, nc = c + dc;
-    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-      const p = b[nr][nc];
-      if (p && p.color === byColor && p.piece === 'N') return true;
-    }
-  }
-  for (let dr = -1; dr <= 1; dr++)
-    for (let dc = -1; dc <= 1; dc++) {
-      if (dr === 0 && dc === 0) continue;
-      const nr = r + dr, nc = c + dc;
-      if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-        const p = b[nr][nc];
-        if (p && p.color === byColor && p.piece === 'K') return true;
-      }
-    }
-  for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
-    let nr = r + dr, nc = c + dc;
-    while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-      const p = b[nr][nc];
-      if (p) { if (p.color === byColor && (p.piece === 'R' || p.piece === 'Q')) return true; break; }
-      nr += dr; nc += dc;
-    }
-  }
-  for (const [dr, dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]) {
-    let nr = r + dr, nc = c + dc;
-    while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-      const p = b[nr][nc];
-      if (p) { if (p.color === byColor && (p.piece === 'B' || p.piece === 'Q')) return true; break; }
-      nr += dr; nc += dc;
-    }
-  }
+function isAttacked(b,r,c,by){
+  const pd=by==='w'?1:-1;
+  for(const dc of[-1,1]){const pr=r+pd,pc=c+dc;if(pr>=0&&pr<8&&pc>=0&&pc<8){const p=b[pr][pc];if(p&&p.color===by&&p.piece==='P')return true}}
+  for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const p=b[nr][nc];if(p&&p.color===by&&p.piece==='N')return true}}
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const p=b[nr][nc];if(p&&p.color===by&&p.piece==='K')return true}}
+  for(const[dr,dc]of[[0,1],[0,-1],[1,0],[-1,0]]){let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){const p=b[nr][nc];if(p){if(p.color===by&&(p.piece==='R'||p.piece==='Q'))return true;break}nr+=dr;nc+=dc}}
+  for(const[dr,dc]of[[1,1],[1,-1],[-1,1],[-1,-1]]){let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){const p=b[nr][nc];if(p){if(p.color===by&&(p.piece==='B'||p.piece==='Q'))return true;break}nr+=dr;nc+=dc}}
   return false;
 }
 
-function inCheck(b, color) {
-  const king = findKing(b, color);
-  if (!king) return false;
-  return isAttacked(b, king.r, king.c, color === 'w' ? 'b' : 'w');
+function inCheck(b,col){const k=findKing(b,col);return k?isAttacked(b,k.r,k.c,col==='w'?'b':'w'):false}
+
+function pseudoMoves(b,r,c,cr,ep){
+  const cell=b[r][c];if(!cell)return[];
+  const mv=[],col=cell.color,en=col==='w'?'b':'w';
+  const add=(tr,tc,f)=>{if(tr>=0&&tr<8&&tc>=0&&tc<8)mv.push({r:tr,c:tc,flag:f})};
+  switch(cell.piece){
+    case'P':{const d=col==='w'?-1:1,sr=col==='w'?6:1;
+      if(!b[r+d]?.[c]){add(r+d,c);if(r===sr&&!b[r+2*d]?.[c])add(r+2*d,c,'double')}
+      for(const dc of[-1,1]){const tr=r+d,tc=c+dc;if(tr>=0&&tr<8&&tc>=0&&tc<8){if(b[tr][tc]&&b[tr][tc].color===en)add(tr,tc);if(ep&&ep.r===tr&&ep.c===tc)add(tr,tc,'ep')}}break}
+    case'N':for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8&&(!b[nr][nc]||b[nr][nc].color===en))add(nr,nc)}break;
+    case'B':for(const[dr,dc]of[[1,1],[1,-1],[-1,1],[-1,-1]]){let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){if(b[nr][nc]){if(b[nr][nc].color===en)add(nr,nc);break}add(nr,nc);nr+=dr;nc+=dc}}break;
+    case'R':for(const[dr,dc]of[[0,1],[0,-1],[1,0],[-1,0]]){let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){if(b[nr][nc]){if(b[nr][nc].color===en)add(nr,nc);break}add(nr,nc);nr+=dr;nc+=dc}}break;
+    case'Q':for(const[dr,dc]of[[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]]){let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){if(b[nr][nc]){if(b[nr][nc].color===en)add(nr,nc);break}add(nr,nc);nr+=dr;nc+=dc}}break;
+    case'K':
+      for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8&&(!b[nr][nc]||b[nr][nc].color===en))add(nr,nc)}
+      if(cr[col].K&&!inCheck(b,col)){if(!b[r][5]&&!b[r][6]&&b[r][7]&&b[r][7].piece==='R'&&b[r][7].color===col&&!isAttacked(b,r,5,en)&&!isAttacked(b,r,6,en))mv.push({r,c:6,flag:'castleK'});if(!b[r][3]&&!b[r][2]&&!b[r][1]&&b[r][0]&&b[r][0].piece==='R'&&b[r][0].color===col&&!isAttacked(b,r,3,en)&&!isAttacked(b,r,2,en))mv.push({r,c:2,flag:'castleQ'})}break;
+  }
+  return mv;
 }
 
-function pseudoMoves(b, r, c, cr, ep) {
-  const cell = b[r][c];
-  if (!cell) return [];
-  const moves = [];
-  const color = cell.color;
-  const enemy = color === 'w' ? 'b' : 'w';
-  const add = (tr, tc, flag) => { if (tr >= 0 && tr < 8 && tc >= 0 && tc < 8) moves.push({ r: tr, c: tc, flag }); };
-
-  switch (cell.piece) {
-    case 'P': {
-      const dir = color === 'w' ? -1 : 1;
-      const startRow = color === 'w' ? 6 : 1;
-      if (!b[r + dir]?.[c]) {
-        add(r + dir, c);
-        if (r === startRow && !b[r + 2 * dir]?.[c]) add(r + 2 * dir, c, 'double');
-      }
-      for (const dc of [-1, 1]) {
-        const tr = r + dir, tc = c + dc;
-        if (tr >= 0 && tr < 8 && tc >= 0 && tc < 8) {
-          if (b[tr][tc] && b[tr][tc].color === enemy) add(tr, tc);
-          if (ep && ep.r === tr && ep.c === tc) add(tr, tc, 'ep');
-        }
-      }
-      break;
-    }
-    case 'N':
-      for (const [dr, dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) {
-        const nr = r + dr, nc = c + dc;
-        if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && (!b[nr][nc] || b[nr][nc].color === enemy)) add(nr, nc);
-      }
-      break;
-    case 'B':
-      for (const [dr, dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]) {
-        let nr = r + dr, nc = c + dc;
-        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) { if (b[nr][nc]) { if (b[nr][nc].color === enemy) add(nr, nc); break; } add(nr, nc); nr += dr; nc += dc; }
-      }
-      break;
-    case 'R':
-      for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
-        let nr = r + dr, nc = c + dc;
-        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) { if (b[nr][nc]) { if (b[nr][nc].color === enemy) add(nr, nc); break; } add(nr, nc); nr += dr; nc += dc; }
-      }
-      break;
-    case 'Q':
-      for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]]) {
-        let nr = r + dr, nc = c + dc;
-        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) { if (b[nr][nc]) { if (b[nr][nc].color === enemy) add(nr, nc); break; } add(nr, nc); nr += dr; nc += dc; }
-      }
-      break;
-    case 'K':
-      for (let dr = -1; dr <= 1; dr++)
-        for (let dc = -1; dc <= 1; dc++) {
-          if (dr === 0 && dc === 0) continue;
-          const nr = r + dr, nc = c + dc;
-          if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && (!b[nr][nc] || b[nr][nc].color === enemy)) add(nr, nc);
-        }
-      if (cr[color].K && !inCheck(b, color)) {
-        if (!b[r][5] && !b[r][6] && b[r][7] && b[r][7].piece === 'R' && b[r][7].color === color)
-          if (!isAttacked(b, r, 5, enemy) && !isAttacked(b, r, 6, enemy)) moves.push({ r, c: 6, flag: 'castleK' });
-        if (!b[r][3] && !b[r][2] && !b[r][1] && b[r][0] && b[r][0].piece === 'R' && b[r][0].color === color)
-          if (!isAttacked(b, r, 3, enemy) && !isAttacked(b, r, 2, enemy)) moves.push({ r, c: 2, flag: 'castleQ' });
-      }
-      break;
-  }
-  return moves;
+function legalMoves(b,r,c,cr,ep){
+  const mvs=pseudoMoves(b,r,c,cr,ep),col=b[r][c].color;
+  return mvs.filter(m=>{const nb=cloneBoard(b);nb[m.r][m.c]=nb[r][c];nb[r][c]=null;
+    if(m.flag==='ep')nb[col==='w'?m.r+1:m.r-1][m.c]=null;
+    if(m.flag==='castleK'){nb[m.r][5]=nb[m.r][7];nb[m.r][7]=null}
+    if(m.flag==='castleQ'){nb[m.r][3]=nb[m.r][0];nb[m.r][0]=null}
+    return!inCheck(nb,col)});
 }
 
-function legalMoves(b, r, c, cr, ep) {
-  const moves = pseudoMoves(b, r, c, cr, ep);
-  const color = b[r][c].color;
-  return moves.filter(m => {
-    const nb = cloneBoard(b);
-    nb[m.r][m.c] = nb[r][c]; nb[r][c] = null;
-    if (m.flag === 'ep') { nb[color === 'w' ? m.r + 1 : m.r - 1][m.c] = null; }
-    if (m.flag === 'castleK') { nb[m.r][5] = nb[m.r][7]; nb[m.r][7] = null; }
-    if (m.flag === 'castleQ') { nb[m.r][3] = nb[m.r][0]; nb[m.r][0] = null; }
-    return !inCheck(nb, color);
-  });
+function hasLegal(b,col,cr,ep){
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(b[r][c]&&b[r][c].color===col&&legalMoves(b,r,c,cr,ep).length>0)return true;return false;
 }
 
-function hasLegalMove(b, color, cr, ep) {
-  for (let r = 0; r < 8; r++)
-    for (let c = 0; c < 8; c++)
-      if (b[r][c] && b[r][c].color === color && legalMoves(b, r, c, cr, ep).length > 0) return true;
-  return false;
-}
+function executeMove(fR,fC,tR,tC,flag,promo){
+  history.push({board:cloneBoard(board),turn,castleRights:cloneCR(castleRights),enPassantTarget:enPassantTarget?{...enPassantTarget}:null,lastMove:lastMove?{from:{...lastMove.from},to:{...lastMove.to}}:null,capturedPieces:{w:[...capturedPieces.w],b:[...capturedPieces.b]},gameOver});
+  const piece=board[fR][fC],captured=board[tR][tC],col=piece.color,en=col==='w'?'b':'w';
+  let didCapture=false;
 
-function playerName(color) {
-  return escHtml(players[color === 'w' ? 0 : 1].name);
-}
+  if(captured){capturedPieces[col].push({color:captured.color,piece:captured.piece});didCapture=true}
+  if(flag==='ep'){const eR=col==='w'?tR+1:tR-1;const ec=board[eR][tC];if(ec)capturedPieces[col].push({color:ec.color,piece:ec.piece});board[eR][tC]=null;didCapture=true}
+  board[tR][tC]=piece;board[fR][fC]=null;
+  if(flag==='castleK'){board[tR][5]=board[tR][7];board[tR][7]=null}
+  if(flag==='castleQ'){board[tR][3]=board[tR][0];board[tR][0]=null}
 
-function executeMove(fromR, fromC, toR, toC, flag, promoChoice) {
-  history.push({
-    board: cloneBoard(board), turn,
-    castleRights: cloneCastleRights(castleRights),
-    enPassantTarget: enPassantTarget ? { ...enPassantTarget } : null,
-    lastMove: lastMove ? { from: { ...lastMove.from }, to: { ...lastMove.to } } : null,
-    capturedPieces: { w: [...capturedPieces.w], b: [...capturedPieces.b] },
-    gameOver,
-  });
-
-  const piece = board[fromR][fromC];
-  const captured = board[toR][toC];
-  const color = piece.color;
-  const enemy = color === 'w' ? 'b' : 'w';
-
-  if (captured) capturedPieces[color].push({ color: captured.color, piece: captured.piece });
-
-  if (flag === 'ep') {
-    const epR = color === 'w' ? toR + 1 : toR - 1;
-    const epCap = board[epR][toC];
-    if (epCap) capturedPieces[color].push({ color: epCap.color, piece: epCap.piece });
-    board[epR][toC] = null;
+  if(piece.piece==='P'&&(tR===0||tR===7)){
+    if(promo){board[tR][tC]={color:col,piece:promo}}
+    else{promotionPending={fR,fC,tR,tC,flag,didCapture};showPromotionDialog(col);return false}
   }
 
-  board[toR][toC] = piece;
-  board[fromR][fromC] = null;
+  if(piece.piece==='K'){castleRights[col].K=false;castleRights[col].Q=false}
+  if(piece.piece==='R'){if(fC===0)castleRights[col].Q=false;if(fC===7)castleRights[col].K=false}
+  if(captured&&captured.piece==='R'){if(tC===0&&tR===(en==='w'?7:0))castleRights[en].Q=false;if(tC===7&&tR===(en==='w'?7:0))castleRights[en].K=false}
 
-  if (flag === 'castleK') { board[toR][5] = board[toR][7]; board[toR][7] = null; }
-  if (flag === 'castleQ') { board[toR][3] = board[toR][0]; board[toR][0] = null; }
+  enPassantTarget=flag==='double'?{r:(fR+tR)/2,c:tC}:null;
+  lastMove={from:{r:fR,c:fC},to:{r:tR,c:tC}};
+  turn=en;selected=null;legalCache=[];
 
-  if (piece.piece === 'P' && (toR === 0 || toR === 7)) {
-    if (promoChoice) {
-      board[toR][toC] = { color, piece: promoChoice };
-    } else {
-      promotionPending = { fromR, fromC, toR, toC, flag };
-      showPromotionDialog(color);
-      return false;
-    }
-  }
+  if(didCapture)announceMove(col,piece.piece);
+  updateStatus();renderGame();
 
-  if (piece.piece === 'K') { castleRights[color].K = false; castleRights[color].Q = false; }
-  if (piece.piece === 'R') {
-    if (fromC === 0) castleRights[color].Q = false;
-    if (fromC === 7) castleRights[color].K = false;
-  }
-  if (captured && captured.piece === 'R') {
-    if (toC === 0 && toR === (enemy === 'w' ? 7 : 0)) castleRights[enemy].Q = false;
-    if (toC === 7 && toR === (enemy === 'w' ? 7 : 0)) castleRights[enemy].K = false;
-  }
-
-  enPassantTarget = (flag === 'double') ? { r: (fromR + toR) / 2, c: toC } : null;
-  lastMove = { from: { r: fromR, c: fromC }, to: { r: toR, c: toC } };
-  turn = enemy;
-  selected = null;
-  legalCache = [];
-
-  updateStatus();
-  render();
-  renderBars();
+  if(aiMode&&!gameOver&&turn==='b')scheduleAI();
   return true;
 }
 
-function updateStatus() {
-  const check = inCheck(board, turn);
-  const hasMove = hasLegalMove(board, turn, castleRights, enPassantTarget);
-  const winner = turn === 'w' ? 'b' : 'w';
+function updateStatus(){
+  const chk=inCheck(board,turn),has=hasLegal(board,turn,castleRights,enPassantTarget);
+  const winner=turn==='w'?'b':'w';
+  if(!has){gameOver=true;
+    if(chk)setStatus(`Checkmate! ${esc(players[winner==='w'?0:1].name)} wins!`,'gameover');
+    else setStatus("Stalemate! It's a draw!",'gameover');
+    if(mode==='campaign')setTimeout(showCampaignResult,1200);
+  }else if(chk){setStatus(`Check! ${esc(players[turn==='w'?0:1].name)}'s turn`,'check');
+  }else{setStatus(`${esc(players[turn==='w'?0:1].name)}'s Turn`,turn==='w'?'red-turn':'blue-turn')}
+}
 
-  if (!hasMove) {
-    gameOver = true;
-    if (check) {
-      setStatus(`Checkmate! ${playerName(winner)} wins!`, 'gameover');
-    } else {
-      setStatus("Stalemate! It's a draw!", 'gameover');
+function setStatus(t,cls){const el=document.getElementById('status');el.innerHTML=t;el.className=cls||''}
+
+function showPromotionDialog(col){
+  const ov=document.getElementById('promotion-overlay'),opts=document.getElementById('promotion-options');
+  ov.classList.add('active');opts.innerHTML='';
+  for(const p of['Q','R','B','N']){
+    const d=document.createElement('div');d.className='promo-choice';
+    d.innerHTML=`<img src="${sprite(POKEMON[col][p].id)}" alt="${POKEMON[col][p].name}"><span>${POKEMON[col][p].name}</span>`;
+    d.onclick=()=>{ov.classList.remove('active');completePromotion(p)};
+    opts.appendChild(d);
+  }
+}
+
+function completePromotion(choice){
+  if(!promotionPending)return;
+  const pp=promotionPending;promotionPending=null;
+  const col=board[pp.tR][pp.tC].color,en=col==='w'?'b':'w';
+  board[pp.tR][pp.tC]={color:col,piece:choice};
+  enPassantTarget=null;lastMove={from:{r:pp.fR,c:pp.fC},to:{r:pp.tR,c:pp.tC}};
+  turn=en;selected=null;legalCache=[];
+  if(pp.didCapture)announceMove(col,'P');
+  updateStatus();renderGame();
+  if(aiMode&&!gameOver&&turn==='b')scheduleAI();
+}
+
+function undoMove(){
+  if(!history.length||promotionPending||aiThinking)return;
+  // In campaign mode, undo both player and AI move
+  if(aiMode&&history.length>=2&&turn==='w'){
+    history.pop();// undo AI
+    const prev=history.pop();// undo player
+    board=prev.board;turn=prev.turn;castleRights=prev.castleRights;enPassantTarget=prev.enPassantTarget;lastMove=prev.lastMove;capturedPieces=prev.capturedPieces;gameOver=prev.gameOver;
+  }else{
+    const prev=history.pop();board=prev.board;turn=prev.turn;castleRights=prev.castleRights;enPassantTarget=prev.enPassantTarget;lastMove=prev.lastMove;capturedPieces=prev.capturedPieces;gameOver=prev.gameOver;
+  }
+  selected=null;legalCache=[];
+  if(!gameOver)setStatus(`${esc(players[turn==='w'?0:1].name)}'s Turn`,turn==='w'?'red-turn':'blue-turn');
+  renderGame();
+}
+
+function onCellClick(r,c){
+  if(gameOver||promotionPending||aiThinking)return;
+  if(aiMode&&turn==='b')return;
+  const cell=board[r][c];
+  if(selected){
+    const mv=legalCache.find(m=>m.r===r&&m.c===c);
+    if(mv){executeMove(selected.r,selected.c,r,c,mv.flag);return}
+    if(cell&&cell.color===turn){selected={r,c};legalCache=legalMoves(board,r,c,castleRights,enPassantTarget);render();return}
+    selected=null;legalCache=[];render();return;
+  }
+  if(cell&&cell.color===turn){selected={r,c};legalCache=legalMoves(board,r,c,castleRights,enPassantTarget);render()}
+}
+
+// ===== CAMPAIGN RESULT =====
+function showCampaignResult(){
+  const playerWon=!hasLegal(board,turn==='w'?'w':'w',castleRights,enPassantTarget);
+  // Figure out who won: if turn's side has no moves and is in check, the OTHER side won.
+  // gameOver is true, check who won
+  const loser=turn; // the side whose turn it is has no moves
+  const winnerColor=loser==='w'?'b':'w';
+  const isStalemate=!inCheck(board,loser);
+
+  const ctrl=document.getElementById('controls');
+  if(isStalemate||winnerColor==='b'){
+    // Player lost or draw
+    ctrl.innerHTML=`<button onclick="retryBattle()">Try Again</button><button onclick="showCampaignMap()">Back to Map</button>`;
+  }else{
+    // Player won!
+    if(currentOpponent.final){
+      // Beat Mew!
+      campaignProgress=CAMPAIGN.length;saveCampaign();
+      showChampionScreen();return;
     }
-  } else if (check) {
-    setStatus(`Check! ${playerName(turn)}'s turn`, 'check');
-  } else {
-    setStatus(`${playerName(turn)}'s Turn`, turn === 'w' ? 'red-turn' : 'blue-turn');
+    campaignProgress=currentOpponent.campIdx+1;saveCampaign();
+    ctrl.innerHTML=`<button onclick="showCampaignMap()">Continue</button>`;
   }
 }
 
-function setStatus(text, cls) {
-  const el = document.getElementById('status');
-  el.innerHTML = text;
-  el.className = cls || '';
+function retryBattle(){selectOpponent(currentOpponent.campIdx)}
+
+function showChampionScreen(){
+  const el=document.getElementById('champ-content');
+  el.innerHTML=`
+    <img src="${sprite(151)}" alt="Mew">
+    <h2>CHAMPION!</h2>
+    <p style="color:#ccc;margin:8px 0">${esc(players[0].name)} has defeated Mew and conquered all regions!</p>
+    <p style="color:#ffcb05;font-size:1.2em">You are the Pok&eacute;mon Chess Champion!</p>
+    <button class="btn" onclick="showScreen('screen-title')">Back to Title</button>
+    <button class="btn small" onclick="resetCampaign()">New Campaign</button>
+  `;
+  showScreen('screen-champion');
 }
 
-function showPromotionDialog(color) {
-  const overlay = document.getElementById('promotion-overlay');
-  const options = document.getElementById('promotion-options');
-  overlay.classList.add('active');
-  options.innerHTML = '';
-  for (const p of ['Q', 'R', 'B', 'N']) {
-    const btn = document.createElement('div');
-    btn.className = 'promo-choice';
-    btn.innerHTML = `<img src="${spriteUrl(color, p)}" alt="${pokemonName(color, p)}"><span>${pokemonName(color, p)}</span>`;
-    btn.addEventListener('click', () => { overlay.classList.remove('active'); completePromotion(p); });
-    options.appendChild(btn);
+function resetCampaign(){localStorage.removeItem('pokechess');startCampaign()}
+
+// ============================================================
+// AI ENGINE (Minimax + Alpha-Beta)
+// ============================================================
+
+function evaluate(b){
+  let score=0;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const cell=b[r][c];if(!cell)continue;
+    const sign=cell.color==='w'?1:-1;
+    const idx=cell.color==='w'?r*8+c:(7-r)*8+c;
+    score+=sign*(MAT[cell.piece]+PST[cell.piece][idx]);
   }
+  return score;
 }
 
-function completePromotion(choice) {
-  if (!promotionPending) return;
-  const pp = promotionPending;
-  promotionPending = null;
-  const color = board[pp.toR][pp.toC].color;
-  const enemy = color === 'w' ? 'b' : 'w';
-  board[pp.toR][pp.toC] = { color, piece: choice };
-  enPassantTarget = null;
-  lastMove = { from: { r: pp.fromR, c: pp.fromC }, to: { r: pp.toR, c: pp.toC } };
-  turn = enemy;
-  selected = null;
-  legalCache = [];
-  updateStatus();
-  render();
-  renderBars();
-}
-
-function undoMove() {
-  if (history.length === 0 || promotionPending) return;
-  const prev = history.pop();
-  board = prev.board; turn = prev.turn;
-  castleRights = prev.castleRights;
-  enPassantTarget = prev.enPassantTarget;
-  lastMove = prev.lastMove;
-  capturedPieces = prev.capturedPieces;
-  gameOver = prev.gameOver;
-  selected = null; legalCache = [];
-  if (!gameOver) setStatus(`${playerName(turn)}'s Turn`, turn === 'w' ? 'red-turn' : 'blue-turn');
-  render();
-  renderBars();
-}
-
-function onCellClick(r, c) {
-  if (gameOver || promotionPending) return;
-  const cell = board[r][c];
-
-  if (selected) {
-    const move = legalCache.find(m => m.r === r && m.c === c);
-    if (move) { executeMove(selected.r, selected.c, r, c, move.flag); return; }
-    if (cell && cell.color === turn) {
-      selected = { r, c };
-      legalCache = legalMoves(board, r, c, castleRights, enPassantTarget);
-      render(); return;
+function getAllMoves(b,col,cr,ep){
+  const mvs=[];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)
+    if(b[r][c]&&b[r][c].color===col){
+      const legal=legalMoves(b,r,c,cr,ep);
+      for(const m of legal)mvs.push({fR:r,fC:c,tR:m.r,tC:m.c,flag:m.flag});
     }
-    selected = null; legalCache = []; render(); return;
-  }
+  // Order: captures first (MVV-LVA)
+  mvs.sort((a,mb)=>{
+    const va=b[a.tR][a.tC]?MAT[b[a.tR][a.tC].piece]:0;
+    const vb=b[mb.tR][mb.tC]?MAT[b[mb.tR][mb.tC].piece]:0;
+    return vb-va;
+  });
+  return mvs;
+}
 
-  if (cell && cell.color === turn) {
-    selected = { r, c };
-    legalCache = legalMoves(board, r, c, castleRights, enPassantTarget);
-    render();
+function applyMove(b,mv,cr,ep){
+  const nb=cloneBoard(b);
+  const piece=nb[mv.fR][mv.fC],col=piece.color;
+  nb[mv.tR][mv.tC]=piece;nb[mv.fR][mv.fC]=null;
+  if(mv.flag==='ep')nb[col==='w'?mv.tR+1:mv.tR-1][mv.tC]=null;
+  if(mv.flag==='castleK'){nb[mv.tR][5]=nb[mv.tR][7];nb[mv.tR][7]=null}
+  if(mv.flag==='castleQ'){nb[mv.tR][3]=nb[mv.tR][0];nb[mv.tR][0]=null}
+  if(piece.piece==='P'&&(mv.tR===0||mv.tR===7))nb[mv.tR][mv.tC]={color:col,piece:'Q'};
+  const ncr=cloneCR(cr);
+  if(piece.piece==='K'){ncr[col].K=false;ncr[col].Q=false}
+  if(piece.piece==='R'){if(mv.fC===0)ncr[col].Q=false;if(mv.fC===7)ncr[col].K=false}
+  const nep=mv.flag==='double'?{r:(mv.fR+mv.tR)/2,c:mv.tC}:null;
+  return[nb,ncr,nep];
+}
+
+function minimax(b,depth,alpha,beta,isMax,cr,ep){
+  if(depth===0)return evaluate(b);
+  const col=isMax?'w':'b';
+  const mvs=getAllMoves(b,col,cr,ep);
+  if(mvs.length===0){
+    if(inCheck(b,col))return isMax?-99999+depth:99999-depth;
+    return 0;
   }
+  if(isMax){
+    let best=-Infinity;
+    for(const mv of mvs){const[nb,ncr,nep]=applyMove(b,mv,cr,ep);const val=minimax(nb,depth-1,alpha,beta,false,ncr,nep);best=Math.max(best,val);alpha=Math.max(alpha,val);if(beta<=alpha)break}
+    return best;
+  }else{
+    let best=Infinity;
+    for(const mv of mvs){const[nb,ncr,nep]=applyMove(b,mv,cr,ep);const val=minimax(nb,depth-1,alpha,beta,true,ncr,nep);best=Math.min(best,val);beta=Math.min(beta,val);if(beta<=alpha)break}
+    return best;
+  }
+}
+
+function findBestMove(){
+  const mvs=getAllMoves(board,'b',castleRights,enPassantTarget);
+  if(mvs.length===0)return null;
+  // Mistake: random move
+  if(Math.random()<aiConfig.mistakes)return mvs[Math.floor(Math.random()*mvs.length)];
+  let bestScore=Infinity,bestMvs=[];
+  for(const mv of mvs){
+    const[nb,ncr,nep]=applyMove(board,mv,castleRights,enPassantTarget);
+    const score=minimax(nb,aiConfig.depth-1,-Infinity,Infinity,true,ncr,nep);
+    if(score<bestScore){bestScore=score;bestMvs=[mv]}
+    else if(score===bestScore)bestMvs.push(mv);
+  }
+  return bestMvs[Math.floor(Math.random()*bestMvs.length)];
+}
+
+function scheduleAI(){
+  aiThinking=true;
+  setStatus(`${esc(players[1].name)} is thinking...`,'blue-turn');
+  setTimeout(()=>{
+    const mv=findBestMove();
+    aiThinking=false;
+    if(mv){
+      const piece=board[mv.tR][mv.tC];
+      const promo=(board[mv.fR][mv.fC].piece==='P'&&(mv.tR===0||mv.tR===7))?'Q':undefined;
+      executeMove(mv.fR,mv.fC,mv.tR,mv.tC,mv.flag,promo);
+    }
+  },400);
 }
 
 // ============================================================
 // RENDERING
 // ============================================================
 
-function renderBars() {
-  // Top bar = player 2 (black), Bottom bar = player 1 (white)
-  for (const [barId, pIdx, color] of [['bar-top', 1, 'b'], ['bar-bottom', 0, 'w']]) {
-    const bar = document.getElementById(barId);
-    const p = players[pIdx];
-    const isActive = turn === color && !gameOver;
-    bar.className = 'player-bar' + (isActive ? ' active-turn' : '');
+function renderGame(){
+  renderBars();render();renderControls();renderLegend();
+}
 
-    let capturedHtml = '';
-    const caps = capturedPieces[color];
-    for (const cap of caps) {
-      capturedHtml += `<img src="${sprite(POKEMON[cap.color][cap.piece].id)}" alt="${POKEMON[cap.color][cap.piece].name}">`;
-    }
-
-    bar.innerHTML = `
-      <img src="${sprite(p.avatarId)}" alt="${escHtml(p.name)}">
-      <div>
-        <div class="pname">${escHtml(p.name)}</div>
-        <div class="pregion">${REGIONS[p.region].name}</div>
-      </div>
-      <div class="captured-row">${capturedHtml}</div>
-    `;
+function renderBars(){
+  for(const[barId,pIdx,col]of[['bar-top',1,'b'],['bar-bottom',0,'w']]){
+    const bar=document.getElementById(barId),p=players[pIdx];
+    const isAct=turn===col&&!gameOver;
+    bar.className='player-bar'+(isAct?' active-turn':'');
+    let capHtml='';
+    for(const cap of capturedPieces[col])capHtml+=`<img src="${sprite(POKEMON[cap.color][cap.piece].id)}">`;
+    bar.innerHTML=`<img class="pav" src="${sprite(p.avatarId)}"><div><div class="pname">${esc(p.name)}</div><div class="pregion">${REGIONS[p.region].name}</div></div><div class="captured-row">${capHtml}</div>`;
   }
 }
 
-function render() {
-  const boardEl = document.getElementById('board');
-  boardEl.innerHTML = '';
-  const checkPos = inCheck(board, turn) ? findKing(board, turn) : null;
-
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      const div = document.createElement('div');
-      div.className = 'cell ' + ((r + c) % 2 === 0 ? 'light' : 'dark');
-
-      if (selected && selected.r === r && selected.c === c) div.classList.add('selected');
-      if (legalCache.some(m => m.r === r && m.c === c)) {
-        if (board[r][c] || legalCache.find(m => m.r === r && m.c === c)?.flag === 'ep') {
-          div.classList.add('capture-legal');
-        } else {
-          div.classList.add('legal');
-        }
-      }
-      if (lastMove) {
-        if (lastMove.from.r === r && lastMove.from.c === c) div.classList.add('last-from');
-        if (lastMove.to.r === r && lastMove.to.c === c) div.classList.add('last-to');
-      }
-      if (checkPos && checkPos.r === r && checkPos.c === c) div.classList.add('in-check');
-
-      const cell = board[r][c];
-      if (cell) {
-        const img = document.createElement('img');
-        img.src = spriteUrl(cell.color, cell.piece);
-        img.alt = pokemonName(cell.color, cell.piece);
-        img.draggable = false;
-        div.appendChild(img);
-
-        const label = document.createElement('span');
-        label.className = 'piece-label';
-        label.textContent = POKEMON[cell.color][cell.piece].role;
-        div.appendChild(label);
-      }
-
-      div.addEventListener('click', () => onCellClick(r, c));
-      boardEl.appendChild(div);
+function render(){
+  const bEl=document.getElementById('board');bEl.innerHTML='';
+  const chk=inCheck(board,turn)?findKing(board,turn):null;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const d=document.createElement('div');
+    d.className='cell '+((r+c)%2===0?'light':'dark');
+    if(selected&&selected.r===r&&selected.c===c)d.classList.add('selected');
+    if(legalCache.some(m=>m.r===r&&m.c===c)){d.classList.add(board[r][c]||legalCache.find(m=>m.r===r&&m.c===c)?.flag==='ep'?'capture-legal':'legal')}
+    if(lastMove){if(lastMove.from.r===r&&lastMove.from.c===c)d.classList.add('last-from');if(lastMove.to.r===r&&lastMove.to.c===c)d.classList.add('last-to')}
+    if(chk&&chk.r===r&&chk.c===c)d.classList.add('in-check');
+    const cell=board[r][c];
+    if(cell){
+      const img=document.createElement('img');img.src=sprite(POKEMON[cell.color][cell.piece].id);img.alt=POKEMON[cell.color][cell.piece].name;img.draggable=false;d.appendChild(img);
+      const lbl=document.createElement('span');lbl.className='piece-label';lbl.textContent=POKEMON[cell.color][cell.piece].role;d.appendChild(lbl);
     }
+    d.addEventListener('click',()=>onCellClick(r,c));bEl.appendChild(d);
   }
 }
 
-function renderLegend() {
-  const el = document.getElementById('legend');
-  el.innerHTML = '';
-  const header = document.createElement('div');
-  header.style.cssText = 'grid-column:1/-1;text-align:center;color:#ffcb05;font-weight:bold;margin-bottom:2px;font-size:1.1em;';
-  header.innerHTML = 'Pok&eacute;mon &rarr; Chess Piece';
-  el.appendChild(header);
+function renderControls(){
+  const ctrl=document.getElementById('controls');
+  if(mode==='campaign'&&gameOver)return; // campaign result handles this
+  let html=`<button onclick="undoMove()">Undo</button>`;
+  if(mode==='campaign')html+=`<button onclick="showCampaignMap()">Forfeit</button>`;
+  else html+=`<button onclick="start2Player()">New Game</button>`;
+  ctrl.innerHTML=html;
+}
 
-  for (const [color, pIdx] of [['w', 0], ['b', 1]]) {
-    const teamLabel = document.createElement('div');
-    teamLabel.style.cssText = 'grid-column:1/-1;color:#aaa;font-size:0.95em;margin-top:4px;';
-    teamLabel.textContent = `${players[pIdx].name} (${REGIONS[players[pIdx].region].name})`;
-    el.appendChild(teamLabel);
-
-    for (const p of ['K','Q','R','B','N','P']) {
-      const item = document.createElement('div');
-      item.className = 'legend-item';
-      item.innerHTML = `<img src="${spriteUrl(color, p)}" alt="${pokemonName(color, p)}"> ${pokemonName(color, p)} = ${POKEMON[color][p].role}`;
+function renderLegend(){
+  const el=document.getElementById('legend');el.innerHTML='';
+  for(const[col,pIdx]of[['w',0],['b',1]]){
+    const hdr=document.createElement('div');hdr.className='legend-hdr';
+    hdr.textContent=`${players[pIdx].name} (${REGIONS[players[pIdx].region].name})`;
+    el.appendChild(hdr);
+    for(const p of['K','Q','R','B','N','P']){
+      const item=document.createElement('div');item.className='legend-item';
+      item.innerHTML=`<img src="${sprite(POKEMON[col][p].id)}"> ${POKEMON[col][p].name} = ${POKEMON[col][p].role}`;
       el.appendChild(item);
     }
   }
 }
 
-function preloadSprites() {
-  for (const color of ['w', 'b'])
-    for (const piece of ['K','Q','R','B','N','P']) {
-      const img = new Image();
-      img.src = spriteUrl(color, piece);
-    }
+function preloadSprites(){
+  for(const col of['w','b'])for(const p of['K','Q','R','B','N','P']){const i=new Image();i.src=sprite(POKEMON[col][p].id)}
 }
 
-// Preload avatar sprites on page load
-AVATARS.forEach(a => { const img = new Image(); img.src = sprite(a.id); });
+// Preload avatars
+AVATARS.forEach(a=>{const i=new Image();i.src=sprite(a.id)});
 </script>
 </body>
 </html>
