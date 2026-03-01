@@ -22,7 +22,7 @@
   }
 
   h1 {
-    font-size: 1.6em;
+    font-size: 1.8em;
     margin: 8px 0;
     text-align: center;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
@@ -32,15 +32,155 @@
     background-clip: text;
   }
 
-  #status {
+  /* ===== SETUP SCREENS ===== */
+  .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 420px; }
+  .screen.active { display: flex; }
+
+  .subtitle {
+    color: #ffcb05;
     font-size: 1.1em;
+    margin: 10px 0 6px;
+    text-align: center;
+  }
+
+  .section-label {
+    color: #aaa;
+    font-size: 0.85em;
+    margin: 12px 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .name-input {
+    width: 80%;
+    max-width: 260px;
+    padding: 10px 16px;
+    border: 2px solid #ffcb05;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 1.1em;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .name-input::placeholder { color: rgba(255,255,255,0.35); }
+  .name-input:focus { border-color: #ff6b35; }
+
+  .avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 4px 0;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .avatar-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .avatar-option:active { transform: scale(0.95); }
+  .avatar-option.selected { border-color: #ffcb05; background: rgba(255,203,5,0.15); }
+  .avatar-option img { width: 48px; height: 48px; image-rendering: pixelated; }
+  .avatar-option span { font-size: 0.6em; color: #ccc; margin-top: 2px; }
+
+  .region-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    margin: 4px 0;
+  }
+
+  .region-card {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 10px 8px;
+    background: rgba(255,255,255,0.05);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .region-card:active { transform: scale(0.97); }
+  .region-card.selected { border-color: #ffcb05; background: rgba(255,203,5,0.12); }
+
+  .region-card .region-name {
+    font-weight: bold;
+    color: #ffcb05;
+    font-size: 0.95em;
+    margin-bottom: 6px;
+  }
+
+  .region-card .region-pokemon {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    flex-wrap: wrap;
+  }
+
+  .region-card .region-pokemon img {
+    width: 28px;
+    height: 28px;
+    image-rendering: pixelated;
+  }
+
+  .btn {
+    padding: 10px 28px;
+    border: 2px solid #ffcb05;
+    border-radius: 24px;
+    background: linear-gradient(135deg, rgba(255,203,5,0.2), rgba(255,107,53,0.2));
+    color: #ffcb05;
+    font-size: 1.05em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 12px 0;
+  }
+
+  .btn:active { background: rgba(255,203,5,0.4); transform: scale(0.95); }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+
+  .trainer-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 8px 14px;
     margin: 6px 0;
+  }
+
+  .trainer-preview img {
+    width: 40px;
+    height: 40px;
+    image-rendering: pixelated;
+  }
+
+  .trainer-preview .tp-info { font-size: 0.85em; }
+  .trainer-preview .tp-name { font-weight: bold; color: #ffcb05; }
+  .trainer-preview .tp-region { color: #aaa; font-size: 0.85em; }
+
+  /* ===== GAME SCREEN ===== */
+  #status {
+    font-size: 1.05em;
+    margin: 4px 0;
     padding: 6px 18px;
     border-radius: 20px;
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
     text-align: center;
-    min-height: 36px;
+    min-height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -52,31 +192,42 @@
   #status.check { background: rgba(255, 200, 0, 0.4); }
   #status.gameover { background: rgba(255, 215, 0, 0.4); }
 
-  #captured {
+  .player-bar {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
     width: 100%;
     max-width: 420px;
-    margin: 4px 0;
+    padding: 4px 6px;
     font-size: 0.8em;
-    gap: 8px;
   }
 
-  .captured-group {
+  .player-bar img {
+    width: 28px;
+    height: 28px;
+    image-rendering: pixelated;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+
+  .player-bar.active-turn img { border-color: #ffcb05; }
+
+  .player-bar .pname { font-weight: bold; }
+  .player-bar .pregion { color: #aaa; font-size: 0.85em; }
+
+  .player-bar .captured-row {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 2px;
-    flex: 1;
+    gap: 1px;
+    margin-left: auto;
   }
 
-  .captured-group img {
-    width: 22px;
-    height: 22px;
-    image-rendering: pixelated;
+  .player-bar .captured-row img {
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 0;
   }
-
-  .captured-group.blue { justify-content: flex-end; }
 
   #board-container {
     position: relative;
@@ -107,7 +258,6 @@
 
   .cell.light { background: #f0d9b5; }
   .cell.dark  { background: #b58863; }
-
   .cell.selected { background: #ffeb3b !important; box-shadow: inset 0 0 12px rgba(255,200,0,0.6); }
   .cell.legal   { background: radial-gradient(circle, rgba(0,0,0,0.25) 22%, transparent 23%) center/100% 100% no-repeat, inherit; }
   .cell.capture-legal { background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.25) 51%) center/100% 100% no-repeat, inherit; }
@@ -138,25 +288,25 @@
   }
 
   #controls {
-    margin: 8px 0;
+    margin: 6px 0;
     display: flex;
-    gap: 10px;
+    gap: 8px;
   }
 
-  button {
-    padding: 8px 20px;
+  #controls button {
+    padding: 7px 16px;
     border: 2px solid #ffcb05;
     border-radius: 20px;
-    background: rgba(255, 203, 5, 0.15);
+    background: rgba(255,203,5,0.15);
     color: #ffcb05;
-    font-size: 0.95em;
+    font-size: 0.85em;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s;
   }
 
-  button:active {
-    background: rgba(255, 203, 5, 0.4);
+  #controls button:active {
+    background: rgba(255,203,5,0.4);
     transform: scale(0.95);
   }
 
@@ -180,11 +330,7 @@
     text-align: center;
   }
 
-  #promotion-box h2 {
-    margin-bottom: 15px;
-    color: #ffcb05;
-    font-size: 1.2em;
-  }
+  #promotion-box h2 { margin-bottom: 15px; color: #ffcb05; font-size: 1.2em; }
 
   #promotion-options {
     display: flex;
@@ -212,11 +358,11 @@
   .promo-choice span { font-size: 0.55em; color: #ccc; margin-top: 2px; }
 
   #legend {
-    margin-top: 6px;
+    margin-top: 4px;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 4px 20px;
-    font-size: 0.72em;
+    gap: 2px 16px;
+    font-size: 0.68em;
     color: #aaa;
     max-width: 420px;
     width: 100%;
@@ -225,40 +371,131 @@
   .legend-item {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
   }
 
   .legend-item img {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     image-rendering: pixelated;
   }
 
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
+  .title-pokeball {
+    font-size: 3em;
+    margin: 10px 0;
+    animation: float 3s ease-in-out infinite;
   }
 
-  .cell.bounce img { animation: bounce 0.4s ease; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(10deg); }
+  }
+
+  .vs-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 10px 0;
+  }
+
+  .vs-trainer {
+    text-align: center;
+  }
+
+  .vs-trainer img {
+    width: 56px;
+    height: 56px;
+    image-rendering: pixelated;
+  }
+
+  .vs-trainer .vs-name {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #ffcb05;
+  }
+
+  .vs-trainer .vs-region {
+    font-size: 0.7em;
+    color: #aaa;
+  }
+
+  .vs-text {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #ff6b35;
+    text-shadow: 0 0 10px rgba(255,107,53,0.5);
+  }
 </style>
 </head>
 <body>
 
 <h1>Pok&eacute;mon Chess</h1>
-<div id="status" class="red-turn">Red Team's Turn</div>
-<div id="captured">
-  <div class="captured-group red" id="captured-red"></div>
-  <div class="captured-group blue" id="captured-blue"></div>
-</div>
-<div id="board-container">
-  <div id="board"></div>
-</div>
-<div id="controls">
-  <button onclick="undoMove()">Undo</button>
-  <button onclick="resetGame()">New Game</button>
-</div>
-<div id="legend"></div>
 
+<!-- ===== TITLE SCREEN ===== -->
+<div class="screen active" id="screen-title">
+  <div class="title-pokeball">&#9898;</div>
+  <p style="color:#aaa; text-align:center; margin: 8px 0; font-size:0.95em;">
+    Choose your trainer &amp; region, then battle with Pok&eacute;mon on the chessboard!
+  </p>
+  <button class="btn" onclick="startSetup()">Start Game</button>
+</div>
+
+<!-- ===== PLAYER 1 SETUP ===== -->
+<div class="screen" id="screen-p1">
+  <div class="subtitle">Player 1 &mdash; Create Your Trainer</div>
+
+  <div class="section-label">Your Name</div>
+  <input class="name-input" id="p1-name" placeholder="Enter name..." maxlength="16" autocomplete="off">
+
+  <div class="section-label">Choose Your Partner</div>
+  <div class="avatar-grid" id="p1-avatars"></div>
+
+  <div class="section-label">Choose Your Region</div>
+  <div class="region-grid" id="p1-regions"></div>
+
+  <button class="btn" id="p1-next" onclick="finishP1()" disabled>Next &rarr;</button>
+</div>
+
+<!-- ===== PLAYER 2 SETUP ===== -->
+<div class="screen" id="screen-p2">
+  <div class="subtitle">Player 2 &mdash; Create Your Trainer</div>
+
+  <div class="section-label">Your Name</div>
+  <input class="name-input" id="p2-name" placeholder="Enter name..." maxlength="16" autocomplete="off">
+
+  <div class="section-label">Choose Your Partner</div>
+  <div class="avatar-grid" id="p2-avatars"></div>
+
+  <div class="section-label">Choose Your Region</div>
+  <div class="region-grid" id="p2-regions"></div>
+
+  <button class="btn" id="p2-next" onclick="finishP2()" disabled>Battle! &#9889;</button>
+</div>
+
+<!-- ===== VS SCREEN ===== -->
+<div class="screen" id="screen-vs">
+  <div style="margin-top:20px; color:#aaa; font-size:0.9em;">GET READY!</div>
+  <div class="vs-banner" id="vs-banner"></div>
+  <p style="color:#aaa; font-size:0.85em; margin:10px 0;">The board is set...</p>
+</div>
+
+<!-- ===== GAME SCREEN ===== -->
+<div class="screen" id="screen-game">
+  <div class="player-bar" id="bar-top"></div>
+  <div id="status" class="red-turn">Player 1's Turn</div>
+  <div id="board-container">
+    <div id="board"></div>
+  </div>
+  <div id="status-bottom"></div>
+  <div class="player-bar" id="bar-bottom"></div>
+  <div id="controls">
+    <button onclick="undoMove()">Undo</button>
+    <button onclick="goToSetup()">New Game</button>
+  </div>
+  <div id="legend"></div>
+</div>
+
+<!-- ===== PROMOTION OVERLAY ===== -->
 <div id="promotion-overlay">
   <div id="promotion-box">
     <h2>Choose Evolution!</h2>
@@ -268,53 +505,279 @@
 
 <script>
 // ============================================================
-// POKÉMON CHESS - A chess game with Pokémon as pieces
+// POKÉMON CHESS - with Trainer Creator & Regional Teams
 // ============================================================
 
-// --- Piece/Pokémon mapping ---
-// Sprites from PokeAPI GitHub (public, reliable)
 const SPRITE_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
 
-const POKEMON = {
-  w: {
-    K: { id: 25,  name: 'Pikachu',  role: 'King' },
-    Q: { id: 150, name: 'Mewtwo',   role: 'Queen' },
-    R: { id: 143, name: 'Snorlax',  role: 'Rook' },
-    B: { id: 94,  name: 'Gengar',   role: 'Bishop' },
-    N: { id: 78,  name: 'Rapidash', role: 'Knight' },
-    P: { id: 133, name: 'Eevee',    role: 'Pawn' },
+// --- Regional Pokémon teams ---
+const REGIONS = {
+  kanto: {
+    name: 'Kanto',
+    pieces: {
+      K: { id: 25,  name: 'Pikachu' },
+      Q: { id: 150, name: 'Mewtwo' },
+      R: { id: 143, name: 'Snorlax' },
+      B: { id: 94,  name: 'Gengar' },
+      N: { id: 78,  name: 'Rapidash' },
+      P: { id: 133, name: 'Eevee' },
+    }
   },
-  b: {
-    K: { id: 6,   name: 'Charizard', role: 'King' },
-    Q: { id: 149, name: 'Dragonite', role: 'Queen' },
-    R: { id: 9,   name: 'Blastoise', role: 'Rook' },
-    B: { id: 65,  name: 'Alakazam',  role: 'Bishop' },
-    N: { id: 59,  name: 'Arcanine',  role: 'Knight' },
-    P: { id: 1,   name: 'Bulbasaur', role: 'Pawn' },
-  }
+  johto: {
+    name: 'Johto',
+    pieces: {
+      K: { id: 157, name: 'Typhlosion' },
+      Q: { id: 249, name: 'Lugia' },
+      R: { id: 208, name: 'Steelix' },
+      B: { id: 196, name: 'Espeon' },
+      N: { id: 181, name: 'Ampharos' },
+      P: { id: 155, name: 'Cyndaquil' },
+    }
+  },
+  hoenn: {
+    name: 'Hoenn',
+    pieces: {
+      K: { id: 257, name: 'Blaziken' },
+      Q: { id: 384, name: 'Rayquaza' },
+      R: { id: 306, name: 'Aggron' },
+      B: { id: 282, name: 'Gardevoir' },
+      N: { id: 359, name: 'Absol' },
+      P: { id: 258, name: 'Mudkip' },
+    }
+  },
+  sinnoh: {
+    name: 'Sinnoh',
+    pieces: {
+      K: { id: 448, name: 'Lucario' },
+      Q: { id: 483, name: 'Dialga' },
+      R: { id: 445, name: 'Garchomp' },
+      B: { id: 468, name: 'Togekiss' },
+      N: { id: 405, name: 'Luxray' },
+      P: { id: 393, name: 'Piplup' },
+    }
+  },
+  unova: {
+    name: 'Unova',
+    pieces: {
+      K: { id: 571, name: 'Zoroark' },
+      Q: { id: 644, name: 'Zekrom' },
+      R: { id: 537, name: 'Seismitoad' },
+      B: { id: 579, name: 'Reuniclus' },
+      N: { id: 523, name: 'Zebstrika' },
+      P: { id: 501, name: 'Oshawott' },
+    }
+  },
+  kalos: {
+    name: 'Kalos',
+    pieces: {
+      K: { id: 658, name: 'Greninja' },
+      Q: { id: 716, name: 'Xerneas' },
+      R: { id: 713, name: 'Avalugg' },
+      B: { id: 700, name: 'Sylveon' },
+      N: { id: 668, name: 'Pyroar' },
+      P: { id: 656, name: 'Froakie' },
+    }
+  },
 };
 
+const ROLE_NAMES = { K: 'King', Q: 'Queen', R: 'Rook', B: 'Bishop', N: 'Knight', P: 'Pawn' };
+
+// --- Partner Pokémon (avatars) ---
+const AVATARS = [
+  { id: 25,  name: 'Pikachu' },
+  { id: 6,   name: 'Charizard' },
+  { id: 150, name: 'Mewtwo' },
+  { id: 448, name: 'Lucario' },
+  { id: 133, name: 'Eevee' },
+  { id: 658, name: 'Greninja' },
+  { id: 384, name: 'Rayquaza' },
+  { id: 94,  name: 'Gengar' },
+  { id: 249, name: 'Lugia' },
+  { id: 257, name: 'Blaziken' },
+  { id: 571, name: 'Zoroark' },
+  { id: 282, name: 'Gardevoir' },
+];
+
+function sprite(id) { return SPRITE_URL + id + '.png'; }
+
+// --- Player state ---
+let players = [
+  { name: '', avatarId: null, region: null },
+  { name: '', avatarId: null, region: null },
+];
+
+// Active POKEMON config (set after setup)
+let POKEMON = { w: {}, b: {} };
+
 function spriteUrl(color, piece) {
-  return SPRITE_URL + POKEMON[color][piece].id + '.png';
+  return sprite(POKEMON[color][piece].id);
 }
 
 function pokemonName(color, piece) {
   return POKEMON[color][piece].name;
 }
 
-// --- Board state ---
-// Board is 8x8 array, each cell is null or { color: 'w'|'b', piece: 'K'|'Q'|'R'|'B'|'N'|'P' }
+// ============================================================
+// SETUP SCREENS
+// ============================================================
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startSetup() {
+  buildSetupScreen(0);
+  showScreen('screen-p1');
+}
+
+function buildSetupScreen(playerIdx) {
+  const prefix = playerIdx === 0 ? 'p1' : 'p2';
+  const avatarGrid = document.getElementById(prefix + '-avatars');
+  const regionGrid = document.getElementById(prefix + '-regions');
+  const nameInput = document.getElementById(prefix + '-name');
+  const nextBtn = document.getElementById(prefix + '-next');
+
+  players[playerIdx] = { name: '', avatarId: null, region: null };
+  nameInput.value = '';
+
+  // Avatars
+  avatarGrid.innerHTML = '';
+  AVATARS.forEach(av => {
+    const div = document.createElement('div');
+    div.className = 'avatar-option';
+    div.innerHTML = `<img src="${sprite(av.id)}" alt="${av.name}"><span>${av.name}</span>`;
+    div.addEventListener('click', () => {
+      avatarGrid.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+      div.classList.add('selected');
+      players[playerIdx].avatarId = av.id;
+      checkReady(playerIdx);
+    });
+    avatarGrid.appendChild(div);
+  });
+
+  // Regions
+  regionGrid.innerHTML = '';
+  const regionKeys = Object.keys(REGIONS);
+  regionKeys.forEach(key => {
+    const reg = REGIONS[key];
+    const card = document.createElement('div');
+    card.className = 'region-card';
+
+    // If other player already picked this region, dim it
+    const otherIdx = 1 - playerIdx;
+    const taken = players[otherIdx].region === key;
+
+    let pokemonImgs = '';
+    for (const p of ['K','Q','R','B','N','P']) {
+      pokemonImgs += `<img src="${sprite(reg.pieces[p].id)}" alt="${reg.pieces[p].name}" title="${reg.pieces[p].name}">`;
+    }
+
+    card.innerHTML = `<div class="region-name">${reg.name}</div><div class="region-pokemon">${pokemonImgs}</div>`;
+
+    if (taken) {
+      card.style.opacity = '0.35';
+      card.style.pointerEvents = 'none';
+    } else {
+      card.addEventListener('click', () => {
+        regionGrid.querySelectorAll('.region-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        players[playerIdx].region = key;
+        checkReady(playerIdx);
+      });
+    }
+    regionGrid.appendChild(card);
+  });
+
+  // Name input
+  nameInput.oninput = () => {
+    players[playerIdx].name = nameInput.value.trim();
+    checkReady(playerIdx);
+  };
+
+  nextBtn.disabled = true;
+}
+
+function checkReady(playerIdx) {
+  const p = players[playerIdx];
+  const prefix = playerIdx === 0 ? 'p1' : 'p2';
+  document.getElementById(prefix + '-next').disabled = !(p.name && p.avatarId && p.region);
+}
+
+function finishP1() {
+  buildSetupScreen(1);
+  showScreen('screen-p2');
+}
+
+function finishP2() {
+  showVsScreen();
+}
+
+function showVsScreen() {
+  const banner = document.getElementById('vs-banner');
+  banner.innerHTML = `
+    <div class="vs-trainer">
+      <img src="${sprite(players[0].avatarId)}" alt="${players[0].name}">
+      <div class="vs-name">${escHtml(players[0].name)}</div>
+      <div class="vs-region">${REGIONS[players[0].region].name}</div>
+    </div>
+    <div class="vs-text">VS</div>
+    <div class="vs-trainer">
+      <img src="${sprite(players[1].avatarId)}" alt="${players[1].name}">
+      <div class="vs-name">${escHtml(players[1].name)}</div>
+      <div class="vs-region">${REGIONS[players[1].region].name}</div>
+    </div>
+  `;
+  showScreen('screen-vs');
+  setTimeout(() => {
+    setupGame();
+    showScreen('screen-game');
+  }, 2000);
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function goToSetup() {
+  buildSetupScreen(0);
+  showScreen('screen-p1');
+}
+
+// ============================================================
+// CHESS GAME LOGIC
+// ============================================================
+
 let board = [];
-let turn = 'w'; // 'w' = red team, 'b' = blue team
-let selected = null; // { r, c }
-let legalCache = []; // legal moves for selected piece
-let history = []; // move history for undo
-let lastMove = null; // { from: {r,c}, to: {r,c} }
+let turn = 'w';
+let selected = null;
+let legalCache = [];
+let history = [];
+let lastMove = null;
 let castleRights = { w: { K: true, Q: true }, b: { K: true, Q: true } };
-let enPassantTarget = null; // { r, c } or null
-let capturedPieces = { w: [], b: [] }; // pieces captured BY each color
+let enPassantTarget = null;
+let capturedPieces = { w: [], b: [] };
 let gameOver = false;
-let promotionPending = null; // { from, to, captured, state } if waiting for promo choice
+let promotionPending = null;
+
+function setupGame() {
+  // Build POKEMON config from chosen regions
+  const r1 = REGIONS[players[0].region].pieces;
+  const r2 = REGIONS[players[1].region].pieces;
+  POKEMON = { w: {}, b: {} };
+  for (const p of ['K','Q','R','B','N','P']) {
+    POKEMON.w[p] = { id: r1[p].id, name: r1[p].name, role: ROLE_NAMES[p] };
+    POKEMON.b[p] = { id: r2[p].id, name: r2[p].name, role: ROLE_NAMES[p] };
+  }
+  preloadSprites();
+  initBoard();
+  setStatus(`${escHtml(players[0].name)}'s Turn`, 'red-turn');
+  renderBars();
+  render();
+  renderLegend();
+}
 
 function initBoard() {
   const back = ['R','N','B','Q','K','B','N','R'];
@@ -337,16 +800,9 @@ function initBoard() {
   promotionPending = null;
 }
 
-// --- Deep copy helpers ---
-function cloneBoard(b) {
-  return b.map(row => row.map(cell => cell ? { ...cell } : null));
-}
+function cloneBoard(b) { return b.map(r => r.map(c => c ? { ...c } : null)); }
+function cloneCastleRights(cr) { return { w: { ...cr.w }, b: { ...cr.b } }; }
 
-function cloneCastleRights(cr) {
-  return { w: { ...cr.w }, b: { ...cr.b } };
-}
-
-// --- Find king ---
 function findKing(b, color) {
   for (let r = 0; r < 8; r++)
     for (let c = 0; c < 8; c++)
@@ -355,9 +811,7 @@ function findKing(b, color) {
   return null;
 }
 
-// --- Is square attacked by `byColor`? ---
 function isAttacked(b, r, c, byColor) {
-  // Pawn attacks
   const pawnDir = byColor === 'w' ? 1 : -1;
   for (const dc of [-1, 1]) {
     const pr = r + pawnDir, pc = c + dc;
@@ -366,7 +820,6 @@ function isAttacked(b, r, c, byColor) {
       if (p && p.color === byColor && p.piece === 'P') return true;
     }
   }
-  // Knight attacks
   for (const [dr, dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) {
     const nr = r + dr, nc = c + dc;
     if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
@@ -374,7 +827,6 @@ function isAttacked(b, r, c, byColor) {
       if (p && p.color === byColor && p.piece === 'N') return true;
     }
   }
-  // King attacks
   for (let dr = -1; dr <= 1; dr++)
     for (let dc = -1; dc <= 1; dc++) {
       if (dr === 0 && dc === 0) continue;
@@ -384,28 +836,19 @@ function isAttacked(b, r, c, byColor) {
         if (p && p.color === byColor && p.piece === 'K') return true;
       }
     }
-  // Sliding: Rook/Queen (straight), Bishop/Queen (diagonal)
-  const straight = [[0,1],[0,-1],[1,0],[-1,0]];
-  const diagonal = [[1,1],[1,-1],[-1,1],[-1,-1]];
-  for (const [dr, dc] of straight) {
+  for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
     let nr = r + dr, nc = c + dc;
     while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
       const p = b[nr][nc];
-      if (p) {
-        if (p.color === byColor && (p.piece === 'R' || p.piece === 'Q')) return true;
-        break;
-      }
+      if (p) { if (p.color === byColor && (p.piece === 'R' || p.piece === 'Q')) return true; break; }
       nr += dr; nc += dc;
     }
   }
-  for (const [dr, dc] of diagonal) {
+  for (const [dr, dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]) {
     let nr = r + dr, nc = c + dc;
     while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
       const p = b[nr][nc];
-      if (p) {
-        if (p.color === byColor && (p.piece === 'B' || p.piece === 'Q')) return true;
-        break;
-      }
+      if (p) { if (p.color === byColor && (p.piece === 'B' || p.piece === 'Q')) return true; break; }
       nr += dr; nc += dc;
     }
   }
@@ -418,27 +861,22 @@ function inCheck(b, color) {
   return isAttacked(b, king.r, king.c, color === 'w' ? 'b' : 'w');
 }
 
-// --- Generate pseudo-legal moves for piece at (r,c) ---
 function pseudoMoves(b, r, c, cr, ep) {
   const cell = b[r][c];
   if (!cell) return [];
   const moves = [];
   const color = cell.color;
   const enemy = color === 'w' ? 'b' : 'w';
-  const add = (tr, tc, flag) => {
-    if (tr >= 0 && tr < 8 && tc >= 0 && tc < 8) moves.push({ r: tr, c: tc, flag });
-  };
+  const add = (tr, tc, flag) => { if (tr >= 0 && tr < 8 && tc >= 0 && tc < 8) moves.push({ r: tr, c: tc, flag }); };
 
   switch (cell.piece) {
     case 'P': {
       const dir = color === 'w' ? -1 : 1;
       const startRow = color === 'w' ? 6 : 1;
-      // Forward
       if (!b[r + dir]?.[c]) {
         add(r + dir, c);
         if (r === startRow && !b[r + 2 * dir]?.[c]) add(r + 2 * dir, c, 'double');
       }
-      // Captures
       for (const dc of [-1, 1]) {
         const tr = r + dir, tc = c + dc;
         if (tr >= 0 && tr < 8 && tc >= 0 && tc < 8) {
@@ -451,38 +889,25 @@ function pseudoMoves(b, r, c, cr, ep) {
     case 'N':
       for (const [dr, dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) {
         const nr = r + dr, nc = c + dc;
-        if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && (!b[nr][nc] || b[nr][nc].color === enemy))
-          add(nr, nc);
+        if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && (!b[nr][nc] || b[nr][nc].color === enemy)) add(nr, nc);
       }
       break;
     case 'B':
       for (const [dr, dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]) {
         let nr = r + dr, nc = c + dc;
-        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-          if (b[nr][nc]) { if (b[nr][nc].color === enemy) add(nr, nc); break; }
-          add(nr, nc);
-          nr += dr; nc += dc;
-        }
+        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) { if (b[nr][nc]) { if (b[nr][nc].color === enemy) add(nr, nc); break; } add(nr, nc); nr += dr; nc += dc; }
       }
       break;
     case 'R':
       for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
         let nr = r + dr, nc = c + dc;
-        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-          if (b[nr][nc]) { if (b[nr][nc].color === enemy) add(nr, nc); break; }
-          add(nr, nc);
-          nr += dr; nc += dc;
-        }
+        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) { if (b[nr][nc]) { if (b[nr][nc].color === enemy) add(nr, nc); break; } add(nr, nc); nr += dr; nc += dc; }
       }
       break;
     case 'Q':
       for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]]) {
         let nr = r + dr, nc = c + dc;
-        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-          if (b[nr][nc]) { if (b[nr][nc].color === enemy) add(nr, nc); break; }
-          add(nr, nc);
-          nr += dr; nc += dc;
-        }
+        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) { if (b[nr][nc]) { if (b[nr][nc].color === enemy) add(nr, nc); break; } add(nr, nc); nr += dr; nc += dc; }
       }
       break;
     case 'K':
@@ -490,61 +915,46 @@ function pseudoMoves(b, r, c, cr, ep) {
         for (let dc = -1; dc <= 1; dc++) {
           if (dr === 0 && dc === 0) continue;
           const nr = r + dr, nc = c + dc;
-          if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && (!b[nr][nc] || b[nr][nc].color === enemy))
-            add(nr, nc);
+          if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && (!b[nr][nc] || b[nr][nc].color === enemy)) add(nr, nc);
         }
-      // Castling
       if (cr[color].K && !inCheck(b, color)) {
-        // Kingside
-        if (!b[r][5] && !b[r][6] && b[r][7] && b[r][7].piece === 'R' && b[r][7].color === color) {
-          if (!isAttacked(b, r, 5, enemy) && !isAttacked(b, r, 6, enemy))
-            moves.push({ r, c: 6, flag: 'castleK' });
-        }
-        // Queenside
-        if (!b[r][3] && !b[r][2] && !b[r][1] && b[r][0] && b[r][0].piece === 'R' && b[r][0].color === color) {
-          if (!isAttacked(b, r, 3, enemy) && !isAttacked(b, r, 2, enemy))
-            moves.push({ r, c: 2, flag: 'castleQ' });
-        }
+        if (!b[r][5] && !b[r][6] && b[r][7] && b[r][7].piece === 'R' && b[r][7].color === color)
+          if (!isAttacked(b, r, 5, enemy) && !isAttacked(b, r, 6, enemy)) moves.push({ r, c: 6, flag: 'castleK' });
+        if (!b[r][3] && !b[r][2] && !b[r][1] && b[r][0] && b[r][0].piece === 'R' && b[r][0].color === color)
+          if (!isAttacked(b, r, 3, enemy) && !isAttacked(b, r, 2, enemy)) moves.push({ r, c: 2, flag: 'castleQ' });
       }
       break;
   }
   return moves;
 }
 
-// --- Filter to legal moves (don't leave own king in check) ---
 function legalMoves(b, r, c, cr, ep) {
   const moves = pseudoMoves(b, r, c, cr, ep);
   const color = b[r][c].color;
   return moves.filter(m => {
     const nb = cloneBoard(b);
-    // Execute move on clone
-    nb[m.r][m.c] = nb[r][c];
-    nb[r][c] = null;
-    if (m.flag === 'ep') {
-      const epCaptureRow = color === 'w' ? m.r + 1 : m.r - 1;
-      nb[epCaptureRow][m.c] = null;
-    }
+    nb[m.r][m.c] = nb[r][c]; nb[r][c] = null;
+    if (m.flag === 'ep') { nb[color === 'w' ? m.r + 1 : m.r - 1][m.c] = null; }
     if (m.flag === 'castleK') { nb[m.r][5] = nb[m.r][7]; nb[m.r][7] = null; }
     if (m.flag === 'castleQ') { nb[m.r][3] = nb[m.r][0]; nb[m.r][0] = null; }
     return !inCheck(nb, color);
   });
 }
 
-// --- Has any legal move? ---
 function hasLegalMove(b, color, cr, ep) {
   for (let r = 0; r < 8; r++)
     for (let c = 0; c < 8; c++)
-      if (b[r][c] && b[r][c].color === color && legalMoves(b, r, c, cr, ep).length > 0)
-        return true;
+      if (b[r][c] && b[r][c].color === color && legalMoves(b, r, c, cr, ep).length > 0) return true;
   return false;
 }
 
-// --- Execute a move ---
+function playerName(color) {
+  return escHtml(players[color === 'w' ? 0 : 1].name);
+}
+
 function executeMove(fromR, fromC, toR, toC, flag, promoChoice) {
-  // Save state for undo
   history.push({
-    board: cloneBoard(board),
-    turn,
+    board: cloneBoard(board), turn,
     castleRights: cloneCastleRights(castleRights),
     enPassantTarget: enPassantTarget ? { ...enPassantTarget } : null,
     lastMove: lastMove ? { from: { ...lastMove.from }, to: { ...lastMove.to } } : null,
@@ -557,10 +967,8 @@ function executeMove(fromR, fromC, toR, toC, flag, promoChoice) {
   const color = piece.color;
   const enemy = color === 'w' ? 'b' : 'w';
 
-  // Capture tracking
   if (captured) capturedPieces[color].push({ color: captured.color, piece: captured.piece });
 
-  // En passant capture
   if (flag === 'ep') {
     const epR = color === 'w' ? toR + 1 : toR - 1;
     const epCap = board[epR][toC];
@@ -568,27 +976,22 @@ function executeMove(fromR, fromC, toR, toC, flag, promoChoice) {
     board[epR][toC] = null;
   }
 
-  // Move piece
   board[toR][toC] = piece;
   board[fromR][fromC] = null;
 
-  // Castling rook move
   if (flag === 'castleK') { board[toR][5] = board[toR][7]; board[toR][7] = null; }
   if (flag === 'castleQ') { board[toR][3] = board[toR][0]; board[toR][0] = null; }
 
-  // Promotion
   if (piece.piece === 'P' && (toR === 0 || toR === 7)) {
     if (promoChoice) {
       board[toR][toC] = { color, piece: promoChoice };
     } else {
-      // Need to ask user
       promotionPending = { fromR, fromC, toR, toC, flag };
       showPromotionDialog(color);
-      return false; // move not complete
+      return false;
     }
   }
 
-  // Update castle rights
   if (piece.piece === 'K') { castleRights[color].K = false; castleRights[color].Q = false; }
   if (piece.piece === 'R') {
     if (fromC === 0) castleRights[color].Q = false;
@@ -599,46 +1002,43 @@ function executeMove(fromR, fromC, toR, toC, flag, promoChoice) {
     if (toC === 7 && toR === (enemy === 'w' ? 7 : 0)) castleRights[enemy].K = false;
   }
 
-  // En passant target
   enPassantTarget = (flag === 'double') ? { r: (fromR + toR) / 2, c: toC } : null;
-
   lastMove = { from: { r: fromR, c: fromC }, to: { r: toR, c: toC } };
   turn = enemy;
   selected = null;
   legalCache = [];
 
-  // Check game state
+  updateStatus();
+  render();
+  renderBars();
+  return true;
+}
+
+function updateStatus() {
   const check = inCheck(board, turn);
   const hasMove = hasLegalMove(board, turn, castleRights, enPassantTarget);
+  const winner = turn === 'w' ? 'b' : 'w';
 
   if (!hasMove) {
     gameOver = true;
     if (check) {
-      setStatus(`Checkmate! ${teamName(color)} wins!`, 'gameover');
+      setStatus(`Checkmate! ${playerName(winner)} wins!`, 'gameover');
     } else {
-      setStatus('Stalemate! It\'s a draw!', 'gameover');
+      setStatus("Stalemate! It's a draw!", 'gameover');
     }
   } else if (check) {
-    setStatus(`Check! ${teamName(turn)}'s turn`, 'check');
+    setStatus(`Check! ${playerName(turn)}'s turn`, 'check');
   } else {
-    setStatus(`${teamName(turn)}'s Turn`, turn === 'w' ? 'red-turn' : 'blue-turn');
+    setStatus(`${playerName(turn)}'s Turn`, turn === 'w' ? 'red-turn' : 'blue-turn');
   }
-
-  render();
-  return true;
-}
-
-function teamName(color) {
-  return color === 'w' ? 'Red Team' : 'Blue Team';
 }
 
 function setStatus(text, cls) {
   const el = document.getElementById('status');
-  el.textContent = text;
+  el.innerHTML = text;
   el.className = cls || '';
 }
 
-// --- Promotion dialog ---
 function showPromotionDialog(color) {
   const overlay = document.getElementById('promotion-overlay');
   const options = document.getElementById('promotion-options');
@@ -647,12 +1047,8 @@ function showPromotionDialog(color) {
   for (const p of ['Q', 'R', 'B', 'N']) {
     const btn = document.createElement('div');
     btn.className = 'promo-choice';
-    btn.innerHTML = `<img src="${spriteUrl(color, p)}" alt="${pokemonName(color, p)}">
-      <span>${pokemonName(color, p)}</span>`;
-    btn.addEventListener('click', () => {
-      overlay.classList.remove('active');
-      completePromotion(p);
-    });
+    btn.innerHTML = `<img src="${spriteUrl(color, p)}" alt="${pokemonName(color, p)}"><span>${pokemonName(color, p)}</span>`;
+    btn.addEventListener('click', () => { overlay.classList.remove('active'); completePromotion(p); });
     options.appendChild(btn);
   }
 }
@@ -661,90 +1057,49 @@ function completePromotion(choice) {
   if (!promotionPending) return;
   const pp = promotionPending;
   promotionPending = null;
-  board[pp.toR][pp.toC] = { color: board[pp.toR][pp.toC].color, piece: choice };
-
-  // Update castle rights (re-check since piece was pawn originally)
   const color = board[pp.toR][pp.toC].color;
   const enemy = color === 'w' ? 'b' : 'w';
-
+  board[pp.toR][pp.toC] = { color, piece: choice };
   enPassantTarget = null;
   lastMove = { from: { r: pp.fromR, c: pp.fromC }, to: { r: pp.toR, c: pp.toC } };
   turn = enemy;
   selected = null;
   legalCache = [];
-
-  const check = inCheck(board, turn);
-  const hasMove = hasLegalMove(board, turn, castleRights, enPassantTarget);
-
-  if (!hasMove) {
-    gameOver = true;
-    if (check) {
-      setStatus(`Checkmate! ${teamName(color)} wins!`, 'gameover');
-    } else {
-      setStatus('Stalemate! It\'s a draw!', 'gameover');
-    }
-  } else if (check) {
-    setStatus(`Check! ${teamName(turn)}'s turn`, 'check');
-  } else {
-    setStatus(`${teamName(turn)}'s Turn`, turn === 'w' ? 'red-turn' : 'blue-turn');
-  }
+  updateStatus();
   render();
+  renderBars();
 }
 
-// --- Undo ---
 function undoMove() {
   if (history.length === 0 || promotionPending) return;
   const prev = history.pop();
-  board = prev.board;
-  turn = prev.turn;
+  board = prev.board; turn = prev.turn;
   castleRights = prev.castleRights;
   enPassantTarget = prev.enPassantTarget;
   lastMove = prev.lastMove;
   capturedPieces = prev.capturedPieces;
   gameOver = prev.gameOver;
-  selected = null;
-  legalCache = [];
-  if (!gameOver) {
-    setStatus(`${teamName(turn)}'s Turn`, turn === 'w' ? 'red-turn' : 'blue-turn');
-  }
+  selected = null; legalCache = [];
+  if (!gameOver) setStatus(`${playerName(turn)}'s Turn`, turn === 'w' ? 'red-turn' : 'blue-turn');
   render();
+  renderBars();
 }
 
-// --- Reset ---
-function resetGame() {
-  initBoard();
-  setStatus('Red Team\'s Turn', 'red-turn');
-  render();
-}
-
-// --- Cell click ---
 function onCellClick(r, c) {
   if (gameOver || promotionPending) return;
-
   const cell = board[r][c];
 
   if (selected) {
-    // Check if clicked on legal move target
     const move = legalCache.find(m => m.r === r && m.c === c);
-    if (move) {
-      executeMove(selected.r, selected.c, r, c, move.flag);
-      return;
-    }
-    // Clicked on own piece - reselect
+    if (move) { executeMove(selected.r, selected.c, r, c, move.flag); return; }
     if (cell && cell.color === turn) {
       selected = { r, c };
       legalCache = legalMoves(board, r, c, castleRights, enPassantTarget);
-      render();
-      return;
+      render(); return;
     }
-    // Deselect
-    selected = null;
-    legalCache = [];
-    render();
-    return;
+    selected = null; legalCache = []; render(); return;
   }
 
-  // Select piece
   if (cell && cell.color === turn) {
     selected = { r, c };
     legalCache = legalMoves(board, r, c, castleRights, enPassantTarget);
@@ -752,11 +1107,38 @@ function onCellClick(r, c) {
   }
 }
 
-// --- Render ---
+// ============================================================
+// RENDERING
+// ============================================================
+
+function renderBars() {
+  // Top bar = player 2 (black), Bottom bar = player 1 (white)
+  for (const [barId, pIdx, color] of [['bar-top', 1, 'b'], ['bar-bottom', 0, 'w']]) {
+    const bar = document.getElementById(barId);
+    const p = players[pIdx];
+    const isActive = turn === color && !gameOver;
+    bar.className = 'player-bar' + (isActive ? ' active-turn' : '');
+
+    let capturedHtml = '';
+    const caps = capturedPieces[color];
+    for (const cap of caps) {
+      capturedHtml += `<img src="${sprite(POKEMON[cap.color][cap.piece].id)}" alt="${POKEMON[cap.color][cap.piece].name}">`;
+    }
+
+    bar.innerHTML = `
+      <img src="${sprite(p.avatarId)}" alt="${escHtml(p.name)}">
+      <div>
+        <div class="pname">${escHtml(p.name)}</div>
+        <div class="pregion">${REGIONS[p.region].name}</div>
+      </div>
+      <div class="captured-row">${capturedHtml}</div>
+    `;
+  }
+}
+
 function render() {
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
-
   const checkPos = inCheck(board, turn) ? findKing(board, turn) : null;
 
   for (let r = 0; r < 8; r++) {
@@ -764,25 +1146,20 @@ function render() {
       const div = document.createElement('div');
       div.className = 'cell ' + ((r + c) % 2 === 0 ? 'light' : 'dark');
 
-      // Highlights
       if (selected && selected.r === r && selected.c === c) div.classList.add('selected');
-
       if (legalCache.some(m => m.r === r && m.c === c)) {
-        if (board[r][c] || (legalCache.find(m => m.r === r && m.c === c)?.flag === 'ep')) {
+        if (board[r][c] || legalCache.find(m => m.r === r && m.c === c)?.flag === 'ep') {
           div.classList.add('capture-legal');
         } else {
           div.classList.add('legal');
         }
       }
-
       if (lastMove) {
         if (lastMove.from.r === r && lastMove.from.c === c) div.classList.add('last-from');
         if (lastMove.to.r === r && lastMove.to.c === c) div.classList.add('last-to');
       }
-
       if (checkPos && checkPos.r === r && checkPos.c === c) div.classList.add('in-check');
 
-      // Piece
       const cell = board[r][c];
       if (cell) {
         const img = document.createElement('img');
@@ -801,43 +1178,31 @@ function render() {
       boardEl.appendChild(div);
     }
   }
-
-  renderCaptured();
-}
-
-function renderCaptured() {
-  for (const color of ['w', 'b']) {
-    const containerId = color === 'w' ? 'captured-red' : 'captured-blue';
-    const el = document.getElementById(containerId);
-    el.innerHTML = '';
-    // Show pieces this team has captured (enemy pieces)
-    const caps = capturedPieces[color];
-    for (const cap of caps) {
-      const img = document.createElement('img');
-      img.src = spriteUrl(cap.color, cap.piece);
-      img.alt = pokemonName(cap.color, cap.piece);
-      img.title = pokemonName(cap.color, cap.piece);
-      el.appendChild(img);
-    }
-  }
 }
 
 function renderLegend() {
   const el = document.getElementById('legend');
-  el.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#ffcb05;font-weight:bold;margin-bottom:2px;">Pok&eacute;mon &rarr; Chess Piece</div>';
-  const pieces = ['K','Q','R','B','N','P'];
-  for (const color of ['w', 'b']) {
-    const teamLabel = color === 'w' ? '🔴' : '🔵';
-    for (const p of pieces) {
+  el.innerHTML = '';
+  const header = document.createElement('div');
+  header.style.cssText = 'grid-column:1/-1;text-align:center;color:#ffcb05;font-weight:bold;margin-bottom:2px;font-size:1.1em;';
+  header.innerHTML = 'Pok&eacute;mon &rarr; Chess Piece';
+  el.appendChild(header);
+
+  for (const [color, pIdx] of [['w', 0], ['b', 1]]) {
+    const teamLabel = document.createElement('div');
+    teamLabel.style.cssText = 'grid-column:1/-1;color:#aaa;font-size:0.95em;margin-top:4px;';
+    teamLabel.textContent = `${players[pIdx].name} (${REGIONS[players[pIdx].region].name})`;
+    el.appendChild(teamLabel);
+
+    for (const p of ['K','Q','R','B','N','P']) {
       const item = document.createElement('div');
       item.className = 'legend-item';
-      item.innerHTML = `${teamLabel}<img src="${spriteUrl(color, p)}" alt="${pokemonName(color, p)}"> ${pokemonName(color, p)} = ${POKEMON[color][p].role}`;
+      item.innerHTML = `<img src="${spriteUrl(color, p)}" alt="${pokemonName(color, p)}"> ${pokemonName(color, p)} = ${POKEMON[color][p].role}`;
       el.appendChild(item);
     }
   }
 }
 
-// --- Preload sprites ---
 function preloadSprites() {
   for (const color of ['w', 'b'])
     for (const piece of ['K','Q','R','B','N','P']) {
@@ -846,12 +1211,8 @@ function preloadSprites() {
     }
 }
 
-// --- Init ---
-preloadSprites();
-initBoard();
-setStatus('Red Team\'s Turn', 'red-turn');
-render();
-renderLegend();
+// Preload avatar sprites on page load
+AVATARS.forEach(a => { const img = new Image(); img.src = sprite(a.id); });
 </script>
 </body>
 </html>
