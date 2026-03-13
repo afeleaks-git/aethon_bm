@@ -44,8 +44,14 @@ h1{font-size:1.6em;margin:8px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 .top-bar .money{color:#ffcb05;font-weight:bold}
 .actions-bar{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;padding:4px;width:100%}
 
-/* Monopoly Board */
+/* View toggle */
+.view-toggle{display:flex;gap:4px;justify-content:center;margin:4px 0}
+.view-toggle button{padding:4px 12px;border:1px solid rgba(255,203,5,.4);border-radius:14px;background:rgba(255,255,255,.05);color:#aaa;font-size:.72em;cursor:pointer;font-weight:bold}
+.view-toggle button.active{background:rgba(255,203,5,.25);color:#ffcb05;border-color:#ffcb05}
+
+/* Monopoly Board (grid view) */
 .board-wrapper{width:100%;overflow:auto;-webkit-overflow-scrolling:touch;max-height:55vh;margin:4px 0;display:flex;justify-content:center}
+.board-wrapper.hidden{display:none}
 .board{display:grid;grid-template-columns:repeat(11,1fr);grid-template-rows:repeat(11,1fr);width:min(95vw,500px);height:min(95vw,500px);min-width:340px;min-height:340px;border:2px solid rgba(255,203,5,.3);border-radius:4px;background:rgba(0,20,40,.6);position:relative}
 .board-cell{border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-size:.32em;padding:1px;overflow:hidden;position:relative;cursor:pointer;min-width:0;min-height:0}
 .board-cell:active{background:rgba(255,255,255,.1)}
@@ -57,6 +63,25 @@ h1{font-size:1.6em;margin:8px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 .board-cell .cell-buildings{position:absolute;top:0;right:1px;display:flex;gap:0}
 .board-cell .cell-buildings .gym{width:5px;height:5px;background:#2ecc71;border-radius:1px}
 .board-cell .cell-buildings .stadium{width:7px;height:7px;background:#e74c3c;border-radius:1px}
+
+/* List view */
+.list-view{width:100%;max-height:50vh;overflow-y:auto;margin:4px 0;padding:0 2px;-webkit-overflow-scrolling:touch}
+.list-view.hidden{display:none}
+.list-space{display:flex;align-items:center;gap:6px;padding:6px 8px;margin:2px 0;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:all .15s}
+.list-space:active{background:rgba(255,255,255,.1)}
+.list-space.current-space{border-color:#ffcb05;background:rgba(255,203,5,.12);box-shadow:0 0 8px rgba(255,203,5,.2)}
+.list-space .ls-color{width:6px;height:100%;min-height:28px;border-radius:3px;flex-shrink:0}
+.list-space .ls-info{flex:1;min-width:0}
+.list-space .ls-name{font-size:.82em;font-weight:bold;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-space .ls-detail{font-size:.65em;color:#aaa;margin-top:1px}
+.list-space .ls-right{display:flex;align-items:center;gap:3px;flex-shrink:0}
+.list-space .ls-right .ls-price{font-size:.72em;color:#ffcb05;font-weight:bold}
+.list-space .ls-right .ls-owner{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.list-space .ls-tokens{display:flex;gap:1px;flex-shrink:0}
+.list-space .ls-tokens img{width:18px;height:18px;image-rendering:pixelated}
+.list-space .ls-buildings{display:flex;gap:1px;flex-shrink:0}
+.list-space .ls-buildings .gym{width:6px;height:6px;background:#2ecc71;border-radius:1px}
+.list-space .ls-buildings .stadium{width:8px;height:8px;background:#e74c3c;border-radius:2px}
 .board-center{grid-column:2/11;grid-row:2/11;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.8em;color:rgba(255,255,255,.3);text-align:center;padding:8px}
 .board-center img{width:60px;opacity:.3}
 .board-center .board-title{font-size:1.4em;font-weight:bold;background:linear-gradient(90deg,#ffcb05,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;opacity:.5}
@@ -97,9 +122,14 @@ h1{font-size:1.6em;margin:8px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 .trade-money-input{width:80px;padding:4px 8px;border:1px solid rgba(255,203,5,.4);border-radius:6px;background:rgba(255,255,255,.08);color:#fff;font-size:.85em}
 
 /* Card display */
-.card-display{text-align:center;padding:16px;margin:8px 0;border:2px solid #ffcb05;border-radius:12px;background:rgba(255,203,5,.08)}
-.card-display .card-type{font-size:.75em;color:#aaa;text-transform:uppercase;letter-spacing:1px}
-.card-display .card-text{font-size:1em;margin:8px 0;color:#fff;line-height:1.4}
+.card-display{text-align:center;padding:20px 16px;margin:8px 0;border:3px solid #ffcb05;border-radius:16px;background:rgba(255,203,5,.1)}
+.card-display.chance-card{border-color:#e040fb;background:rgba(224,64,251,.12)}
+.card-display.chest-card{border-color:#4fc3f7;background:rgba(79,195,247,.12)}
+.card-display .card-icon{font-size:2.5em;margin-bottom:6px}
+.card-display .card-type{font-size:.85em;color:#ffcb05;text-transform:uppercase;letter-spacing:2px;font-weight:bold;margin-bottom:6px}
+.card-display.chance-card .card-type{color:#e040fb}
+.card-display.chest-card .card-type{color:#4fc3f7}
+.card-display .card-text{font-size:1.1em;margin:10px 0;color:#fff;line-height:1.5;font-weight:500}
 
 /* Player status bar */
 .player-status-bar{display:flex;gap:4px;width:100%;overflow-x:auto;padding:4px 0}
@@ -139,7 +169,14 @@ h1{font-size:1.6em;margin:8px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 <div class="screen" id="board-screen">
   <div class="player-status-bar" id="player-status-bar"></div>
 
-  <div class="board-wrapper" id="board-wrapper">
+  <div class="view-toggle" id="view-toggle">
+    <button class="active" id="view-list-btn" onclick="setView('list')">List View</button>
+    <button id="view-board-btn" onclick="setView('board')">Board View</button>
+  </div>
+
+  <div class="list-view" id="list-view"></div>
+
+  <div class="board-wrapper hidden" id="board-wrapper">
     <div class="board" id="board"></div>
   </div>
 
@@ -397,7 +434,8 @@ initSetup();
 // ==================== RENDERING ====================
 function renderAll(){
   renderStatusBar();
-  renderBoard();
+  if(currentView==='board') renderBoard();
+  else renderListView();
   renderActions();
 }
 
@@ -508,6 +546,102 @@ function renderBoard(){
   center.className='board-center';
   center.innerHTML=`<div class="board-title">Pokémon<br>Monopoly</div><div style="margin-top:6px;font-size:.7em">Free Parking Pot: ${freeParkingPot}₽</div>`;
   board.appendChild(center);
+}
+
+// ==================== VIEW TOGGLE ====================
+let currentView = 'list'; // default to list for mobile
+function setView(v){
+  currentView=v;
+  document.getElementById('view-list-btn').classList.toggle('active',v==='list');
+  document.getElementById('view-board-btn').classList.toggle('active',v==='board');
+  document.getElementById('list-view').classList.toggle('hidden',v!=='list');
+  document.getElementById('board-wrapper').classList.toggle('hidden',v!=='board');
+  renderAll();
+}
+
+function renderListView(){
+  const lv=document.getElementById('list-view');
+  lv.innerHTML='';
+  const cpPos=players[currentPlayer]?players[currentPlayer].position:-1;
+
+  // Show spaces near current player first, or show all
+  const SPACE_ICONS={go:'🏁',jail:'🔒',gotojail:'🚨',freeparking:'🏠',tax:'💰',chance:'❓',chest:'🎁',railroad:'🏥',utility:'🔬',property:'🏘️'};
+
+  for(let i=0;i<40;i++){
+    const sp=BOARD[i];
+    const div=document.createElement('div');
+    div.className='list-space';
+    if(i===cpPos) div.className+=' current-space';
+
+    let colorBar='';
+    if(sp.group){
+      colorBar=`<div class="ls-color" style="background:${GROUP_COLORS[sp.group]}"></div>`;
+    } else {
+      colorBar=`<div class="ls-color" style="background:rgba(255,255,255,.1)"></div>`;
+    }
+
+    // Detail line
+    let detail='';
+    if(sp.type==='property') detail=`Property • Rent: ${sp.rent[sp.buildings]}₽`;
+    else if(sp.type==='railroad') detail='Pokémon Center';
+    else if(sp.type==='utility') detail='Utility';
+    else if(sp.type==='tax') detail=`Tax: ${sp.amount||200}₽`;
+    else if(sp.type==='chance') detail='Draw a card!';
+    else if(sp.type==='chest') detail='Draw a card!';
+    else if(sp.type==='go') detail='Collect 200₽';
+    else if(sp.type==='jail') detail='Just Visiting';
+    else if(sp.type==='gotojail') detail='Go to Jail!';
+    else if(sp.type==='freeparking') detail=`Pot: ${freeParkingPot}₽`;
+
+    // Right side: price/owner + buildings
+    let rightHtml='';
+    if(sp.price && sp.owner===-1){
+      rightHtml+=`<span class="ls-price">${sp.price}₽</span>`;
+    } else if(sp.owner>=0){
+      rightHtml+=`<div class="ls-owner" style="background:${players[sp.owner].color}" title="${players[sp.owner].name}"></div>`;
+    }
+
+    // Buildings
+    let buildHtml='';
+    if(sp.buildings>0){
+      buildHtml='<div class="ls-buildings">';
+      if(sp.buildings===5) buildHtml+='<div class="stadium"></div>';
+      else for(let b=0;b<sp.buildings;b++) buildHtml+='<div class="gym"></div>';
+      buildHtml+='</div>';
+    }
+
+    // Player tokens on this space
+    let tokenHtml='<div class="ls-tokens">';
+    players.forEach((p,pi)=>{
+      if(!p.bankrupt&&p.position===i){
+        tokenHtml+=`<img src="${SPRITE_URL(p.token)}" title="${p.name}">`;
+      }
+    });
+    tokenHtml+='</div>';
+
+    let icon=SPACE_ICONS[sp.type]||'';
+    let nameDisplay=sp.mortgaged?`<s>${sp.name}</s>`:sp.name;
+
+    div.innerHTML=`${colorBar}
+      <div class="ls-info">
+        <div class="ls-name">${icon} ${nameDisplay}</div>
+        <div class="ls-detail">${detail}</div>
+      </div>
+      ${buildHtml}
+      <div class="ls-right">${rightHtml}</div>
+      ${tokenHtml}`;
+
+    div.onclick=()=>showSpaceInfo(i);
+    lv.appendChild(div);
+  }
+
+  // Auto-scroll to current player's position
+  if(cpPos>=0){
+    const items=lv.querySelectorAll('.list-space');
+    if(items[cpPos]){
+      setTimeout(()=>items[cpPos].scrollIntoView({block:'center',behavior:'smooth'}),100);
+    }
+  }
 }
 
 function renderActions(){
@@ -797,13 +931,20 @@ function drawCard(pi,type){
   const cardIdx=deck.shift();
   const card=cards[cardIdx];
 
+  const isChance=type==='chance';
+  const cardClass=isChance?'chance-card':'chest-card';
+  const icon=isChance?'⚡':'🎁';
+  const typeName=isChance?'Wild Encounter':"Professor's Gift";
+
   showModal(`
-    <div class="card-display">
-      <div class="card-type">${type==='chance'?'Wild Encounter':'Professor\'s Gift'}</div>
+    <div class="card-display ${cardClass}">
+      <div class="card-icon">${icon}</div>
+      <div class="card-type">${typeName}</div>
       <div class="card-text">${card.text}</div>
     </div>
+    <p style="text-align:center;color:#aaa;font-size:.8em;margin:4px 0">${players[pi].name} drew this card</p>
     <div class="modal-actions">
-      <button class="btn small" onclick="executeCard(${pi},'${type}',${cardIdx})">OK</button>
+      <button class="btn" onclick="executeCard(${pi},'${type}',${cardIdx})">OK</button>
     </div>
   `);
 }
@@ -830,7 +971,7 @@ function goToJail(pi){
   p.inJail=true;
   p.jailTurns=0;
   doublesCount=0;
-  logMsg(`${p.name} was sent to Team Rocket Hideout!`);
+  logMsg(`🚨 ${p.name} was sent to Team Rocket Hideout! 🚨`);
   gamePhase='turnend';
   renderAll();
 }
