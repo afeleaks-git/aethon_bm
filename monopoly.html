@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pok&eacute;mon Monopoly</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;color:#fff;overflow-x:hidden;-webkit-tap-highlight-color:transparent;user-select:none}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:rgba(255,255,255,.05)}
+::-webkit-scrollbar-thumb{background:rgba(255,203,5,.3);border-radius:3px}
+h1{font-size:1.6em;margin:8px 0;text-align:center;text-shadow:2px 2px 4px rgba(0,0,0,.5);background:linear-gradient(90deg,#ffcb05,#ff6b35,#ffcb05);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:500px;margin:0 auto;padding:8px}
+.screen.active{display:flex}
+.btn{padding:10px 24px;border:2px solid #ffcb05;border-radius:22px;background:linear-gradient(135deg,rgba(255,203,5,.18),rgba(255,107,53,.18));color:#ffcb05;font-size:1em;font-weight:bold;cursor:pointer;transition:all .2s;margin:6px 4px;white-space:nowrap}
+.btn:active{background:rgba(255,203,5,.4);transform:scale(.95)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.small{padding:6px 14px;font-size:.82em;margin:4px 3px}
+.btn.danger{border-color:#e74c3c;color:#e74c3c;background:rgba(231,76,60,.15)}
+.btn.success{border-color:#2ecc71;color:#2ecc71;background:rgba(46,204,113,.15)}
+
+/* Setup screen */
+.setup-section{width:100%;margin:8px 0;padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04)}
+.setup-section h3{color:#ffcb05;font-size:.95em;margin-bottom:6px}
+.player-setup{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.player-setup input{flex:1;min-width:120px;padding:8px 12px;border:2px solid rgba(255,203,5,.4);border-radius:10px;background:rgba(255,255,255,.08);color:#fff;font-size:.95em;outline:none}
+.player-setup input:focus{border-color:#ffcb05}
+.pokemon-select{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px}
+.pokemon-opt{display:flex;flex-direction:column;align-items:center;padding:5px 2px;border:2px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.03);cursor:pointer;transition:all .15s}
+.pokemon-opt:active{transform:scale(.93)}
+.pokemon-opt.selected{border-color:#ffcb05;background:rgba(255,203,5,.15)}
+.pokemon-opt.taken{opacity:.25;pointer-events:none}
+.pokemon-opt img{width:40px;height:40px;image-rendering:pixelated}
+.pokemon-opt span{font-size:.55em;color:#ccc;margin-top:1px}
+.player-count-sel{display:flex;gap:8px;margin:8px 0}
+.player-count-sel .btn.active{background:rgba(255,203,5,.4)}
+
+/* Board screen */
+#board-screen{max-width:100%;padding:4px}
+.top-bar{display:flex;justify-content:space-between;align-items:center;width:100%;padding:4px 8px;flex-wrap:wrap;gap:4px}
+.top-bar .current-player{display:flex;align-items:center;gap:6px;font-size:.85em}
+.top-bar .current-player img{width:28px;height:28px;image-rendering:pixelated}
+.top-bar .money{color:#ffcb05;font-weight:bold}
+.actions-bar{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;padding:4px;width:100%}
+
+/* Monopoly Board */
+.board-wrapper{width:100%;overflow:auto;-webkit-overflow-scrolling:touch;max-height:55vh;margin:4px 0;display:flex;justify-content:center}
+.board{display:grid;grid-template-columns:repeat(11,1fr);grid-template-rows:repeat(11,1fr);width:min(95vw,500px);height:min(95vw,500px);min-width:340px;min-height:340px;border:2px solid rgba(255,203,5,.3);border-radius:4px;background:rgba(0,20,40,.6);position:relative}
+.board-cell{border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-size:.32em;padding:1px;overflow:hidden;position:relative;cursor:pointer;min-width:0;min-height:0}
+.board-cell:active{background:rgba(255,255,255,.1)}
+.board-cell .cell-color{width:100%;height:22%;min-height:3px;flex-shrink:0}
+.board-cell .cell-name{text-align:center;line-height:1.1;flex:1;display:flex;align-items:center;justify-content:center;word-break:break-word;font-size:1em;padding:0 1px}
+.board-cell .cell-price{font-size:.85em;color:#ffcb05;flex-shrink:0}
+.board-cell .tokens{display:flex;flex-wrap:wrap;gap:0;position:absolute;bottom:0;left:0;right:0;justify-content:center}
+.board-cell .tokens img{width:12px;height:12px;image-rendering:pixelated}
+.board-cell .cell-buildings{position:absolute;top:0;right:1px;display:flex;gap:0}
+.board-cell .cell-buildings .gym{width:5px;height:5px;background:#2ecc71;border-radius:1px}
+.board-cell .cell-buildings .stadium{width:7px;height:7px;background:#e74c3c;border-radius:1px}
+.board-center{grid-column:2/11;grid-row:2/11;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.8em;color:rgba(255,255,255,.3);text-align:center;padding:8px}
+.board-center img{width:60px;opacity:.3}
+.board-center .board-title{font-size:1.4em;font-weight:bold;background:linear-gradient(90deg,#ffcb05,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;opacity:.5}
+
+/* Dice */
+.dice-container{display:flex;gap:12px;justify-content:center;margin:6px 0}
+.die{width:44px;height:44px;background:radial-gradient(circle at 30% 30%,#fff,#ddd);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.4em;font-weight:bold;color:#1a1a2e;border:2px solid #ffcb05;transition:transform .1s}
+.die.rolling{animation:diceRoll .1s infinite}
+@keyframes diceRoll{0%{transform:rotate(0)}25%{transform:rotate(15deg)}50%{transform:rotate(0)}75%{transform:rotate(-15deg)}100%{transform:rotate(0)}}
+
+/* Message log */
+.msg-log{width:100%;max-height:80px;overflow-y:auto;padding:4px 8px;font-size:.75em;background:rgba(0,0,0,.3);border-radius:8px;margin:4px 0}
+.msg-log p{padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.msg-log p:last-child{border:none}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.active{display:flex}
+.modal{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #ffcb05;border-radius:16px;padding:16px;max-width:380px;width:100%;max-height:85vh;overflow-y:auto}
+.modal h3{color:#ffcb05;margin-bottom:8px;text-align:center}
+.modal p{font-size:.9em;margin:4px 0;line-height:1.4}
+.modal .prop-details{margin:8px 0;padding:8px;background:rgba(255,255,255,.05);border-radius:8px}
+.modal .modal-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+
+/* Property panel */
+.prop-panel{width:100%;background:rgba(0,0,0,.2);border-radius:10px;padding:8px;margin:4px 0;max-height:120px;overflow-y:auto}
+.prop-panel h4{color:#ffcb05;font-size:.8em;margin-bottom:4px}
+.prop-item{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;margin:2px;border-radius:6px;font-size:.7em;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1)}
+.prop-item .prop-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.prop-item.mortgaged{opacity:.4;text-decoration:line-through}
+
+/* Trade UI */
+.trade-section{margin:8px 0;padding:8px;border:1px solid rgba(255,255,255,.15);border-radius:8px}
+.trade-section h4{font-size:.85em;color:#ffcb05;margin-bottom:4px}
+.trade-prop-list{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.trade-prop-list label{display:flex;align-items:center;gap:3px;font-size:.75em;padding:3px 6px;background:rgba(255,255,255,.06);border-radius:6px;cursor:pointer}
+.trade-prop-list input[type=checkbox]{accent-color:#ffcb05}
+.trade-money-input{width:80px;padding:4px 8px;border:1px solid rgba(255,203,5,.4);border-radius:6px;background:rgba(255,255,255,.08);color:#fff;font-size:.85em}
+
+/* Card display */
+.card-display{text-align:center;padding:16px;margin:8px 0;border:2px solid #ffcb05;border-radius:12px;background:rgba(255,203,5,.08)}
+.card-display .card-type{font-size:.75em;color:#aaa;text-transform:uppercase;letter-spacing:1px}
+.card-display .card-text{font-size:1em;margin:8px 0;color:#fff;line-height:1.4}
+
+/* Player status bar */
+.player-status-bar{display:flex;gap:4px;width:100%;overflow-x:auto;padding:4px 0}
+.player-chip{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;font-size:.72em;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);white-space:nowrap;flex-shrink:0}
+.player-chip.active-player{border-color:#ffcb05;background:rgba(255,203,5,.15)}
+.player-chip.bankrupt{opacity:.3;text-decoration:line-through}
+.player-chip img{width:20px;height:20px;image-rendering:pixelated}
+
+/* Responsive */
+@media(max-width:380px){
+  .board{min-width:300px;min-height:300px}
+  .board-cell{font-size:.28em}
+  .btn{padding:7px 14px;font-size:.88em}
+  .btn.small{padding:5px 10px;font-size:.78em}
+}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div class="screen active" id="setup-screen">
+  <h1>Pok&eacute;mon Monopoly</h1>
+  <p style="color:#aaa;font-size:.85em;text-align:center;margin-bottom:8px">Pass &amp; Play &bull; 2-4 Players</p>
+
+  <div style="margin:8px 0">
+    <span style="color:#ccc;font-size:.85em">Number of Players:</span>
+    <div class="player-count-sel" id="player-count-sel"></div>
+  </div>
+
+  <div id="player-setups"></div>
+
+  <button class="btn" id="start-game-btn" disabled>Start Game</button>
+  <a href="index.html" class="btn small" style="text-decoration:none;text-align:center">Back to Menu</a>
+</div>
+
+<!-- BOARD SCREEN -->
+<div class="screen" id="board-screen">
+  <div class="player-status-bar" id="player-status-bar"></div>
+
+  <div class="board-wrapper" id="board-wrapper">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="dice-container" id="dice-container">
+    <div class="die" id="die1">?</div>
+    <div class="die" id="die2">?</div>
+  </div>
+
+  <div class="actions-bar" id="actions-bar">
+    <button class="btn small" id="roll-btn" onclick="rollDice()">Roll Dice</button>
+    <button class="btn small" id="buy-btn" style="display:none" onclick="buyProperty()">Buy</button>
+    <button class="btn small" id="auction-btn" style="display:none" onclick="declinePurchase()">Pass</button>
+    <button class="btn small" id="build-btn" onclick="openBuildMenu()">Build</button>
+    <button class="btn small" id="trade-btn" onclick="openTradeMenu()">Trade</button>
+    <button class="btn small" id="mortgage-btn" onclick="openMortgageMenu()">Mortgage</button>
+    <button class="btn small" id="end-turn-btn" style="display:none" onclick="endTurn()">End Turn</button>
+  </div>
+
+  <div class="msg-log" id="msg-log"></div>
+
+  <div style="margin-top:4px">
+    <a href="index.html" class="btn small" style="text-decoration:none">Back to Menu</a>
+  </div>
+</div>
+
+<!-- WIN SCREEN -->
+<div class="screen" id="win-screen">
+  <h1>Game Over!</h1>
+  <div id="win-msg" style="text-align:center;margin:16px 0"></div>
+  <button class="btn" onclick="location.reload()">Play Again</button>
+  <a href="index.html" class="btn small" style="text-decoration:none;text-align:center">Back to Menu</a>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>
+// ==================== GAME DATA ====================
+const SPRITE_URL = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+
+const TOKEN_OPTIONS = [
+  {id:25,name:'Pikachu'},{id:6,name:'Charizard'},{id:150,name:'Mewtwo'},{id:448,name:'Lucario'},
+  {id:133,name:'Eevee'},{id:658,name:'Greninja'},{id:384,name:'Rayquaza'},{id:94,name:'Gengar'}
+];
+
+const PLAYER_COLORS = ['#e74c3c','#3498db','#2ecc71','#e67e22'];
+
+// Board spaces (40 total, clockwise from GO)
+// type: go, property, railroad, utility, tax, chance, chest, jail, gotojail, freeparking
+const BOARD = [
+  {name:"Pokémon League Start",type:"go"},
+  {name:"Route 1",type:"property",group:"brown",price:60,rent:[2,10,30,90,160,250],buildCost:50},
+  {name:"Professor's Gift",type:"chest"},
+  {name:"Pallet Town",type:"property",group:"brown",price:60,rent:[4,20,60,180,320,450],buildCost:50},
+  {name:"League Entry Fee",type:"tax",amount:200},
+  {name:"Kanto Pokémon Center",type:"railroad",price:200},
+  {name:"Cerulean Cave",type:"property",group:"lightblue",price:100,rent:[6,30,90,270,400,550],buildCost:50},
+  {name:"Wild Encounter",type:"chance"},
+  {name:"Pewter Museum",type:"property",group:"lightblue",price:100,rent:[6,30,90,270,400,550],buildCost:50},
+  {name:"Viridian Forest",type:"property",group:"lightblue",price:120,rent:[8,40,100,300,450,600],buildCost:50},
+  {name:"Team Rocket Hideout",type:"jail"},
+  {name:"Goldenrod City",type:"property",group:"pink",price:140,rent:[10,50,150,450,625,750],buildCost:100},
+  {name:"Prof. Oak's Lab",type:"utility",price:150},
+  {name:"Ecruteak Tower",type:"property",group:"pink",price:140,rent:[10,50,150,450,625,750],buildCost:100},
+  {name:"Olivine Lighthouse",type:"property",group:"pink",price:160,rent:[12,60,180,500,700,900],buildCost:100},
+  {name:"Johto Pokémon Center",type:"railroad",price:200},
+  {name:"Lilycove City",type:"property",group:"orange",price:180,rent:[14,70,200,550,750,950],buildCost:100},
+  {name:"Wild Encounter",type:"chance"},
+  {name:"Fortree City",type:"property",group:"orange",price:180,rent:[14,70,200,550,750,950],buildCost:100},
+  {name:"Mt. Chimney",type:"property",group:"orange",price:200,rent:[16,80,220,600,800,1000],buildCost:100},
+  {name:"Pokémon Daycare",type:"freeparking"},
+  {name:"Hearthome City",type:"property",group:"red",price:220,rent:[18,90,250,700,875,1050],buildCost:150},
+  {name:"Wild Encounter",type:"chance"},
+  {name:"Snowpoint Temple",type:"property",group:"red",price:220,rent:[18,90,250,700,875,1050],buildCost:150},
+  {name:"Iron Island",type:"property",group:"red",price:240,rent:[20,100,300,750,925,1100],buildCost:150},
+  {name:"Hoenn Pokémon Center",type:"railroad",price:200},
+  {name:"Nimbasa City",type:"property",group:"yellow",price:260,rent:[22,110,330,800,975,1150],buildCost:150},
+  {name:"Castelia City",type:"property",group:"yellow",price:260,rent:[22,110,330,800,975,1150],buildCost:150},
+  {name:"Silph Co.",type:"utility",price:150},
+  {name:"Dragonspiral Tower",type:"property",group:"yellow",price:280,rent:[24,120,360,850,1025,1200],buildCost:150},
+  {name:"Team Rocket Catches You!",type:"gotojail"},
+  {name:"Lumiose City",type:"property",group:"green",price:300,rent:[26,130,390,900,1100,1275],buildCost:200},
+  {name:"Geosenge Town",type:"property",group:"green",price:300,rent:[26,130,390,900,1100,1275],buildCost:200},
+  {name:"Professor's Gift",type:"chest"},
+  {name:"Laverre City",type:"property",group:"green",price:320,rent:[28,150,450,1000,1200,1400],buildCost:200},
+  {name:"Sinnoh Pokémon Center",type:"railroad",price:200},
+  {name:"Wild Encounter",type:"chance"},
+  {name:"Elite Four HQ",type:"property",group:"darkblue",price:350,rent:[35,175,500,1100,1300,1500],buildCost:200},
+  {name:"Rare Candy Tax",type:"tax",amount:100},
+  {name:"Champion's Chamber",type:"property",group:"darkblue",price:400,rent:[50,200,600,1400,1700,2000],buildCost:200}
+];
+
+const GROUP_COLORS = {
+  brown:'#8B4513',lightblue:'#87CEEB',pink:'#FF69B4',orange:'#FF8C00',
+  red:'#DC143C',yellow:'#FFD700',green:'#228B22',darkblue:'#00008B'
+};
+
+const GROUP_MEMBERS = {};
+BOARD.forEach((sp,i) => {
+  if(sp.group){
+    if(!GROUP_MEMBERS[sp.group]) GROUP_MEMBERS[sp.group]=[];
+    GROUP_MEMBERS[sp.group].push(i);
+  }
+});
+
+// Cards
+const CHEST_CARDS = [
+  {text:"Your Pokémon won a Contest! Collect 100₽",action:p=>giveMoney(p,100)},
+  {text:"Professor Oak gives you a starter! Collect 50₽",action:p=>giveMoney(p,50)},
+  {text:"Pokémon Center heals your team for free! Collect 25₽",action:p=>giveMoney(p,25)},
+  {text:"You found a Nugget! Collect 150₽",action:p=>giveMoney(p,150)},
+  {text:"Team Rocket tax! Pay 50₽",action:p=>takeMoney(p,50)},
+  {text:"Your Pokémon evolved! Collect 100₽ from each player",action:p=>{let t=0;players.forEach((o,i)=>{if(i!==p&&!o.bankrupt){let a=Math.min(100,o.money);o.money-=a;t+=a}});players[p].money+=t}},
+  {text:"Advance to Pokémon League Start (GO)",action:p=>moveToSpace(p,0,true)},
+  {text:"Go directly to Team Rocket Hideout!",action:p=>goToJail(p)},
+  {text:"Get out of Team Rocket Hideout free!",action:p=>{players[p].jailCards++},keep:false},
+  {text:"Pokémon Daycare fees! Pay 150₽",action:p=>takeMoney(p,150)},
+  {text:"You hatched an egg! Collect 200₽",action:p=>giveMoney(p,200)},
+  {text:"Battle winnings! Collect 50₽",action:p=>giveMoney(p,50)},
+  {text:"Your Pokémon found a hidden item! Collect 20₽",action:p=>giveMoney(p,20)},
+  {text:"Pay Poké Mart bill: 50₽",action:p=>takeMoney(p,50)},
+  {text:"Birthday! Collect 10₽ from each player",action:p=>{let t=0;players.forEach((o,i)=>{if(i!==p&&!o.bankrupt){let a=Math.min(10,o.money);o.money-=a;t+=a}});players[p].money+=t}},
+  {text:"Advance to nearest Pokémon Center",action:p=>{const rr=[5,15,25,35];let pos=players[p].position;let nearest=rr.reduce((best,r)=>{let d=(r-pos+40)%40;return d<best.d?{d,r}:best},{d:41,r:5});moveToSpace(p,nearest.r,true)}}
+];
+
+const CHANCE_CARDS = [
+  {text:"A wild Abra used Teleport! Advance to Lumiose City",action:p=>moveToSpace(p,31,true)},
+  {text:"Fly to Pokémon League Start! Collect 200₽",action:p=>moveToSpace(p,0,true)},
+  {text:"Surf to the nearest Pokémon Center! If you pass GO, collect 200₽",action:p=>{const rr=[5,15,25,35];let pos=players[p].position;let nearest=rr.reduce((best,r)=>{let d=(r-pos+40)%40;return d<best.d?{d,r}:best},{d:41,r:5});moveToSpace(p,nearest.r,true)}},
+  {text:"Go back 3 spaces",action:p=>{let np=(players[p].position-3+40)%40;players[p].position=np;handleLanding(p)}},
+  {text:"Go directly to Team Rocket Hideout!",action:p=>goToJail(p)},
+  {text:"Get out of Team Rocket Hideout free!",action:p=>{players[p].jailCards++},keep:false},
+  {text:"A wild Meowth used Pay Day! Collect 150₽",action:p=>giveMoney(p,150)},
+  {text:"Advance to Elite Four HQ",action:p=>moveToSpace(p,37,true)},
+  {text:"Advance to Pallet Town",action:p=>moveToSpace(p,3,true)},
+  {text:"You fell in a Diglett's Tunnel! Go back to Route 1",action:p=>{players[p].position=1;handleLanding(p)}},
+  {text:"Gym repairs: 25₽ per Gym, 100₽ per Stadium",action:p=>{let cost=0;players[p].properties.forEach(pi=>{let sp=BOARD[pi];if(sp.type==='property'){cost+=sp.buildings*25;if(sp.buildings===5)cost+=75}});takeMoney(p,cost)}},
+  {text:"You won the Bug Catching Contest! Collect 50₽",action:p=>giveMoney(p,50)},
+  {text:"Pay poor tax of 15₽",action:p=>takeMoney(p,15)},
+  {text:"Advance to Cerulean Cave",action:p=>moveToSpace(p,6,true)},
+  {text:"A wild Snorlax is blocking the road! Pay 50₽",action:p=>takeMoney(p,50)},
+  {text:"Your Pokémon learned a new move! Collect 100₽",action:p=>giveMoney(p,100)}
+];
+
+function shuffleArray(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+let chestDeck, chanceDeck;
+function initDecks(){
+  chestDeck=shuffleArray([...Array(CHEST_CARDS.length).keys()]);
+  chanceDeck=shuffleArray([...Array(CHANCE_CARDS.length).keys()]);
+}
+
+// ==================== GAME STATE ====================
+let players = [];
+let currentPlayer = 0;
+let gamePhase = 'setup'; // setup, rolling, rolled, turnend, gameover
+let doublesCount = 0;
+let lastDice = [0,0];
+let freeParkingPot = 0;
+
+// Initialize property ownership on board
+function initBoard(){
+  BOARD.forEach(sp=>{
+    sp.owner = -1;
+    sp.buildings = 0; // 0-4 gyms, 5=stadium
+    sp.mortgaged = false;
+  });
+}
+
+// ==================== SETUP ====================
+let playerCount = 2;
+let setupData = [{name:'',token:null},{name:'',token:null},{name:'',token:null},{name:'',token:null}];
+
+function initSetup(){
+  const sel = document.getElementById('player-count-sel');
+  sel.innerHTML='';
+  [2,3,4].forEach(n=>{
+    const b=document.createElement('button');
+    b.className='btn small'+(n===playerCount?' active':'');
+    b.textContent=n+' Players';
+    b.onclick=()=>{playerCount=n;initSetup()};
+    sel.appendChild(b);
+  });
+
+  const container = document.getElementById('player-setups');
+  container.innerHTML='';
+  const takenTokens = setupData.filter((_,i)=>i<playerCount).map(d=>d.token).filter(t=>t!==null);
+
+  for(let i=0;i<playerCount;i++){
+    const sec=document.createElement('div');
+    sec.className='setup-section';
+    sec.innerHTML=`<h3 style="color:${PLAYER_COLORS[i]}">Player ${i+1}</h3>
+      <div class="player-setup">
+        <input type="text" placeholder="Enter name..." value="${setupData[i].name}" maxlength="12" id="pname-${i}">
+      </div>
+      <div class="pokemon-select" id="psel-${i}"></div>`;
+    container.appendChild(sec);
+
+    document.getElementById(`pname-${i}`).oninput=e=>{setupData[i].name=e.target.value;checkReady()};
+
+    const grid=document.getElementById(`psel-${i}`);
+    TOKEN_OPTIONS.forEach(tk=>{
+      const d=document.createElement('div');
+      const isTaken=takenTokens.includes(tk.id)&&setupData[i].token!==tk.id;
+      d.className='pokemon-opt'+(setupData[i].token===tk.id?' selected':'')+(isTaken?' taken':'');
+      d.innerHTML=`<img src="${SPRITE_URL(tk.id)}" alt="${tk.name}"><span>${tk.name}</span>`;
+      d.onclick=()=>{
+        if(isTaken)return;
+        setupData[i].token=tk.id;
+        initSetup();
+      };
+      grid.appendChild(d);
+    });
+  }
+  checkReady();
+}
+
+function checkReady(){
+  const ready = Array.from({length:playerCount}).every((_,i)=>setupData[i].name.trim()&&setupData[i].token!==null);
+  document.getElementById('start-game-btn').disabled=!ready;
+}
+
+document.getElementById('start-game-btn').onclick=()=>{
+  players=[];
+  for(let i=0;i<playerCount;i++){
+    players.push({
+      name:setupData[i].name.trim(),
+      token:setupData[i].token,
+      color:PLAYER_COLORS[i],
+      money:1500,
+      position:0,
+      properties:[],
+      inJail:false,
+      jailTurns:0,
+      jailCards:0,
+      bankrupt:false
+    });
+  }
+  initBoard();
+  initDecks();
+  currentPlayer=0;
+  doublesCount=0;
+  freeParkingPot=0;
+  gamePhase='rolling';
+  document.getElementById('setup-screen').classList.remove('active');
+  document.getElementById('board-screen').classList.add('active');
+  renderAll();
+  logMsg(`Game started! ${players[currentPlayer].name}'s turn.`);
+};
+
+initSetup();
+
+// ==================== RENDERING ====================
+function renderAll(){
+  renderStatusBar();
+  renderBoard();
+  renderActions();
+}
+
+function renderStatusBar(){
+  const bar=document.getElementById('player-status-bar');
+  bar.innerHTML='';
+  players.forEach((p,i)=>{
+    const d=document.createElement('div');
+    d.className='player-chip'+(i===currentPlayer?' active-player':'')+(p.bankrupt?' bankrupt':'');
+    d.innerHTML=`<img src="${SPRITE_URL(p.token)}"><span style="color:${p.color}">${p.name}</span><span class="money" style="color:#ffcb05">${p.money}₽</span>`;
+    d.onclick=()=>showPlayerInfo(i);
+    bar.appendChild(d);
+  });
+}
+
+// Board position mapping: maps board index to grid [col, row] (0-indexed, 0=top-left)
+function getBoardPosition(idx){
+  if(idx>=0&&idx<=10) return [10-idx,10]; // bottom row, right to left
+  if(idx>=11&&idx<=19) return [0,10-(idx-10)]; // left column, bottom to top
+  if(idx>=20&&idx<=30) return [idx-20,0]; // top row, left to right
+  if(idx>=31&&idx<=39) return [10,idx-30]; // right column, top to bottom
+  return [0,0];
+}
+
+function renderBoard(){
+  const board=document.getElementById('board');
+  board.innerHTML='';
+
+  // Create 11x11 grid
+  const cells=new Map();
+  for(let i=0;i<40;i++){
+    const [c,r]=getBoardPosition(i);
+    cells.set(`${c},${r}`,i);
+  }
+
+  for(let r=0;r<11;r++){
+    for(let c=0;c<11;c++){
+      const key=`${c},${r}`;
+      if(cells.has(key)){
+        const idx=cells.get(key);
+        const sp=BOARD[idx];
+        const cell=document.createElement('div');
+        cell.className='board-cell';
+        cell.style.gridColumn=c+1;
+        cell.style.gridRow=r+1;
+
+        let html='';
+        // Color bar for properties
+        if(sp.group){
+          html+=`<div class="cell-color" style="background:${GROUP_COLORS[sp.group]}"></div>`;
+        }
+
+        // Shortened name
+        let shortName=sp.name;
+        if(shortName.length>14) shortName=shortName.substring(0,12)+'…';
+        html+=`<div class="cell-name">${shortName}</div>`;
+
+        // Price
+        if(sp.price&&sp.owner===-1){
+          html+=`<div class="cell-price">${sp.price}₽</div>`;
+        } else if(sp.owner>=0){
+          html+=`<div class="cell-price" style="color:${players[sp.owner].color}">●</div>`;
+        }
+
+        // Buildings
+        if(sp.buildings>0){
+          html+='<div class="cell-buildings">';
+          if(sp.buildings===5){
+            html+='<div class="stadium"></div>';
+          } else {
+            for(let b=0;b<sp.buildings;b++) html+='<div class="gym"></div>';
+          }
+          html+='</div>';
+        }
+
+        // Player tokens on this space
+        let tokensHtml='<div class="tokens">';
+        players.forEach((p,pi)=>{
+          if(!p.bankrupt&&p.position===idx){
+            tokensHtml+=`<img src="${SPRITE_URL(p.token)}" title="${p.name}">`;
+          }
+        });
+        tokensHtml+='</div>';
+        html+=tokensHtml;
+
+        cell.innerHTML=html;
+        cell.onclick=()=>showSpaceInfo(idx);
+
+        // Highlight current player's space
+        if(players[currentPlayer]&&players[currentPlayer].position===idx&&!players[currentPlayer].bankrupt){
+          cell.style.background='rgba(255,203,5,.15)';
+        }
+
+        // Highlight if mortgaged
+        if(sp.mortgaged){
+          cell.style.opacity='.5';
+        }
+
+        board.appendChild(cell);
+      } else if(r>=1&&r<=9&&c>=1&&c<=9){
+        // Center area - only create once
+      }
+    }
+  }
+
+  // Add center
+  const center=document.createElement('div');
+  center.className='board-center';
+  center.innerHTML=`<div class="board-title">Pokémon<br>Monopoly</div><div style="margin-top:6px;font-size:.7em">Free Parking Pot: ${freeParkingPot}₽</div>`;
+  board.appendChild(center);
+}
+
+function renderActions(){
+  const cp=players[currentPlayer];
+  if(!cp||cp.bankrupt)return;
+
+  document.getElementById('roll-btn').style.display=(gamePhase==='rolling'&&!cp.inJail)?'':'none';
+  document.getElementById('buy-btn').style.display='none';
+  document.getElementById('auction-btn').style.display='none';
+  document.getElementById('end-turn-btn').style.display=(gamePhase==='turnend')?'':'none';
+  document.getElementById('build-btn').style.display=(gamePhase==='turnend')?'':'none';
+  document.getElementById('trade-btn').style.display=(gamePhase==='turnend')?'':'none';
+  document.getElementById('mortgage-btn').style.display=(gamePhase==='turnend')?'':'none';
+
+  // Jail actions
+  if(cp.inJail&&gamePhase==='rolling'){
+    document.getElementById('roll-btn').style.display='';
+    document.getElementById('roll-btn').textContent='Roll for Doubles';
+    showJailOptions();
+  } else {
+    document.getElementById('roll-btn').textContent='Roll Dice';
+  }
+}
+
+// ==================== DICE ====================
+function rollDice(){
+  if(gamePhase!=='rolling')return;
+  const cp=players[currentPlayer];
+
+  // Jail logic
+  if(cp.inJail){
+    animateDice(()=>{
+      const d1=lastDice[0],d2=lastDice[1];
+      if(d1===d2){
+        cp.inJail=false;
+        cp.jailTurns=0;
+        logMsg(`${cp.name} rolled doubles and escaped Team Rocket Hideout!`);
+        movePlayer(currentPlayer,d1+d2);
+      } else {
+        cp.jailTurns++;
+        if(cp.jailTurns>=3){
+          cp.inJail=false;
+          cp.jailTurns=0;
+          takeMoney(currentPlayer,50);
+          logMsg(`${cp.name} paid 50₽ to escape Team Rocket Hideout.`);
+          movePlayer(currentPlayer,d1+d2);
+        } else {
+          logMsg(`${cp.name} didn't roll doubles. Turn ${cp.jailTurns}/3 in hideout.`);
+          gamePhase='turnend';
+          renderAll();
+        }
+      }
+    });
+    return;
+  }
+
+  animateDice(()=>{
+    const d1=lastDice[0],d2=lastDice[1];
+    if(d1===d2){
+      doublesCount++;
+      if(doublesCount>=3){
+        logMsg(`${cp.name} rolled 3 doubles in a row! Caught by Team Rocket!`);
+        goToJail(currentPlayer);
+        return;
+      }
+      logMsg(`${cp.name} rolled doubles (${d1}+${d2})! Roll again after.`);
+    } else {
+      doublesCount=0;
+    }
+    movePlayer(currentPlayer,d1+d2);
+  });
+}
+
+function animateDice(callback){
+  const die1El=document.getElementById('die1');
+  const die2El=document.getElementById('die2');
+  die1El.classList.add('rolling');
+  die2El.classList.add('rolling');
+  let count=0;
+  const iv=setInterval(()=>{
+    die1El.textContent=Math.ceil(Math.random()*6);
+    die2El.textContent=Math.ceil(Math.random()*6);
+    count++;
+    if(count>10){
+      clearInterval(iv);
+      die1El.classList.remove('rolling');
+      die2El.classList.remove('rolling');
+      lastDice=[Math.ceil(Math.random()*6),Math.ceil(Math.random()*6)];
+      die1El.textContent=lastDice[0];
+      die2El.textContent=lastDice[1];
+      setTimeout(callback,200);
+    }
+  },80);
+}
+
+// ==================== MOVEMENT ====================
+function movePlayer(pi, steps){
+  const p=players[pi];
+  const oldPos=p.position;
+  const newPos=(oldPos+steps)%40;
+
+  // Check if passing GO
+  if(newPos<oldPos&&steps>0){
+    giveMoney(pi,200);
+    logMsg(`${p.name} passed Pokémon League Start! +200₽`);
+  }
+
+  p.position=newPos;
+  logMsg(`${p.name} landed on ${BOARD[newPos].name}`);
+  renderAll();
+  setTimeout(()=>handleLanding(pi),300);
+}
+
+function moveToSpace(pi, target, collectGo){
+  const p=players[pi];
+  if(collectGo&&target<=p.position&&target!==p.position){
+    giveMoney(pi,200);
+    logMsg(`${p.name} passed Pokémon League Start! +200₽`);
+  }
+  p.position=target;
+  renderAll();
+  setTimeout(()=>handleLanding(pi),300);
+}
+
+// ==================== LANDING LOGIC ====================
+function handleLanding(pi){
+  const p=players[pi];
+  const sp=BOARD[p.position];
+
+  switch(sp.type){
+    case 'property':
+    case 'railroad':
+    case 'utility':
+      if(sp.owner===-1){
+        offerPurchase(pi);
+      } else if(sp.owner!==pi&&!sp.mortgaged){
+        chargeRent(pi);
+      } else {
+        finishLanding();
+      }
+      break;
+    case 'tax':
+      if(sp.name.includes('Entry Fee')){
+        // Income tax: 200 or 10%
+        const tenPct=Math.floor(p.money*0.1);
+        const amt=Math.min(200,tenPct);
+        takeMoney(pi,200);
+        freeParkingPot+=200;
+        logMsg(`${p.name} pays League Entry Fee: 200₽`);
+      } else {
+        takeMoney(pi,sp.amount);
+        freeParkingPot+=sp.amount;
+        logMsg(`${p.name} pays ${sp.name}: ${sp.amount}₽`);
+      }
+      finishLanding();
+      break;
+    case 'chance':
+      drawCard(pi,'chance');
+      break;
+    case 'chest':
+      drawCard(pi,'chest');
+      break;
+    case 'gotojail':
+      goToJail(pi);
+      break;
+    case 'freeparking':
+      if(freeParkingPot>0){
+        logMsg(`${p.name} collects ${freeParkingPot}₽ from Pokémon Daycare!`);
+        giveMoney(pi,freeParkingPot);
+        freeParkingPot=0;
+      }
+      finishLanding();
+      break;
+    case 'jail':
+    case 'go':
+    default:
+      finishLanding();
+      break;
+  }
+}
+
+function finishLanding(){
+  const cp=players[currentPlayer];
+  if(cp.bankrupt){
+    gamePhase='turnend';
+    endTurn();
+    return;
+  }
+  if(doublesCount>0&&!cp.inJail){
+    gamePhase='rolling';
+    logMsg(`${cp.name} gets another roll (doubles)!`);
+  } else {
+    gamePhase='turnend';
+  }
+  renderAll();
+  checkWin();
+}
+
+// ==================== PROPERTY PURCHASE ====================
+function offerPurchase(pi){
+  const p=players[pi];
+  const sp=BOARD[p.position];
+  if(p.money>=sp.price){
+    document.getElementById('buy-btn').style.display='';
+    document.getElementById('buy-btn').textContent=`Buy (${sp.price}₽)`;
+    document.getElementById('auction-btn').style.display='';
+    gamePhase='buying';
+  } else {
+    logMsg(`${p.name} can't afford ${sp.name} (${sp.price}₽).`);
+    finishLanding();
+  }
+}
+
+function buyProperty(){
+  const p=players[currentPlayer];
+  const sp=BOARD[p.position];
+  p.money-=sp.price;
+  sp.owner=currentPlayer;
+  p.properties.push(p.position);
+  logMsg(`${p.name} bought ${sp.name} for ${sp.price}₽!`);
+  document.getElementById('buy-btn').style.display='none';
+  document.getElementById('auction-btn').style.display='none';
+  finishLanding();
+}
+
+function declinePurchase(){
+  logMsg(`${players[currentPlayer].name} passed on ${BOARD[players[currentPlayer].position].name}.`);
+  document.getElementById('buy-btn').style.display='none';
+  document.getElementById('auction-btn').style.display='none';
+  finishLanding();
+}
+
+// ==================== RENT ====================
+function chargeRent(pi){
+  const p=players[pi];
+  const sp=BOARD[p.position];
+  const owner=players[sp.owner];
+  let rent=0;
+
+  if(sp.type==='property'){
+    rent=sp.rent[sp.buildings];
+    // Double rent for full group with no buildings
+    if(sp.buildings===0&&ownsFullGroup(sp.owner,sp.group)){
+      rent*=2;
+    }
+  } else if(sp.type==='railroad'){
+    const rrCount=countRailroads(sp.owner);
+    rent=[0,25,50,100,200][rrCount];
+  } else if(sp.type==='utility'){
+    const utilCount=countUtilities(sp.owner);
+    const diceTotal=lastDice[0]+lastDice[1];
+    rent=utilCount===1?diceTotal*4:diceTotal*10;
+  }
+
+  logMsg(`${p.name} pays ${rent}₽ rent to ${owner.name} for ${sp.name}`);
+  p.money-=rent;
+  owner.money+=rent;
+
+  if(p.money<0){
+    handleDebt(pi,sp.owner,rent);
+  } else {
+    finishLanding();
+  }
+}
+
+function ownsFullGroup(playerIdx,group){
+  return GROUP_MEMBERS[group].every(i=>BOARD[i].owner===playerIdx);
+}
+
+function countRailroads(playerIdx){
+  return [5,15,25,35].filter(i=>BOARD[i].owner===playerIdx).length;
+}
+
+function countUtilities(playerIdx){
+  return [12,28].filter(i=>BOARD[i].owner===playerIdx).length;
+}
+
+// ==================== CARDS ====================
+function drawCard(pi,type){
+  const deck=type==='chance'?chanceDeck:chestDeck;
+  const cards=type==='chance'?CHANCE_CARDS:CHEST_CARDS;
+  if(deck.length===0){
+    // Reshuffle
+    for(let i=0;i<cards.length;i++) deck.push(i);
+    shuffleArray(deck);
+  }
+  const cardIdx=deck.shift();
+  const card=cards[cardIdx];
+
+  showModal(`
+    <div class="card-display">
+      <div class="card-type">${type==='chance'?'Wild Encounter':'Professor\'s Gift'}</div>
+      <div class="card-text">${card.text}</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn small" onclick="executeCard(${pi},'${type}',${cardIdx})">OK</button>
+    </div>
+  `);
+}
+
+function executeCard(pi,type,cardIdx){
+  closeModal();
+  const card=(type==='chance'?CHANCE_CARDS:CHEST_CARDS)[cardIdx];
+  card.action(pi);
+  if(players[pi].money<0){
+    handleDebt(pi,-1,0);
+  } else {
+    // If the card moved the player, handleLanding already called via moveToSpace
+    // Only finishLanding if card didn't move player
+    if(!card.text.includes('Advance')&&!card.text.includes('Go back')&&!card.text.includes('Go directly')&&!card.text.includes('Fly')&&!card.text.includes('Surf')&&!card.text.includes('fell')){
+      finishLanding();
+    }
+  }
+}
+
+// ==================== JAIL ====================
+function goToJail(pi){
+  const p=players[pi];
+  p.position=10;
+  p.inJail=true;
+  p.jailTurns=0;
+  doublesCount=0;
+  logMsg(`${p.name} was sent to Team Rocket Hideout!`);
+  gamePhase='turnend';
+  renderAll();
+}
+
+function showJailOptions(){
+  showModal(`
+    <h3>Team Rocket Hideout</h3>
+    <p>${players[currentPlayer].name} is trapped! (Turn ${players[currentPlayer].jailTurns+1}/3)</p>
+    <div class="modal-actions">
+      <button class="btn small" onclick="jailRollDoubles()">Roll for Doubles</button>
+      <button class="btn small" onclick="jailPay()" ${players[currentPlayer].money<50?'disabled':''}>Pay 50₽</button>
+      ${players[currentPlayer].jailCards>0?'<button class="btn small" onclick="jailUseCard()">Use Get Out Free Card</button>':''}
+    </div>
+  `);
+}
+
+function jailRollDoubles(){
+  closeModal();
+  rollDice();
+}
+
+function jailPay(){
+  closeModal();
+  const p=players[currentPlayer];
+  p.money-=50;
+  p.inJail=false;
+  p.jailTurns=0;
+  logMsg(`${p.name} paid 50₽ to escape Team Rocket Hideout.`);
+  gamePhase='rolling';
+  renderAll();
+}
+
+function jailUseCard(){
+  closeModal();
+  const p=players[currentPlayer];
+  p.jailCards--;
+  p.inJail=false;
+  p.jailTurns=0;
+  logMsg(`${p.name} used a Get Out Free card!`);
+  gamePhase='rolling';
+  renderAll();
+}
+
+// ==================== DEBT / BANKRUPTCY ====================
+function handleDebt(pi, creditor, amount){
+  const p=players[pi];
+  // Try to auto-resolve by mortgaging
+  showModal(`
+    <h3>${p.name} is in Debt!</h3>
+    <p>Balance: ${p.money}₽</p>
+    <p>You need to raise funds by mortgaging properties or you'll go bankrupt!</p>
+    <div class="modal-actions">
+      <button class="btn small" onclick="debtMortgageMenu(${pi},${creditor})">Mortgage Properties</button>
+      <button class="btn small danger" onclick="goBankrupt(${pi},${creditor})">Declare Bankruptcy</button>
+    </div>
+  `);
+}
+
+function debtMortgageMenu(pi, creditor){
+  const p=players[pi];
+  const mortgageable=p.properties.filter(idx=>!BOARD[idx].mortgaged&&BOARD[idx].buildings===0);
+  if(mortgageable.length===0){
+    showModal(`<h3>No Properties to Mortgage</h3><p>You must declare bankruptcy.</p>
+      <div class="modal-actions"><button class="btn small danger" onclick="goBankrupt(${pi},${creditor})">Declare Bankruptcy</button></div>`);
+    return;
+  }
+  let html=`<h3>Mortgage Properties</h3><p>Balance: ${p.money}₽</p><div style="max-height:200px;overflow-y:auto">`;
+  mortgageable.forEach(idx=>{
+    const sp=BOARD[idx];
+    const val=Math.floor(sp.price/2);
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px;margin:3px 0;background:rgba(255,255,255,.05);border-radius:6px">
+      <span style="font-size:.85em">${sp.name}</span>
+      <button class="btn small" onclick="mortgageForDebt(${idx},${pi},${creditor})">+${val}₽</button>
+    </div>`;
+  });
+  html+=`</div><div class="modal-actions">
+    ${p.money>=0?`<button class="btn small success" onclick="closeModal();finishLanding()">Done</button>`:''}
+    <button class="btn small danger" onclick="goBankrupt(${pi},${creditor})">Declare Bankruptcy</button>
+  </div>`;
+  showModal(html);
+}
+
+function mortgageForDebt(propIdx, pi, creditor){
+  const sp=BOARD[propIdx];
+  sp.mortgaged=true;
+  players[pi].money+=Math.floor(sp.price/2);
+  logMsg(`${players[pi].name} mortgaged ${sp.name} for ${Math.floor(sp.price/2)}₽`);
+  renderAll();
+  if(players[pi].money>=0){
+    closeModal();
+    finishLanding();
+  } else {
+    debtMortgageMenu(pi,creditor);
+  }
+}
+
+function goBankrupt(pi, creditor){
+  closeModal();
+  const p=players[pi];
+  p.bankrupt=true;
+  logMsg(`${p.name} went bankrupt!`);
+
+  // Transfer properties
+  p.properties.forEach(idx=>{
+    if(creditor>=0){
+      BOARD[idx].owner=creditor;
+      players[creditor].properties.push(idx);
+    } else {
+      BOARD[idx].owner=-1;
+      BOARD[idx].buildings=0;
+      BOARD[idx].mortgaged=false;
+    }
+  });
+  if(creditor>=0){
+    players[creditor].money+=Math.max(0,p.money);
+  }
+  p.properties=[];
+  p.money=0;
+
+  renderAll();
+  checkWin();
+  if(gamePhase!=='gameover'){
+    finishLanding();
+  }
+}
+
+function checkWin(){
+  const alive=players.filter(p=>!p.bankrupt);
+  if(alive.length===1){
+    gamePhase='gameover';
+    document.getElementById('board-screen').classList.remove('active');
+    document.getElementById('win-screen').classList.add('active');
+    document.getElementById('win-msg').innerHTML=`
+      <img src="${SPRITE_URL(alive[0].token)}" style="width:80px;height:80px;image-rendering:pixelated"><br>
+      <h2 style="color:${alive[0].color};margin:8px 0">${alive[0].name} Wins!</h2>
+      <p style="color:#ffcb05">Champion of the Pokémon Monopoly League!</p>
+      <p style="color:#aaa;font-size:.85em">Final wealth: ${alive[0].money}₽</p>
+    `;
+  }
+}
+
+// ==================== TURN MANAGEMENT ====================
+function endTurn(){
+  if(gamePhase!=='turnend')return;
+  doublesCount=0;
+  // Next non-bankrupt player
+  do {
+    currentPlayer=(currentPlayer+1)%players.length;
+  } while(players[currentPlayer].bankrupt);
+
+  gamePhase='rolling';
+  logMsg(`--- ${players[currentPlayer].name}'s turn ---`);
+
+  if(players[currentPlayer].inJail){
+    renderAll();
+    showJailOptions();
+  } else {
+    renderAll();
+  }
+}
+
+// ==================== BUILDING ====================
+function openBuildMenu(){
+  const p=players[currentPlayer];
+  // Find groups where player owns all properties
+  const buildable=[];
+  Object.keys(GROUP_MEMBERS).forEach(group=>{
+    if(ownsFullGroup(currentPlayer,group)){
+      GROUP_MEMBERS[group].forEach(idx=>{
+        const sp=BOARD[idx];
+        if(!sp.mortgaged&&sp.buildings<5){
+          // Check even building rule (within 1 of others in group)
+          const minB=Math.min(...GROUP_MEMBERS[group].map(i=>BOARD[i].buildings));
+          if(sp.buildings<=minB){
+            buildable.push(idx);
+          }
+        }
+      });
+    }
+  });
+
+  if(buildable.length===0){
+    showModal(`<h3>Build</h3><p>No properties available to build on. You need complete color groups with no mortgaged properties.</p>
+      <div class="modal-actions"><button class="btn small" onclick="closeModal()">OK</button></div>`);
+    return;
+  }
+
+  let html='<h3>Build Gyms & Stadiums</h3><p>Balance: '+p.money+'₽</p><div style="max-height:250px;overflow-y:auto">';
+  buildable.forEach(idx=>{
+    const sp=BOARD[idx];
+    const cost=sp.buildCost;
+    const bType=sp.buildings===4?'Stadium':'Gym';
+    const canAfford=p.money>=cost;
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px;margin:3px 0;background:rgba(255,255,255,.05);border-radius:6px">
+      <div>
+        <div style="font-size:.85em">${sp.name}</div>
+        <div style="font-size:.7em;color:#aaa">${sp.buildings}/5 built • ${bType}: ${cost}₽</div>
+      </div>
+      <button class="btn small" ${canAfford?'':`disabled`} onclick="buildOn(${idx})">Build</button>
+    </div>`;
+  });
+  html+=`</div><div class="modal-actions"><button class="btn small" onclick="closeModal()">Done</button></div>`;
+  showModal(html);
+}
+
+function buildOn(idx){
+  const sp=BOARD[idx];
+  const p=players[currentPlayer];
+  if(p.money<sp.buildCost)return;
+  p.money-=sp.buildCost;
+  sp.buildings++;
+  const bName=sp.buildings===5?'a Stadium':'a Gym';
+  logMsg(`${p.name} built ${bName} on ${sp.name} (-${sp.buildCost}₽)`);
+  renderAll();
+  openBuildMenu(); // Refresh menu
+}
+
+// ==================== SELL BUILDINGS ====================
+function openSellBuildingMenu(){
+  const p=players[currentPlayer];
+  const sellable=p.properties.filter(idx=>BOARD[idx].buildings>0);
+  if(sellable.length===0){
+    showModal(`<h3>Sell Buildings</h3><p>No buildings to sell.</p>
+      <div class="modal-actions"><button class="btn small" onclick="closeModal()">OK</button></div>`);
+    return;
+  }
+  let html='<h3>Sell Buildings</h3><p>Balance: '+p.money+'₽</p><div style="max-height:250px;overflow-y:auto">';
+  sellable.forEach(idx=>{
+    const sp=BOARD[idx];
+    const val=Math.floor(sp.buildCost/2);
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px;margin:3px 0;background:rgba(255,255,255,.05);border-radius:6px">
+      <div>
+        <div style="font-size:.85em">${sp.name} (${sp.buildings} built)</div>
+        <div style="font-size:.7em;color:#aaa">Sell for ${val}₽</div>
+      </div>
+      <button class="btn small" onclick="sellBuilding(${idx})">Sell</button>
+    </div>`;
+  });
+  html+=`</div><div class="modal-actions"><button class="btn small" onclick="closeModal()">Done</button></div>`;
+  showModal(html);
+}
+
+function sellBuilding(idx){
+  const sp=BOARD[idx];
+  const val=Math.floor(sp.buildCost/2);
+  players[currentPlayer].money+=val;
+  sp.buildings--;
+  logMsg(`${players[currentPlayer].name} sold a building on ${sp.name} (+${val}₽)`);
+  renderAll();
+  openSellBuildingMenu();
+}
+
+// ==================== MORTGAGE ====================
+function openMortgageMenu(){
+  const p=players[currentPlayer];
+  const mortgageable=p.properties.filter(idx=>!BOARD[idx].mortgaged&&BOARD[idx].buildings===0);
+  const unmortgageable=p.properties.filter(idx=>BOARD[idx].mortgaged);
+
+  let html='<h3>Mortgage/Unmortgage</h3><p>Balance: '+p.money+'₽</p>';
+
+  if(mortgageable.length>0){
+    html+='<h4 style="color:#ffcb05;font-size:.85em;margin:8px 0 4px">Mortgage (sell buildings first if any):</h4><div style="max-height:120px;overflow-y:auto">';
+    mortgageable.forEach(idx=>{
+      const sp=BOARD[idx];
+      const val=Math.floor(sp.price/2);
+      html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px;margin:2px 0;background:rgba(255,255,255,.05);border-radius:6px">
+        <span style="font-size:.82em">${sp.name}</span>
+        <button class="btn small" onclick="mortgageProp(${idx})">+${val}₽</button>
+      </div>`;
+    });
+    html+='</div>';
+  }
+
+  if(unmortgageable.length>0){
+    html+='<h4 style="color:#2ecc71;font-size:.85em;margin:8px 0 4px">Unmortgage:</h4><div style="max-height:120px;overflow-y:auto">';
+    unmortgageable.forEach(idx=>{
+      const sp=BOARD[idx];
+      const cost=Math.floor(sp.price*0.55);
+      html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px;margin:2px 0;background:rgba(255,255,255,.05);border-radius:6px">
+        <span style="font-size:.82em">${sp.name}</span>
+        <button class="btn small" ${p.money>=cost?'':`disabled`} onclick="unmortgageProp(${idx})">-${cost}₽</button>
+      </div>`;
+    });
+    html+='</div>';
+  }
+
+  if(mortgageable.length===0&&unmortgageable.length===0){
+    html+='<p style="color:#aaa;font-size:.85em">No properties to mortgage or unmortgage.</p>';
+  }
+
+  // Sell buildings option
+  const hasBuildings=p.properties.some(idx=>BOARD[idx].buildings>0);
+  html+=`<div class="modal-actions">
+    ${hasBuildings?'<button class="btn small" onclick="openSellBuildingMenu()">Sell Buildings</button>':''}
+    <button class="btn small" onclick="closeModal()">Done</button>
+  </div>`;
+  showModal(html);
+}
+
+function mortgageProp(idx){
+  const sp=BOARD[idx];
+  sp.mortgaged=true;
+  players[currentPlayer].money+=Math.floor(sp.price/2);
+  logMsg(`${players[currentPlayer].name} mortgaged ${sp.name}`);
+  renderAll();
+  openMortgageMenu();
+}
+
+function unmortgageProp(idx){
+  const sp=BOARD[idx];
+  const cost=Math.floor(sp.price*0.55);
+  players[currentPlayer].money-=cost;
+  sp.mortgaged=false;
+  logMsg(`${players[currentPlayer].name} unmortgaged ${sp.name}`);
+  renderAll();
+  openMortgageMenu();
+}
+
+// ==================== TRADING ====================
+function openTradeMenu(){
+  const cp=players[currentPlayer];
+  const otherPlayers=players.map((p,i)=>({p,i})).filter(x=>x.i!==currentPlayer&&!x.p.bankrupt);
+
+  if(otherPlayers.length===0){
+    showModal(`<h3>Trade</h3><p>No other players to trade with.</p>
+      <div class="modal-actions"><button class="btn small" onclick="closeModal()">OK</button></div>`);
+    return;
+  }
+
+  let html='<h3>Trade - Select Player</h3>';
+  otherPlayers.forEach(({p,i})=>{
+    html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px;margin:4px 0;background:rgba(255,255,255,.05);border-radius:8px;cursor:pointer" onclick="openTradeWith(${i})">
+      <img src="${SPRITE_URL(p.token)}" style="width:32px;height:32px;image-rendering:pixelated">
+      <div>
+        <div style="color:${p.color};font-weight:bold;font-size:.9em">${p.name}</div>
+        <div style="color:#ffcb05;font-size:.75em">${p.money}₽ • ${p.properties.length} properties</div>
+      </div>
+    </div>`;
+  });
+  html+=`<div class="modal-actions"><button class="btn small" onclick="closeModal()">Cancel</button></div>`;
+  showModal(html);
+}
+
+function openTradeWith(otherIdx){
+  const cp=players[currentPlayer];
+  const op=players[otherIdx];
+
+  let html=`<h3>Trade with ${op.name}</h3>
+    <div class="trade-section">
+      <h4 style="color:${cp.color}">${cp.name} Offers:</h4>
+      <div>Money: <input type="number" class="trade-money-input" id="trade-offer-money" value="0" min="0" max="${cp.money}">₽</div>
+      <div class="trade-prop-list" id="trade-offer-props">`;
+  cp.properties.forEach(idx=>{
+    const sp=BOARD[idx];
+    if(sp.buildings===0){
+      html+=`<label><input type="checkbox" value="${idx}"> ${sp.name}</label>`;
+    }
+  });
+  html+=`</div></div>
+    <div class="trade-section">
+      <h4 style="color:${op.color}">${op.name} Gives:</h4>
+      <div>Money: <input type="number" class="trade-money-input" id="trade-request-money" value="0" min="0" max="${op.money}">₽</div>
+      <div class="trade-prop-list" id="trade-request-props">`;
+  op.properties.forEach(idx=>{
+    const sp=BOARD[idx];
+    if(sp.buildings===0){
+      html+=`<label><input type="checkbox" value="${idx}"> ${sp.name}</label>`;
+    }
+  });
+  html+=`</div></div>
+    <div class="modal-actions">
+      <button class="btn small success" onclick="proposeTrade(${otherIdx})">Propose</button>
+      <button class="btn small" onclick="closeModal()">Cancel</button>
+    </div>`;
+  showModal(html);
+}
+
+function proposeTrade(otherIdx){
+  const offerMoney=parseInt(document.getElementById('trade-offer-money').value)||0;
+  const requestMoney=parseInt(document.getElementById('trade-request-money').value)||0;
+  const offerProps=Array.from(document.querySelectorAll('#trade-offer-props input:checked')).map(el=>parseInt(el.value));
+  const requestProps=Array.from(document.querySelectorAll('#trade-request-props input:checked')).map(el=>parseInt(el.value));
+
+  if(offerMoney===0&&requestMoney===0&&offerProps.length===0&&requestProps.length===0){
+    return;
+  }
+
+  const cp=players[currentPlayer];
+  const op=players[otherIdx];
+
+  let desc=`<h3>Trade Proposal</h3>
+    <p><strong style="color:${cp.color}">${cp.name}</strong> offers:</p>
+    <ul style="font-size:.85em;padding-left:16px">`;
+  if(offerMoney>0) desc+=`<li>${offerMoney}₽</li>`;
+  offerProps.forEach(idx=>desc+=`<li>${BOARD[idx].name}</li>`);
+  desc+=`</ul><p><strong style="color:${op.color}">${op.name}</strong> gives:</p>
+    <ul style="font-size:.85em;padding-left:16px">`;
+  if(requestMoney>0) desc+=`<li>${requestMoney}₽</li>`;
+  requestProps.forEach(idx=>desc+=`<li>${BOARD[idx].name}</li>`);
+  desc+=`</ul>
+    <p style="color:#ffcb05;font-size:.9em;margin-top:8px">Pass the device to ${op.name}!</p>
+    <div class="modal-actions">
+      <button class="btn small success" onclick="executeTrade(${otherIdx},${offerMoney},${requestMoney},${JSON.stringify(offerProps)},${JSON.stringify(requestProps)})">Accept</button>
+      <button class="btn small danger" onclick="closeModal()">Decline</button>
+    </div>`;
+  showModal(desc);
+}
+
+function executeTrade(otherIdx, offerMoney, requestMoney, offerProps, requestProps){
+  const cp=players[currentPlayer];
+  const op=players[otherIdx];
+
+  // Transfer money
+  cp.money-=offerMoney;
+  cp.money+=requestMoney;
+  op.money+=offerMoney;
+  op.money-=requestMoney;
+
+  // Transfer properties
+  offerProps.forEach(idx=>{
+    BOARD[idx].owner=otherIdx;
+    cp.properties=cp.properties.filter(i=>i!==idx);
+    op.properties.push(idx);
+  });
+  requestProps.forEach(idx=>{
+    BOARD[idx].owner=currentPlayer;
+    op.properties=op.properties.filter(i=>i!==idx);
+    cp.properties.push(idx);
+  });
+
+  logMsg(`Trade completed between ${cp.name} and ${op.name}!`);
+  closeModal();
+  renderAll();
+}
+
+// ==================== INFO MODALS ====================
+function showSpaceInfo(idx){
+  const sp=BOARD[idx];
+  let html=`<h3>${sp.name}</h3>`;
+
+  if(sp.group){
+    html+=`<div style="background:${GROUP_COLORS[sp.group]};height:6px;border-radius:3px;margin:4px 0"></div>`;
+  }
+
+  if(sp.type==='property'){
+    html+=`<div class="prop-details">
+      <p>Price: ${sp.price}₽</p>
+      <p>Rent: ${sp.rent[0]}₽</p>
+      <p>With 1 Gym: ${sp.rent[1]}₽</p>
+      <p>With 2 Gyms: ${sp.rent[2]}₽</p>
+      <p>With 3 Gyms: ${sp.rent[3]}₽</p>
+      <p>With 4 Gyms: ${sp.rent[4]}₽</p>
+      <p>With Stadium: ${sp.rent[5]}₽</p>
+      <p>Gym cost: ${sp.buildCost}₽ each</p>
+      <p>Mortgage: ${Math.floor(sp.price/2)}₽</p>
+      ${sp.owner>=0?`<p>Owner: <span style="color:${players[sp.owner].color}">${players[sp.owner].name}</span></p>`:'<p>Unowned</p>'}
+      ${sp.buildings>0?`<p>Buildings: ${sp.buildings===5?'Stadium':sp.buildings+' Gym(s)'}</p>`:''}
+      ${sp.mortgaged?'<p style="color:#e74c3c">MORTGAGED</p>':''}
+    </div>`;
+  } else if(sp.type==='railroad'){
+    html+=`<div class="prop-details">
+      <p>Price: 200₽</p>
+      <p>Rent with 1: 25₽</p>
+      <p>Rent with 2: 50₽</p>
+      <p>Rent with 3: 100₽</p>
+      <p>Rent with 4: 200₽</p>
+      ${sp.owner>=0?`<p>Owner: <span style="color:${players[sp.owner].color}">${players[sp.owner].name}</span></p>`:'<p>Unowned</p>'}
+    </div>`;
+  } else if(sp.type==='utility'){
+    html+=`<div class="prop-details">
+      <p>Price: 150₽</p>
+      <p>1 owned: Dice × 4</p>
+      <p>2 owned: Dice × 10</p>
+      ${sp.owner>=0?`<p>Owner: <span style="color:${players[sp.owner].color}">${players[sp.owner].name}</span></p>`:'<p>Unowned</p>'}
+    </div>`;
+  }
+
+  // Show players on this space
+  const here=players.filter((p,i)=>!p.bankrupt&&p.position===idx);
+  if(here.length>0){
+    html+='<p style="font-size:.8em;color:#aaa;margin-top:4px">Players here: '+here.map(p=>`<span style="color:${p.color}">${p.name}</span>`).join(', ')+'</p>';
+  }
+
+  html+=`<div class="modal-actions"><button class="btn small" onclick="closeModal()">Close</button></div>`;
+  showModal(html);
+}
+
+function showPlayerInfo(pi){
+  const p=players[pi];
+  let html=`<h3 style="color:${p.color}"><img src="${SPRITE_URL(p.token)}" style="width:32px;height:32px;image-rendering:pixelated;vertical-align:middle"> ${p.name}</h3>
+    <p>Money: <span style="color:#ffcb05">${p.money}₽</span></p>
+    <p>Position: ${BOARD[p.position].name}</p>
+    ${p.inJail?'<p style="color:#e74c3c">In Team Rocket Hideout!</p>':''}
+    ${p.jailCards>0?`<p>Get Out Free Cards: ${p.jailCards}</p>`:''}
+    <h4 style="color:#ffcb05;font-size:.85em;margin:8px 0 4px">Properties:</h4>`;
+
+  if(p.properties.length===0){
+    html+='<p style="font-size:.85em;color:#aaa">None</p>';
+  } else {
+    p.properties.forEach(idx=>{
+      const sp=BOARD[idx];
+      html+=`<div class="prop-item ${sp.mortgaged?'mortgaged':''}">`;
+      if(sp.group) html+=`<span class="prop-dot" style="background:${GROUP_COLORS[sp.group]}"></span>`;
+      html+=`${sp.name}`;
+      if(sp.buildings>0) html+=` (${sp.buildings===5?'Stadium':sp.buildings+'G'})`;
+      html+=`</div>`;
+    });
+  }
+
+  // Net worth
+  let netWorth=p.money;
+  p.properties.forEach(idx=>{
+    const sp=BOARD[idx];
+    netWorth+=sp.mortgaged?Math.floor(sp.price/2):sp.price;
+    netWorth+=sp.buildings*sp.buildCost;
+  });
+  html+=`<p style="margin-top:8px;font-size:.85em">Net Worth: <span style="color:#ffcb05">${netWorth}₽</span></p>`;
+
+  html+=`<div class="modal-actions"><button class="btn small" onclick="closeModal()">Close</button></div>`;
+  showModal(html);
+}
+
+// ==================== UTILITIES ====================
+function giveMoney(pi, amount){
+  players[pi].money+=amount;
+}
+
+function takeMoney(pi, amount){
+  players[pi].money-=amount;
+  if(players[pi].money<0){
+    // Will be handled by caller
+  }
+}
+
+function logMsg(msg){
+  const log=document.getElementById('msg-log');
+  const p=document.createElement('p');
+  p.textContent=msg;
+  log.prepend(p);
+  // Keep max 20 messages
+  while(log.children.length>20) log.removeChild(log.lastChild);
+}
+
+function showModal(html){
+  document.getElementById('modal-content').innerHTML=html;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('active');
+}
+
+// Close modal on overlay click (not on modal itself)
+document.getElementById('modal-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('modal-overlay')) closeModal();
+});
+
+// ==================== INIT ====================
+initSetup();
+</script>
+</body>
+</html>

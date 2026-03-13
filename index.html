@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Pok&eacute;mon Chess</title>
+<title>Pok&eacute;mon Battle Arena</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;color:#fff;overflow-x:hidden;padding:8px;-webkit-tap-highlight-color:transparent;user-select:none}
@@ -136,16 +136,22 @@ h1{font-size:1.7em;margin:6px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 </style>
 </head>
 <body>
-<h1>Pok&eacute;mon Chess</h1>
+<h1>Pok&eacute;mon Battle Arena</h1>
 
 <!-- TITLE -->
 <div class="screen active" id="screen-title">
   <div class="title-pokeball">&#9898;</div>
   <p style="color:#aaa;text-align:center;margin:6px 0;font-size:.9em">
-    Choose your trainer, pick your region, and battle with Pok&eacute;mon on the chessboard!
+    Choose your game mode!
   </p>
+  <div style="color:#ffcb05;font-size:1.1em;font-weight:bold;margin:8px 0 2px">&#9814; Pok&eacute;mon Chess</div>
+  <p style="color:#aaa;text-align:center;margin:0 0 4px;font-size:.78em">Battle with Pok&eacute;mon on the chessboard!</p>
   <button class="btn" onclick="startCampaign()">Campaign Mode</button>
   <button class="btn" onclick="start2Player()" style="border-color:#5bc0de;color:#5bc0de">2 Player Battle</button>
+  <div style="width:60%;height:1px;background:rgba(255,255,255,.15);margin:14px 0"></div>
+  <div style="color:#ffcb05;font-size:1.1em;font-weight:bold;margin:4px 0 2px">&#127922; Pok&eacute;mon Monopoly</div>
+  <p style="color:#aaa;text-align:center;margin:0 0 4px;font-size:.78em">Buy regions, build Gyms, and become the Pok&eacute;mon Champion!</p>
+  <button class="btn" onclick="window.location.href='monopoly.html'" style="border-color:#e040fb;color:#e040fb">Play Monopoly!</button>
 </div>
 
 <!-- CAMPAIGN SETUP (player only) -->
