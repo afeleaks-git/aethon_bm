@@ -338,6 +338,7 @@ let gamePhase = 'setup'; // setup, rolling, rolled, turnend, gameover
 let doublesCount = 0;
 let lastDice = [0,0];
 let freeParkingPot = 0;
+let modalLocked = false; // prevent closing modal during debt resolution
 
 // Initialize property ownership on board
 function initBoard(){
@@ -670,6 +671,7 @@ function renderActions(){
 function rollDice(){
   if(gamePhase!=='rolling')return;
   const cp=players[currentPlayer];
+  if(cp.money<0){handleDebt(currentPlayer,-1,0);return;}
 
   // Jail logic
   if(cp.inJail){
@@ -787,7 +789,7 @@ function handleLanding(pi){
       if(sp.name.includes('Entry Fee')){
         // Income tax: 200 or 10%
         const tenPct=Math.floor(p.money*0.1);
-        const amt=Math.min(200,tenPct);
+        const taxAmt=Math.min(200,tenPct);
         takeMoney(pi,200);
         freeParkingPot+=200;
         logMsg(`${p.name} pays League Entry Fee: 200₽`);
@@ -796,7 +798,11 @@ function handleLanding(pi){
         freeParkingPot+=sp.amount;
         logMsg(`${p.name} pays ${sp.name}: ${sp.amount}₽`);
       }
-      finishLanding();
+      if(p.money<0){
+        handleDebt(pi,-1,0);
+      } else {
+        finishLanding();
+      }
       break;
     case 'chance':
       drawCard(pi,'chance');
@@ -1018,27 +1024,86 @@ function jailUseCard(){
 // ==================== DEBT / BANKRUPTCY ====================
 function handleDebt(pi, creditor, amount){
   const p=players[pi];
-  // Try to auto-resolve by mortgaging
+  modalLocked=true; // prevent dismissing debt modal
+  // Check if player has anything to mortgage
+  const canMortgage=p.properties.some(idx=>!BOARD[idx].mortgaged&&BOARD[idx].buildings===0);
+  const canSellBuildings=p.properties.some(idx=>BOARD[idx].buildings>0);
+
+  if(!canMortgage&&!canSellBuildings){
+    // Nothing to do, forced bankruptcy
+    showModal(`
+      <h3>${p.name} is Bankrupt!</h3>
+      <p style="color:#e74c3c">Balance: ${p.money}₽</p>
+      <p>No properties to mortgage. ${p.name} is out of the game!</p>
+      <div class="modal-actions">
+        <button class="btn small danger" onclick="goBankrupt(${pi},${creditor})">OK</button>
+      </div>
+    `);
+    return;
+  }
+
   showModal(`
-    <h3>${p.name} is in Debt!</h3>
-    <p>Balance: ${p.money}₽</p>
-    <p>You need to raise funds by mortgaging properties or you'll go bankrupt!</p>
+    <h3>⚠️ ${p.name} is in Debt!</h3>
+    <p style="color:#e74c3c;font-size:1.1em;font-weight:bold">Balance: ${p.money}₽</p>
+    <p>You must raise funds by mortgaging properties or selling buildings, or declare bankruptcy!</p>
     <div class="modal-actions">
-      <button class="btn small" onclick="debtMortgageMenu(${pi},${creditor})">Mortgage Properties</button>
+      ${canSellBuildings?'<button class="btn small" onclick="debtSellBuildingMenu('+pi+','+creditor+')">Sell Buildings</button>':''}
+      ${canMortgage?'<button class="btn small" onclick="debtMortgageMenu('+pi+','+creditor+')">Mortgage Properties</button>':''}
       <button class="btn small danger" onclick="goBankrupt(${pi},${creditor})">Declare Bankruptcy</button>
     </div>
   `);
+}
+
+function debtSellBuildingMenu(pi, creditor){
+  const p=players[pi];
+  const sellable=p.properties.filter(idx=>BOARD[idx].buildings>0);
+  if(sellable.length===0){
+    handleDebt(pi,creditor,0);
+    return;
+  }
+  let html=`<h3>Sell Buildings</h3><p style="color:${p.money<0?'#e74c3c':'#ffcb05'}">Balance: ${p.money}₽</p><div style="max-height:200px;overflow-y:auto">`;
+  sellable.forEach(idx=>{
+    const sp=BOARD[idx];
+    const val=Math.floor(sp.buildCost/2);
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px;margin:3px 0;background:rgba(255,255,255,.05);border-radius:6px">
+      <div><span style="font-size:.85em">${sp.name}</span><br><span style="font-size:.7em;color:#aaa">${sp.buildings} building(s)</span></div>
+      <button class="btn small" onclick="sellBuildingForDebt(${idx},${pi},${creditor})">+${val}₽</button>
+    </div>`;
+  });
+  html+=`</div><div class="modal-actions">
+    <button class="btn small" onclick="handleDebt(${pi},${creditor},0)">Back</button>
+  </div>`;
+  showModal(html);
+}
+
+function sellBuildingForDebt(propIdx, pi, creditor){
+  const sp=BOARD[propIdx];
+  const val=Math.floor(sp.buildCost/2);
+  players[pi].money+=val;
+  sp.buildings--;
+  logMsg(`${players[pi].name} sold a building on ${sp.name} (+${val}₽)`);
+  renderAll();
+  if(players[pi].money>=0){
+    debtResolved();
+  } else {
+    debtSellBuildingMenu(pi,creditor);
+  }
 }
 
 function debtMortgageMenu(pi, creditor){
   const p=players[pi];
   const mortgageable=p.properties.filter(idx=>!BOARD[idx].mortgaged&&BOARD[idx].buildings===0);
   if(mortgageable.length===0){
-    showModal(`<h3>No Properties to Mortgage</h3><p>You must declare bankruptcy.</p>
-      <div class="modal-actions"><button class="btn small danger" onclick="goBankrupt(${pi},${creditor})">Declare Bankruptcy</button></div>`);
+    const canSell=p.properties.some(idx=>BOARD[idx].buildings>0);
+    if(canSell){
+      handleDebt(pi,creditor,0);
+    } else {
+      showModal(`<h3>No Properties to Mortgage</h3><p>You must declare bankruptcy.</p>
+        <div class="modal-actions"><button class="btn small danger" onclick="goBankrupt(${pi},${creditor})">Declare Bankruptcy</button></div>`);
+    }
     return;
   }
-  let html=`<h3>Mortgage Properties</h3><p>Balance: ${p.money}₽</p><div style="max-height:200px;overflow-y:auto">`;
+  let html=`<h3>Mortgage Properties</h3><p style="color:${p.money<0?'#e74c3c':'#ffcb05'}">Balance: ${p.money}₽</p><div style="max-height:200px;overflow-y:auto">`;
   mortgageable.forEach(idx=>{
     const sp=BOARD[idx];
     const val=Math.floor(sp.price/2);
@@ -1048,7 +1113,8 @@ function debtMortgageMenu(pi, creditor){
     </div>`;
   });
   html+=`</div><div class="modal-actions">
-    ${p.money>=0?`<button class="btn small success" onclick="closeModal();finishLanding()">Done</button>`:''}
+    ${p.money>=0?`<button class="btn small success" onclick="debtResolved()">Done</button>`:''}
+    <button class="btn small" onclick="handleDebt(${pi},${creditor},0)">Back</button>
     <button class="btn small danger" onclick="goBankrupt(${pi},${creditor})">Declare Bankruptcy</button>
   </div>`;
   showModal(html);
@@ -1061,14 +1127,20 @@ function mortgageForDebt(propIdx, pi, creditor){
   logMsg(`${players[pi].name} mortgaged ${sp.name} for ${Math.floor(sp.price/2)}₽`);
   renderAll();
   if(players[pi].money>=0){
-    closeModal();
-    finishLanding();
+    debtResolved();
   } else {
     debtMortgageMenu(pi,creditor);
   }
 }
 
+function debtResolved(){
+  modalLocked=false;
+  closeModal();
+  finishLanding();
+}
+
 function goBankrupt(pi, creditor){
+  modalLocked=false;
   closeModal();
   const p=players[pi];
   p.bankrupt=true;
@@ -1116,6 +1188,8 @@ function checkWin(){
 // ==================== TURN MANAGEMENT ====================
 function endTurn(){
   if(gamePhase!=='turnend')return;
+  const cp=players[currentPlayer];
+  if(cp.money<0){handleDebt(currentPlayer,-1,0);return;}
   doublesCount=0;
   // Next non-bankrupt player
   do {
@@ -1521,11 +1595,13 @@ function showModal(html){
 }
 
 function closeModal(){
+  if(modalLocked) return;
   document.getElementById('modal-overlay').classList.remove('active');
 }
 
 // Close modal on overlay click (not on modal itself)
 document.getElementById('modal-overlay').addEventListener('click',e=>{
+  if(modalLocked) return;
   if(e.target===document.getElementById('modal-overlay')) closeModal();
 });
 
