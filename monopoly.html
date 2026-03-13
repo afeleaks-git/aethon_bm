@@ -6,35 +6,42 @@
 <title>Pok&eacute;mon Monopoly</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;color:#fff;overflow-x:hidden;-webkit-tap-highlight-color:transparent;user-select:none}
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-track{background:rgba(255,255,255,.05)}
-::-webkit-scrollbar-thumb{background:rgba(255,203,5,.3);border-radius:3px}
-h1{font-size:1.6em;margin:8px 0;text-align:center;text-shadow:2px 2px 4px rgba(0,0,0,.5);background:linear-gradient(90deg,#ffcb05,#ff6b35,#ffcb05);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:500px;margin:0 auto;padding:8px}
+body{background:linear-gradient(135deg,#0d0d1a 0%,#1a1a3e 40%,#0a2a4e 100%);min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#fff;overflow-x:hidden;-webkit-tap-highlight-color:transparent;user-select:none;position:relative}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 20% 50%,rgba(255,203,5,.04) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(255,107,53,.03) 0%,transparent 50%)}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,203,5,.35);border-radius:4px}
+h1{font-size:1.7em;margin:10px 0;text-align:center;text-shadow:0 0 30px rgba(255,203,5,.3);background:linear-gradient(90deg,#ffcb05,#ff6b35,#ffcb05);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;letter-spacing:-.5px}
+.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:500px;margin:0 auto;padding:8px;position:relative;z-index:1}
 .screen.active{display:flex}
-.btn{padding:10px 24px;border:2px solid #ffcb05;border-radius:22px;background:linear-gradient(135deg,rgba(255,203,5,.18),rgba(255,107,53,.18));color:#ffcb05;font-size:1em;font-weight:bold;cursor:pointer;transition:all .2s;margin:6px 4px;white-space:nowrap}
-.btn:active{background:rgba(255,203,5,.4);transform:scale(.95)}
-.btn:disabled{opacity:.35;cursor:default}
-.btn.small{padding:6px 14px;font-size:.82em;margin:4px 3px}
-.btn.danger{border-color:#e74c3c;color:#e74c3c;background:rgba(231,76,60,.15)}
-.btn.success{border-color:#2ecc71;color:#2ecc71;background:rgba(46,204,113,.15)}
+
+/* Modern buttons */
+.btn{padding:11px 26px;border:none;border-radius:25px;background:linear-gradient(135deg,#ffcb05 0%,#f0a500 100%);color:#1a1a2e;font-size:1em;font-weight:700;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);margin:6px 4px;white-space:nowrap;box-shadow:0 4px 15px rgba(255,203,5,.25),inset 0 1px 0 rgba(255,255,255,.2);text-shadow:0 1px 0 rgba(255,255,255,.2);letter-spacing:.3px;position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,.3);transition:all .4s;transform:translate(-50%,-50%)}
+.btn:active::after{width:200px;height:200px;opacity:0}
+.btn:active{transform:scale(.93);box-shadow:0 2px 8px rgba(255,203,5,.2)}
+.btn:disabled{opacity:.3;cursor:default;transform:none;box-shadow:none}
+.btn.small{padding:7px 16px;font-size:.82em;margin:4px 3px;border-radius:20px}
+.btn.danger{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;box-shadow:0 4px 15px rgba(231,76,60,.25);text-shadow:none}
+.btn.success{background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;box-shadow:0 4px 15px rgba(46,204,113,.25);text-shadow:none}
+.btn.outline{background:transparent;border:2px solid rgba(255,203,5,.5);color:#ffcb05;box-shadow:none;text-shadow:none}
+.btn.outline:active{background:rgba(255,203,5,.15)}
 
 /* Setup screen */
-.setup-section{width:100%;margin:8px 0;padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04)}
-.setup-section h3{color:#ffcb05;font-size:.95em;margin-bottom:6px}
+.setup-section{width:100%;margin:8px 0;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.04);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.setup-section h3{color:#ffcb05;font-size:.95em;margin-bottom:6px;font-weight:700}
 .player-setup{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.player-setup input{flex:1;min-width:120px;padding:8px 12px;border:2px solid rgba(255,203,5,.4);border-radius:10px;background:rgba(255,255,255,.08);color:#fff;font-size:.95em;outline:none}
-.player-setup input:focus{border-color:#ffcb05}
-.pokemon-select{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px}
-.pokemon-opt{display:flex;flex-direction:column;align-items:center;padding:5px 2px;border:2px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.03);cursor:pointer;transition:all .15s}
-.pokemon-opt:active{transform:scale(.93)}
-.pokemon-opt.selected{border-color:#ffcb05;background:rgba(255,203,5,.15)}
-.pokemon-opt.taken{opacity:.25;pointer-events:none}
-.pokemon-opt img{width:40px;height:40px;image-rendering:pixelated}
-.pokemon-opt span{font-size:.55em;color:#ccc;margin-top:1px}
+.player-setup input{flex:1;min-width:120px;padding:10px 14px;border:2px solid rgba(255,203,5,.3);border-radius:12px;background:rgba(255,255,255,.06);color:#fff;font-size:.95em;outline:none;transition:all .2s;backdrop-filter:blur(5px)}
+.player-setup input:focus{border-color:#ffcb05;background:rgba(255,203,5,.08);box-shadow:0 0 15px rgba(255,203,5,.15)}
+.pokemon-select{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.pokemon-opt{display:flex;flex-direction:column;align-items:center;padding:6px 3px;border:2px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.03);cursor:pointer;transition:all .2s cubic-bezier(.4,0,.2,1)}
+.pokemon-opt:active{transform:scale(.9)}
+.pokemon-opt.selected{border-color:#ffcb05;background:rgba(255,203,5,.15);box-shadow:0 0 15px rgba(255,203,5,.2);transform:scale(1.02)}
+.pokemon-opt.taken{opacity:.2;pointer-events:none}
+.pokemon-opt img{width:44px;height:44px;image-rendering:pixelated;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+.pokemon-opt span{font-size:.58em;color:#bbb;margin-top:2px;font-weight:600}
 .player-count-sel{display:flex;gap:8px;margin:8px 0}
-.player-count-sel .btn.active{background:rgba(255,203,5,.4)}
+.player-count-sel .btn.active{background:linear-gradient(135deg,#ffcb05,#f0a500);color:#1a1a2e;box-shadow:0 4px 20px rgba(255,203,5,.35)}
 
 /* Board screen */
 #board-screen{max-width:100%;padding:4px}
@@ -42,19 +49,19 @@ h1{font-size:1.6em;margin:8px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 .top-bar .current-player{display:flex;align-items:center;gap:6px;font-size:.85em}
 .top-bar .current-player img{width:28px;height:28px;image-rendering:pixelated}
 .top-bar .money{color:#ffcb05;font-weight:bold}
-.actions-bar{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;padding:4px;width:100%}
+.actions-bar{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:5px;width:100%}
 
 /* View toggle */
 .view-toggle{display:flex;gap:4px;justify-content:center;margin:4px 0}
-.view-toggle button{padding:4px 12px;border:1px solid rgba(255,203,5,.4);border-radius:14px;background:rgba(255,255,255,.05);color:#aaa;font-size:.72em;cursor:pointer;font-weight:bold}
-.view-toggle button.active{background:rgba(255,203,5,.25);color:#ffcb05;border-color:#ffcb05}
+.view-toggle button{padding:5px 14px;border:1px solid rgba(255,203,5,.3);border-radius:16px;background:rgba(255,255,255,.04);color:#888;font-size:.72em;cursor:pointer;font-weight:700;transition:all .25s;backdrop-filter:blur(5px)}
+.view-toggle button.active{background:linear-gradient(135deg,rgba(255,203,5,.2),rgba(255,107,53,.1));color:#ffcb05;border-color:rgba(255,203,5,.6);box-shadow:0 0 12px rgba(255,203,5,.15)}
 
 /* Monopoly Board (grid view) */
 .board-wrapper{width:100%;overflow:auto;-webkit-overflow-scrolling:touch;max-height:55vh;margin:4px 0;display:flex;justify-content:center}
 .board-wrapper.hidden{display:none}
-.board{display:grid;grid-template-columns:repeat(11,1fr);grid-template-rows:repeat(11,1fr);width:min(95vw,500px);height:min(95vw,500px);min-width:340px;min-height:340px;border:2px solid rgba(255,203,5,.3);border-radius:4px;background:rgba(0,20,40,.6);position:relative}
-.board-cell{border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-size:.32em;padding:1px;overflow:hidden;position:relative;cursor:pointer;min-width:0;min-height:0}
-.board-cell:active{background:rgba(255,255,255,.1)}
+.board{display:grid;grid-template-columns:repeat(11,1fr);grid-template-rows:repeat(11,1fr);width:min(95vw,500px);height:min(95vw,500px);min-width:340px;min-height:340px;border:2px solid rgba(255,203,5,.25);border-radius:8px;background:rgba(0,20,40,.7);position:relative;box-shadow:0 0 40px rgba(0,0,0,.4)}
+.board-cell{border:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-size:.32em;padding:1px;overflow:hidden;position:relative;cursor:pointer;min-width:0;min-height:0;transition:background .15s}
+.board-cell:active{background:rgba(255,255,255,.12)}
 .board-cell .cell-color{width:100%;height:22%;min-height:3px;flex-shrink:0}
 .board-cell .cell-name{text-align:center;line-height:1.1;flex:1;display:flex;align-items:center;justify-content:center;word-break:break-word;font-size:1em;padding:0 1px}
 .board-cell .cell-price{font-size:.85em;color:#ffcb05;flex-shrink:0}
@@ -67,83 +74,145 @@ h1{font-size:1.6em;margin:8px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 /* List view */
 .list-view{width:100%;max-height:50vh;overflow-y:auto;margin:4px 0;padding:0 2px;-webkit-overflow-scrolling:touch}
 .list-view.hidden{display:none}
-.list-space{display:flex;align-items:center;gap:6px;padding:6px 8px;margin:2px 0;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:all .15s}
-.list-space:active{background:rgba(255,255,255,.1)}
-.list-space.current-space{border-color:#ffcb05;background:rgba(255,203,5,.12);box-shadow:0 0 8px rgba(255,203,5,.2)}
-.list-space .ls-color{width:6px;height:100%;min-height:28px;border-radius:3px;flex-shrink:0}
+.list-space{display:flex;align-items:center;gap:7px;padding:7px 10px;margin:3px 0;border-radius:12px;background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.list-space:active{background:rgba(255,255,255,.12);transform:scale(.98)}
+.list-space.current-space{border-color:rgba(255,203,5,.6);background:linear-gradient(135deg,rgba(255,203,5,.12),rgba(255,107,53,.06));box-shadow:0 0 20px rgba(255,203,5,.15),inset 0 0 20px rgba(255,203,5,.05)}
+.list-space .ls-color{width:5px;height:100%;min-height:32px;border-radius:4px;flex-shrink:0;box-shadow:0 0 6px currentColor}
+.list-space .ls-sprite{width:28px;height:28px;image-rendering:pixelated;flex-shrink:0;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
 .list-space .ls-info{flex:1;min-width:0}
-.list-space .ls-name{font-size:.82em;font-weight:bold;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.list-space .ls-detail{font-size:.65em;color:#aaa;margin-top:1px}
-.list-space .ls-right{display:flex;align-items:center;gap:3px;flex-shrink:0}
-.list-space .ls-right .ls-price{font-size:.72em;color:#ffcb05;font-weight:bold}
+.list-space .ls-name{font-size:.82em;font-weight:700;color:#eee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px}
+.list-space .ls-detail{font-size:.65em;color:#999;margin-top:2px;font-weight:500}
+.list-space .ls-right{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.list-space .ls-right .ls-price{font-size:.72em;color:#ffcb05;font-weight:700}
+.list-space .ls-right .ls-owner-name{font-size:.65em;font-weight:600;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.08)}
 .list-space .ls-right .ls-owner{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.list-space .ls-tokens{display:flex;gap:1px;flex-shrink:0}
-.list-space .ls-tokens img{width:18px;height:18px;image-rendering:pixelated}
-.list-space .ls-buildings{display:flex;gap:1px;flex-shrink:0}
-.list-space .ls-buildings .gym{width:6px;height:6px;background:#2ecc71;border-radius:1px}
-.list-space .ls-buildings .stadium{width:8px;height:8px;background:#e74c3c;border-radius:2px}
+.list-space .ls-tokens{display:flex;gap:2px;flex-shrink:0}
+.list-space .ls-tokens img{width:20px;height:20px;image-rendering:pixelated;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.list-space .ls-buildings{display:flex;gap:2px;flex-shrink:0;margin-right:2px}
+.list-space .ls-buildings .gym{width:7px;height:7px;background:linear-gradient(135deg,#2ecc71,#27ae60);border-radius:2px;box-shadow:0 1px 3px rgba(46,204,113,.3)}
+.list-space .ls-buildings .stadium{width:10px;height:10px;background:linear-gradient(135deg,#e74c3c,#c0392b);border-radius:3px;box-shadow:0 1px 3px rgba(231,76,60,.3)}
 .board-center{grid-column:2/11;grid-row:2/11;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.8em;color:rgba(255,255,255,.3);text-align:center;padding:8px}
 .board-center img{width:60px;opacity:.3}
 .board-center .board-title{font-size:1.4em;font-weight:bold;background:linear-gradient(90deg,#ffcb05,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;opacity:.5}
 
-/* Dice */
-.dice-container{display:flex;gap:12px;justify-content:center;margin:6px 0}
-.die{width:44px;height:44px;background:radial-gradient(circle at 30% 30%,#fff,#ddd);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.4em;font-weight:bold;color:#1a1a2e;border:2px solid #ffcb05;transition:transform .1s}
-.die.rolling{animation:diceRoll .1s infinite}
-@keyframes diceRoll{0%{transform:rotate(0)}25%{transform:rotate(15deg)}50%{transform:rotate(0)}75%{transform:rotate(-15deg)}100%{transform:rotate(0)}}
+/* Dice - CSS dot faces */
+.dice-container{display:flex;gap:14px;justify-content:center;margin:8px 0;perspective:400px}
+.die{width:50px;height:50px;background:linear-gradient(145deg,#fff 0%,#e8e8e8 100%);border-radius:10px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:7px;color:#1a1a2e;border:none;box-shadow:0 4px 15px rgba(0,0,0,.3),0 0 0 2px rgba(255,203,5,.4),inset 0 1px 0 rgba(255,255,255,.8);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.die.rolling{animation:diceRoll3D .12s infinite}
+.die .dot{width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#2c3e50,#1a1a2e);box-shadow:inset 0 1px 2px rgba(0,0,0,.5);justify-self:center;align-self:center;display:none}
+@keyframes diceRoll3D{0%{transform:rotateX(0) rotateZ(0) scale(1)}25%{transform:rotateX(20deg) rotateZ(15deg) scale(1.05)}50%{transform:rotateX(0) rotateZ(0) scale(.95)}75%{transform:rotateX(-20deg) rotateZ(-15deg) scale(1.05)}100%{transform:rotateX(0) rotateZ(0) scale(1)}}
+@keyframes diceBounce{0%{transform:scale(1) rotateZ(0)}30%{transform:scale(1.15) rotateZ(10deg)}60%{transform:scale(.9) rotateZ(-5deg)}100%{transform:scale(1) rotateZ(0)}}
+.die.landed{animation:diceBounce .4s cubic-bezier(.4,0,.2,1)}
 
 /* Message log */
-.msg-log{width:100%;max-height:80px;overflow-y:auto;padding:4px 8px;font-size:.75em;background:rgba(0,0,0,.3);border-radius:8px;margin:4px 0}
-.msg-log p{padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.msg-log{width:100%;max-height:80px;overflow-y:auto;padding:6px 10px;font-size:.75em;background:rgba(0,0,0,.25);border-radius:12px;margin:4px 0;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.05)}
+.msg-log p{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);color:#bbb;transition:opacity .3s}
+.msg-log p:first-child{color:#fff;font-weight:500}
 .msg-log p:last-child{border:none}
 
 /* Modal */
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:100;align-items:center;justify-content:center;padding:16px}
 .modal-overlay.active{display:flex}
-.modal{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #ffcb05;border-radius:16px;padding:16px;max-width:380px;width:100%;max-height:85vh;overflow-y:auto}
-.modal h3{color:#ffcb05;margin-bottom:8px;text-align:center}
-.modal p{font-size:.9em;margin:4px 0;line-height:1.4}
-.modal .prop-details{margin:8px 0;padding:8px;background:rgba(255,255,255,.05);border-radius:8px}
-.modal .modal-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+.modal{background:linear-gradient(145deg,rgba(26,26,46,.97),rgba(22,33,62,.97));border:1px solid rgba(255,203,5,.3);border-radius:20px;padding:18px;max-width:380px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 40px rgba(255,203,5,.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);animation:modalIn .3s cubic-bezier(.4,0,.2,1)}
+@keyframes modalIn{0%{transform:scale(.9) translateY(20px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
+.modal h3{color:#ffcb05;margin-bottom:10px;text-align:center;font-size:1.15em;font-weight:700;text-shadow:0 0 20px rgba(255,203,5,.2)}
+.modal p{font-size:.9em;margin:4px 0;line-height:1.5}
+.modal .prop-details{margin:8px 0;padding:10px;background:rgba(255,255,255,.04);border-radius:12px;border:1px solid rgba(255,255,255,.06)}
+.modal .modal-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
 
 /* Property panel */
-.prop-panel{width:100%;background:rgba(0,0,0,.2);border-radius:10px;padding:8px;margin:4px 0;max-height:120px;overflow-y:auto}
+.prop-panel{width:100%;background:rgba(0,0,0,.2);border-radius:12px;padding:8px;margin:4px 0;max-height:120px;overflow-y:auto}
 .prop-panel h4{color:#ffcb05;font-size:.8em;margin-bottom:4px}
-.prop-item{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;margin:2px;border-radius:6px;font-size:.7em;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1)}
+.prop-item{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;margin:2px;border-radius:8px;font-size:.7em;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);transition:all .15s}
 .prop-item .prop-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.prop-item.mortgaged{opacity:.4;text-decoration:line-through}
+.prop-item.mortgaged{opacity:.35;text-decoration:line-through}
 
 /* Trade UI */
-.trade-section{margin:8px 0;padding:8px;border:1px solid rgba(255,255,255,.15);border-radius:8px}
-.trade-section h4{font-size:.85em;color:#ffcb05;margin-bottom:4px}
+.trade-section{margin:8px 0;padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.03)}
+.trade-section h4{font-size:.85em;color:#ffcb05;margin-bottom:4px;font-weight:700}
 .trade-prop-list{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
-.trade-prop-list label{display:flex;align-items:center;gap:3px;font-size:.75em;padding:3px 6px;background:rgba(255,255,255,.06);border-radius:6px;cursor:pointer}
+.trade-prop-list label{display:flex;align-items:center;gap:3px;font-size:.75em;padding:4px 8px;background:rgba(255,255,255,.05);border-radius:8px;cursor:pointer;transition:background .15s}
+.trade-prop-list label:active{background:rgba(255,255,255,.12)}
 .trade-prop-list input[type=checkbox]{accent-color:#ffcb05}
-.trade-money-input{width:80px;padding:4px 8px;border:1px solid rgba(255,203,5,.4);border-radius:6px;background:rgba(255,255,255,.08);color:#fff;font-size:.85em}
+.trade-money-input{width:80px;padding:5px 10px;border:1px solid rgba(255,203,5,.3);border-radius:8px;background:rgba(255,255,255,.06);color:#fff;font-size:.85em;outline:none;transition:border-color .2s}
+.trade-money-input:focus{border-color:#ffcb05}
 
 /* Card display */
-.card-display{text-align:center;padding:20px 16px;margin:8px 0;border:3px solid #ffcb05;border-radius:16px;background:rgba(255,203,5,.1)}
-.card-display.chance-card{border-color:#e040fb;background:rgba(224,64,251,.12)}
-.card-display.chest-card{border-color:#4fc3f7;background:rgba(79,195,247,.12)}
-.card-display .card-icon{font-size:2.5em;margin-bottom:6px}
-.card-display .card-type{font-size:.85em;color:#ffcb05;text-transform:uppercase;letter-spacing:2px;font-weight:bold;margin-bottom:6px}
+.card-display{text-align:center;padding:24px 18px;margin:8px 0;border:3px solid #ffcb05;border-radius:20px;background:linear-gradient(145deg,rgba(255,203,5,.08),rgba(255,203,5,.02));position:relative;overflow:hidden}
+.card-display::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,rgba(255,203,5,.05),transparent,rgba(255,203,5,.05),transparent);animation:cardShine 4s linear infinite}
+@keyframes cardShine{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+.card-display.chance-card{border-color:#e040fb;background:linear-gradient(145deg,rgba(224,64,251,.1),rgba(224,64,251,.02))}
+.card-display.chance-card::before{background:conic-gradient(from 0deg,transparent,rgba(224,64,251,.05),transparent,rgba(224,64,251,.05),transparent)}
+.card-display.chest-card{border-color:#4fc3f7;background:linear-gradient(145deg,rgba(79,195,247,.1),rgba(79,195,247,.02))}
+.card-display.chest-card::before{background:conic-gradient(from 0deg,transparent,rgba(79,195,247,.05),transparent,rgba(79,195,247,.05),transparent)}
+.card-display .card-icon{font-size:2.8em;margin-bottom:8px;position:relative;z-index:1}
+.card-display .card-sprite{width:64px;height:64px;image-rendering:pixelated;margin-bottom:6px;position:relative;z-index:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3))}
+.card-display .card-type{font-size:.8em;color:#ffcb05;text-transform:uppercase;letter-spacing:3px;font-weight:800;margin-bottom:8px;position:relative;z-index:1}
 .card-display.chance-card .card-type{color:#e040fb}
 .card-display.chest-card .card-type{color:#4fc3f7}
-.card-display .card-text{font-size:1.1em;margin:10px 0;color:#fff;line-height:1.5;font-weight:500}
+.card-display .card-text{font-size:1.05em;margin:10px 0;color:#eee;line-height:1.6;font-weight:500;position:relative;z-index:1}
 
 /* Player status bar */
-.player-status-bar{display:flex;gap:4px;width:100%;overflow-x:auto;padding:4px 0}
-.player-chip{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;font-size:.72em;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);white-space:nowrap;flex-shrink:0}
-.player-chip.active-player{border-color:#ffcb05;background:rgba(255,203,5,.15)}
-.player-chip.bankrupt{opacity:.3;text-decoration:line-through}
-.player-chip img{width:20px;height:20px;image-rendering:pixelated}
+.player-status-bar{display:flex;gap:5px;width:100%;overflow-x:auto;padding:4px 0;-webkit-overflow-scrolling:touch}
+.player-chip{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:12px;font-size:.72em;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);white-space:nowrap;flex-shrink:0;transition:all .3s cubic-bezier(.4,0,.2,1);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.player-chip.active-player{border-color:rgba(255,203,5,.5);background:linear-gradient(135deg,rgba(255,203,5,.15),rgba(255,107,53,.05));box-shadow:0 0 15px rgba(255,203,5,.15)}
+.player-chip.bankrupt{opacity:.25;text-decoration:line-through;filter:grayscale(1)}
+.player-chip img{width:22px;height:22px;image-rendering:pixelated;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.player-chip .chip-money{color:#ffcb05;font-weight:700}
+
+/* Board position progress bar */
+.position-bar{width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.06);margin:3px 0;display:flex;overflow:hidden;gap:1px;padding:0 1px}
+.position-bar .pos-seg{flex:1;height:100%;border-radius:1px;background:rgba(255,255,255,.04);transition:background .3s}
+.position-bar .pos-seg.pos-current{background:#ffcb05;box-shadow:0 0 6px rgba(255,203,5,.5)}
+.position-bar .pos-seg.pos-owned{background:var(--owner-color);opacity:.6}
+
+/* Landing Card */
+.landing-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:90;align-items:flex-end;justify-content:center;padding:0}
+.landing-overlay.active{display:flex}
+.landing-card{width:100%;max-width:500px;background:linear-gradient(160deg,rgba(20,20,40,.98),rgba(15,30,50,.98));border-top-left-radius:24px;border-top-right-radius:24px;border:1px solid rgba(255,203,5,.2);border-bottom:none;padding:20px 16px 24px;box-shadow:0 -10px 40px rgba(0,0,0,.5),0 0 30px rgba(255,203,5,.06);animation:landingSlideUp .45s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}
+.landing-card::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.2);margin-top:6px}
+@keyframes landingSlideUp{0%{transform:translateY(100%);opacity:.5}100%{transform:translateY(0);opacity:1}}
+@keyframes landingFadeOut{0%{transform:translateY(0);opacity:1}100%{transform:translateY(100%);opacity:0}}
+.landing-card.dismissing{animation:landingFadeOut .3s cubic-bezier(.4,0,1,1) forwards}
+.landing-card .lc-color-bar{height:6px;border-radius:3px;margin:8px 0 12px;width:100%}
+.landing-card .lc-header{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.landing-card .lc-sprite{width:72px;height:72px;image-rendering:pixelated;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4))}
+.landing-card .lc-title{flex:1}
+.landing-card .lc-name{font-size:1.3em;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.3);line-height:1.2}
+.landing-card .lc-type{font-size:.75em;color:#999;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-top:3px}
+.landing-card .lc-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.landing-card .lc-info-item{padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.06)}
+.landing-card .lc-info-label{font-size:.65em;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.landing-card .lc-info-value{font-size:.95em;font-weight:700;color:#ffcb05;margin-top:2px}
+.landing-card .lc-owner-info{display:flex;align-items:center;gap:6px}
+.landing-card .lc-owner-info img{width:20px;height:20px;image-rendering:pixelated}
+.landing-card .lc-buildings{display:flex;gap:4px;margin-top:3px}
+.landing-card .lc-buildings .lc-gym{width:12px;height:12px;background:linear-gradient(135deg,#2ecc71,#27ae60);border-radius:3px;box-shadow:0 1px 4px rgba(46,204,113,.3)}
+.landing-card .lc-buildings .lc-stadium{width:16px;height:16px;background:linear-gradient(135deg,#e74c3c,#c0392b);border-radius:4px;box-shadow:0 1px 4px rgba(231,76,60,.3)}
+.landing-card .lc-neighbors{display:flex;gap:6px;margin-top:12px;justify-content:center}
+.landing-card .lc-neighbor{padding:5px 8px;background:rgba(255,255,255,.04);border-radius:8px;border:1px solid rgba(255,255,255,.06);text-align:center;flex:1;max-width:120px}
+.landing-card .lc-neighbor .lcn-color{height:3px;border-radius:2px;margin-bottom:4px}
+.landing-card .lc-neighbor .lcn-name{font-size:.6em;color:#aaa;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.landing-card .lc-neighbor .lcn-sprite{width:20px;height:20px;image-rendering:pixelated;margin:2px auto;display:block}
+.landing-card .lc-special{text-align:center;padding:8px 0}
+.landing-card .lc-special-icon{font-size:2em;margin-bottom:4px}
+.landing-card .lc-special-text{font-size:.9em;color:#ccc;font-weight:500}
+.landing-card .lc-tap-hint{text-align:center;font-size:.6em;color:#666;margin-top:10px;letter-spacing:1px;text-transform:uppercase;animation:tapPulse 1.5s ease-in-out infinite}
+@keyframes tapPulse{0%,100%{opacity:.4}50%{opacity:.8}}
+
+/* Floating particles */
+.particles{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:0;overflow:hidden}
+.particle{position:absolute;opacity:0;animation:floatUp linear infinite}
+@keyframes floatUp{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:.15}90%{opacity:.15}100%{transform:translateY(-10vh) rotate(360deg);opacity:0}}
 
 /* Responsive */
 @media(max-width:380px){
   .board{min-width:300px;min-height:300px}
   .board-cell{font-size:.28em}
-  .btn{padding:7px 14px;font-size:.88em}
-  .btn.small{padding:5px 10px;font-size:.78em}
+  .btn{padding:8px 16px;font-size:.88em}
+  .btn.small{padding:5px 12px;font-size:.78em}
+  .landing-card .lc-sprite{width:56px;height:56px}
+  .landing-card .lc-name{font-size:1.1em}
 }
 </style>
 </head>
@@ -168,6 +237,7 @@ h1{font-size:1.6em;margin:8px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 <!-- BOARD SCREEN -->
 <div class="screen" id="board-screen">
   <div class="player-status-bar" id="player-status-bar"></div>
+  <div class="position-bar" id="position-bar"></div>
 
   <div class="view-toggle" id="view-toggle">
     <button class="active" id="view-list-btn" onclick="setView('list')">List View</button>
@@ -209,6 +279,14 @@ h1{font-size:1.6em;margin:8px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
   <button class="btn" onclick="location.reload()">Play Again</button>
   <a href="index.html" class="btn small" style="text-decoration:none;text-align:center">Back to Menu</a>
 </div>
+
+<!-- LANDING CARD OVERLAY -->
+<div class="landing-overlay" id="landing-overlay">
+  <div class="landing-card" id="landing-card"></div>
+</div>
+
+<!-- FLOATING PARTICLES -->
+<div class="particles" id="particles"></div>
 
 <!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay">
@@ -274,6 +352,50 @@ const BOARD = [
 const GROUP_COLORS = {
   brown:'#8B4513',lightblue:'#87CEEB',pink:'#FF69B4',orange:'#FF8C00',
   red:'#DC143C',yellow:'#FFD700',green:'#228B22',darkblue:'#00008B'
+};
+
+// Pokémon sprite IDs for each board space
+const SPACE_POKEMON = {
+  0: 25,    // GO -> Pikachu
+  1: 16,    // Route 1 -> Pidgey
+  2: 175,   // Professor's Gift -> Togepi
+  3: 1,     // Pallet Town -> Bulbasaur
+  4: 53,    // League Entry Fee -> Persian
+  5: 113,   // Kanto Pokémon Center -> Chansey
+  6: 150,   // Cerulean Cave -> Mewtwo
+  7: 63,    // Wild Encounter -> Abra
+  8: 141,   // Pewter Museum -> Kabutops
+  9: 10,    // Viridian Forest -> Caterpie
+  10: 24,   // Team Rocket Hideout -> Arbok
+  11: 241,  // Goldenrod City -> Miltank
+  12: 137,  // Prof. Oak's Lab -> Porygon
+  13: 250,  // Ecruteak Tower -> Ho-Oh
+  14: 181,  // Olivine Lighthouse -> Ampharos
+  15: 113,  // Johto Pokémon Center -> Chansey
+  16: 350,  // Lilycove City -> Milotic
+  17: 63,   // Wild Encounter -> Abra
+  18: 357,  // Fortree City -> Tropius
+  19: 323,  // Mt. Chimney -> Camerupt
+  20: 132,  // Pokémon Daycare -> Ditto
+  21: 429,  // Hearthome City -> Mismagius
+  22: 63,   // Wild Encounter -> Abra
+  23: 486,  // Snowpoint Temple -> Regigigas
+  24: 448,  // Iron Island -> Lucario
+  25: 113,  // Hoenn Pokémon Center -> Chansey
+  26: 587,  // Nimbasa City -> Emolga
+  27: 637,  // Castelia City -> Volcarona
+  28: 137,  // Silph Co. -> Porygon
+  29: 643,  // Dragonspiral Tower -> Reshiram
+  30: 52,   // Team Rocket Catches You! -> Meowth
+  31: 681,  // Lumiose City -> Aegislash
+  32: 716,  // Geosenge Town -> Xerneas
+  33: 175,  // Professor's Gift -> Togepi
+  34: 671,  // Laverre City -> Florges
+  35: 113,  // Sinnoh Pokémon Center -> Chansey
+  36: 63,   // Wild Encounter -> Abra
+  37: 149,  // Elite Four HQ -> Dragonite
+  38: 242,  // Rare Candy Tax -> Blissey
+  39: 493   // Champion's Chamber -> Arceus
 };
 
 const GROUP_MEMBERS = {};
@@ -446,10 +568,29 @@ function renderStatusBar(){
   players.forEach((p,i)=>{
     const d=document.createElement('div');
     d.className='player-chip'+(i===currentPlayer?' active-player':'')+(p.bankrupt?' bankrupt':'');
-    d.innerHTML=`<img src="${SPRITE_URL(p.token)}"><span style="color:${p.color}">${p.name}</span><span class="money" style="color:#ffcb05">${p.money}₽</span>`;
+    d.innerHTML=`<img src="${SPRITE_URL(p.token)}"><span style="color:${p.color};font-weight:700">${p.name}</span><span class="chip-money">${p.money}₽</span>`;
     d.onclick=()=>showPlayerInfo(i);
     bar.appendChild(d);
   });
+  renderPositionBar();
+}
+
+function renderPositionBar(){
+  const bar=document.getElementById('position-bar');
+  if(!bar)return;
+  bar.innerHTML='';
+  const cp=players[currentPlayer];
+  if(!cp)return;
+  for(let i=0;i<40;i++){
+    const seg=document.createElement('div');
+    seg.className='pos-seg';
+    if(i===cp.position) seg.classList.add('pos-current');
+    else if(BOARD[i].owner>=0){
+      seg.classList.add('pos-owned');
+      seg.style.setProperty('--owner-color',players[BOARD[i].owner].color);
+    }
+    bar.appendChild(seg);
+  }
 }
 
 // Board position mapping: maps board index to grid [col, row] (0-indexed, 0=top-left)
@@ -565,9 +706,6 @@ function renderListView(){
   lv.innerHTML='';
   const cpPos=players[currentPlayer]?players[currentPlayer].position:-1;
 
-  // Show spaces near current player first, or show all
-  const SPACE_ICONS={go:'🏁',jail:'🔒',gotojail:'🚨',freeparking:'🏠',tax:'💰',chance:'❓',chest:'🎁',railroad:'🏥',utility:'🔬',property:'🏘️'};
-
   for(let i=0;i<40;i++){
     const sp=BOARD[i];
     const div=document.createElement('div');
@@ -576,19 +714,23 @@ function renderListView(){
 
     let colorBar='';
     if(sp.group){
-      colorBar=`<div class="ls-color" style="background:${GROUP_COLORS[sp.group]}"></div>`;
+      colorBar=`<div class="ls-color" style="background:${GROUP_COLORS[sp.group]};color:${GROUP_COLORS[sp.group]}"></div>`;
     } else {
-      colorBar=`<div class="ls-color" style="background:rgba(255,255,255,.1)"></div>`;
+      colorBar=`<div class="ls-color" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.08)"></div>`;
     }
+
+    // Sprite for space
+    const spriteId=SPACE_POKEMON[i]||25;
+    const spriteHtml=`<img class="ls-sprite" src="${SPRITE_URL(spriteId)}" alt="">`;
 
     // Detail line
     let detail='';
-    if(sp.type==='property') detail=`Property • Rent: ${sp.rent[sp.buildings]}₽`;
+    if(sp.type==='property') detail=`Rent: ${sp.rent[sp.buildings]}₽${sp.buildings>0?' ('+sp.buildings+(sp.buildings===5?' Stadium':' Gym'+(sp.buildings>1?'s':''))+')':''}`;
     else if(sp.type==='railroad') detail='Pokémon Center';
     else if(sp.type==='utility') detail='Utility';
     else if(sp.type==='tax') detail=`Tax: ${sp.amount||200}₽`;
-    else if(sp.type==='chance') detail='Draw a card!';
-    else if(sp.type==='chest') detail='Draw a card!';
+    else if(sp.type==='chance') detail='Wild Encounter';
+    else if(sp.type==='chest') detail="Professor's Gift";
     else if(sp.type==='go') detail='Collect 200₽';
     else if(sp.type==='jail') detail='Just Visiting';
     else if(sp.type==='gotojail') detail='Go to Jail!';
@@ -599,7 +741,7 @@ function renderListView(){
     if(sp.price && sp.owner===-1){
       rightHtml+=`<span class="ls-price">${sp.price}₽</span>`;
     } else if(sp.owner>=0){
-      rightHtml+=`<div class="ls-owner" style="background:${players[sp.owner].color}" title="${players[sp.owner].name}"></div>`;
+      rightHtml+=`<span class="ls-owner-name" style="color:${players[sp.owner].color}">${players[sp.owner].name}</span>`;
     }
 
     // Buildings
@@ -620,12 +762,11 @@ function renderListView(){
     });
     tokenHtml+='</div>';
 
-    let icon=SPACE_ICONS[sp.type]||'';
-    let nameDisplay=sp.mortgaged?`<s>${sp.name}</s>`:sp.name;
+    let nameDisplay=sp.mortgaged?`<s style="opacity:.5">${sp.name}</s>`:sp.name;
 
-    div.innerHTML=`${colorBar}
+    div.innerHTML=`${colorBar}${spriteHtml}
       <div class="ls-info">
-        <div class="ls-name">${icon} ${nameDisplay}</div>
+        <div class="ls-name">${nameDisplay}</div>
         <div class="ls-detail">${detail}</div>
       </div>
       ${buildHtml}
@@ -717,26 +858,56 @@ function rollDice(){
   });
 }
 
+// Dice dot patterns: which grid positions (1-9) to show for each value
+const DICE_DOTS = {
+  1: [5],
+  2: [3,7],
+  3: [3,5,7],
+  4: [1,3,7,9],
+  5: [1,3,5,7,9],
+  6: [1,3,4,6,7,9]
+};
+
+function setDieFace(el, value){
+  el.innerHTML='';
+  for(let i=1;i<=9;i++){
+    const dot=document.createElement('div');
+    dot.className='dot';
+    if(DICE_DOTS[value]&&DICE_DOTS[value].includes(i)) dot.style.display='block';
+    el.appendChild(dot);
+  }
+}
+
 function animateDice(callback){
   const die1El=document.getElementById('die1');
   const die2El=document.getElementById('die2');
   die1El.classList.add('rolling');
   die2El.classList.add('rolling');
+  die1El.classList.remove('landed');
+  die2El.classList.remove('landed');
   let count=0;
   const iv=setInterval(()=>{
-    die1El.textContent=Math.ceil(Math.random()*6);
-    die2El.textContent=Math.ceil(Math.random()*6);
+    setDieFace(die1El,Math.ceil(Math.random()*6));
+    setDieFace(die2El,Math.ceil(Math.random()*6));
     count++;
-    if(count>10){
+    if(count>12){
       clearInterval(iv);
       die1El.classList.remove('rolling');
       die2El.classList.remove('rolling');
       lastDice=[Math.ceil(Math.random()*6),Math.ceil(Math.random()*6)];
-      die1El.textContent=lastDice[0];
-      die2El.textContent=lastDice[1];
-      setTimeout(callback,200);
+      setDieFace(die1El,lastDice[0]);
+      setDieFace(die2El,lastDice[1]);
+      die1El.classList.add('landed');
+      die2El.classList.add('landed');
+      setTimeout(callback,300);
     }
-  },80);
+  },70);
+}
+
+// Initialize dice faces on load
+function initDiceFaces(){
+  setDieFace(document.getElementById('die1'),1);
+  setDieFace(document.getElementById('die2'),1);
 }
 
 // ==================== MOVEMENT ====================
@@ -754,7 +925,7 @@ function movePlayer(pi, steps){
   p.position=newPos;
   logMsg(`${p.name} landed on ${BOARD[newPos].name}`);
   renderAll();
-  setTimeout(()=>handleLanding(pi),300);
+  showLandingCard(pi, newPos, ()=>handleLanding(pi));
 }
 
 function moveToSpace(pi, target, collectGo){
@@ -765,7 +936,156 @@ function moveToSpace(pi, target, collectGo){
   }
   p.position=target;
   renderAll();
-  setTimeout(()=>handleLanding(pi),300);
+  showLandingCard(pi, target, ()=>handleLanding(pi));
+}
+
+// ==================== LANDING CARD ====================
+let landingCardTimer=null;
+let landingCardCallback=null;
+
+function showLandingCard(pi, spaceIdx, callback){
+  const sp=BOARD[spaceIdx];
+  const p=players[pi];
+  const overlay=document.getElementById('landing-overlay');
+  const card=document.getElementById('landing-card');
+  landingCardCallback=callback;
+
+  const spriteId=SPACE_POKEMON[spaceIdx]||25;
+
+  let html='';
+
+  // Color bar
+  if(sp.group){
+    html+=`<div class="lc-color-bar" style="background:linear-gradient(90deg,${GROUP_COLORS[sp.group]},${GROUP_COLORS[sp.group]}88)"></div>`;
+  } else {
+    html+=`<div class="lc-color-bar" style="background:linear-gradient(90deg,rgba(255,203,5,.4),rgba(255,203,5,.1))"></div>`;
+  }
+
+  // Header with sprite and name
+  html+=`<div class="lc-header">
+    <img class="lc-sprite" src="${SPRITE_URL(spriteId)}" alt="${sp.name}">
+    <div class="lc-title">
+      <div class="lc-name">${sp.name}</div>
+      <div class="lc-type">${getSpaceTypeName(sp)}</div>
+    </div>
+  </div>`;
+
+  // Info section depends on space type
+  if(sp.type==='property'||sp.type==='railroad'||sp.type==='utility'){
+    html+=`<div class="lc-info">`;
+    if(sp.price){
+      html+=`<div class="lc-info-item"><div class="lc-info-label">Price</div><div class="lc-info-value">${sp.price}₽</div></div>`;
+    }
+    if(sp.type==='property'){
+      html+=`<div class="lc-info-item"><div class="lc-info-label">Rent</div><div class="lc-info-value">${sp.rent[sp.buildings]}₽</div></div>`;
+    } else if(sp.type==='railroad'){
+      const rrC=sp.owner>=0?countRailroads(sp.owner):0;
+      const rrRent=[0,25,50,100,200][rrC]||25;
+      html+=`<div class="lc-info-item"><div class="lc-info-label">Rent</div><div class="lc-info-value">${rrRent}₽</div></div>`;
+    } else if(sp.type==='utility'){
+      html+=`<div class="lc-info-item"><div class="lc-info-label">Rent</div><div class="lc-info-value">Dice x4/x10</div></div>`;
+    }
+    // Owner
+    html+=`<div class="lc-info-item"><div class="lc-info-label">Owner</div><div class="lc-info-value">`;
+    if(sp.owner>=0){
+      html+=`<div class="lc-owner-info"><img src="${SPRITE_URL(players[sp.owner].token)}"><span style="color:${players[sp.owner].color}">${players[sp.owner].name}</span></div>`;
+    } else {
+      html+=`<span style="color:#888">Unowned</span>`;
+    }
+    html+=`</div></div>`;
+    // Buildings
+    if(sp.type==='property'){
+      html+=`<div class="lc-info-item"><div class="lc-info-label">Buildings</div><div class="lc-info-value">`;
+      if(sp.buildings>0){
+        html+=`<div class="lc-buildings">`;
+        if(sp.buildings===5) html+=`<div class="lc-stadium" title="Stadium"></div>`;
+        else for(let b=0;b<sp.buildings;b++) html+=`<div class="lc-gym" title="Gym"></div>`;
+        html+=`</div>`;
+      } else {
+        html+=`<span style="color:#666">None</span>`;
+      }
+      html+=`</div></div>`;
+    }
+    html+=`</div>`;
+  } else {
+    // Special spaces
+    html+=`<div class="lc-special">`;
+    if(sp.type==='go') html+=`<div class="lc-special-text" style="color:#ffcb05;font-size:1.1em;font-weight:700">Collect 200₽ as you pass!</div>`;
+    else if(sp.type==='jail') html+=`<div class="lc-special-text">Just visiting the Team Rocket Hideout</div>`;
+    else if(sp.type==='gotojail') html+=`<div class="lc-special-text" style="color:#e74c3c;font-weight:700">Team Rocket caught you! Go to Jail!</div>`;
+    else if(sp.type==='freeparking') html+=`<div class="lc-special-text" style="color:#2ecc71;font-weight:700">Daycare Pot: ${freeParkingPot}₽</div>`;
+    else if(sp.type==='tax') html+=`<div class="lc-special-text" style="color:#e74c3c">Pay ${sp.amount||200}₽</div>`;
+    else if(sp.type==='chance') html+=`<div class="lc-special-text" style="color:#e040fb;font-weight:600">A wild encounter awaits...</div>`;
+    else if(sp.type==='chest') html+=`<div class="lc-special-text" style="color:#4fc3f7;font-weight:600">The Professor has a gift for you!</div>`;
+    html+=`</div>`;
+  }
+
+  // Neighboring spaces
+  const prevIdx=(spaceIdx-1+40)%40;
+  const nextIdx=(spaceIdx+1)%40;
+  const prev2Idx=(spaceIdx-2+40)%40;
+  const next2Idx=(spaceIdx+2)%40;
+  html+=`<div class="lc-neighbors">`;
+  [prev2Idx, prevIdx].forEach(ni=>{
+    const ns=BOARD[ni];
+    const nSprite=SPACE_POKEMON[ni]||25;
+    html+=`<div class="lc-neighbor">
+      <div class="lcn-color" style="background:${ns.group?GROUP_COLORS[ns.group]:'rgba(255,255,255,.1)'}"></div>
+      <img class="lcn-sprite" src="${SPRITE_URL(nSprite)}" alt="">
+      <div class="lcn-name">${ns.name}</div>
+    </div>`;
+  });
+  [nextIdx, next2Idx].forEach(ni=>{
+    const ns=BOARD[ni];
+    const nSprite=SPACE_POKEMON[ni]||25;
+    html+=`<div class="lc-neighbor">
+      <div class="lcn-color" style="background:${ns.group?GROUP_COLORS[ns.group]:'rgba(255,255,255,.1)'}"></div>
+      <img class="lcn-sprite" src="${SPRITE_URL(nSprite)}" alt="">
+      <div class="lcn-name">${ns.name}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+  html+=`<div class="lc-tap-hint">Tap to continue</div>`;
+
+  card.innerHTML=html;
+  card.classList.remove('dismissing');
+  overlay.classList.add('active');
+
+  // Auto-dismiss after 2.5 seconds
+  if(landingCardTimer) clearTimeout(landingCardTimer);
+  landingCardTimer=setTimeout(()=>dismissLandingCard(),2500);
+}
+
+function dismissLandingCard(){
+  if(landingCardTimer){clearTimeout(landingCardTimer);landingCardTimer=null;}
+  const overlay=document.getElementById('landing-overlay');
+  const card=document.getElementById('landing-card');
+  if(!overlay.classList.contains('active'))return;
+  card.classList.add('dismissing');
+  setTimeout(()=>{
+    overlay.classList.remove('active');
+    card.classList.remove('dismissing');
+    if(landingCardCallback){
+      const cb=landingCardCallback;
+      landingCardCallback=null;
+      cb();
+    }
+  },300);
+}
+
+// Dismiss on tap
+document.getElementById('landing-overlay').addEventListener('click',()=>dismissLandingCard());
+
+function getSpaceTypeName(sp){
+  const types={property:'Property',railroad:'Pokémon Center',utility:'Utility',tax:'Tax',
+    chance:'Wild Encounter',chest:"Professor's Gift",go:'Start',jail:'Jail',
+    gotojail:'Go to Jail',freeparking:'Free Parking'};
+  if(sp.group){
+    const groupNames={brown:'Kanto Starter',lightblue:'Kanto',pink:'Johto',orange:'Hoenn',
+      red:'Sinnoh',yellow:'Unova',green:'Kalos',darkblue:'Elite Four'};
+    return groupNames[sp.group]||'Property';
+  }
+  return types[sp.type]||'Space';
 }
 
 // ==================== LANDING LOGIC ====================
@@ -939,16 +1259,16 @@ function drawCard(pi,type){
 
   const isChance=type==='chance';
   const cardClass=isChance?'chance-card':'chest-card';
-  const icon=isChance?'⚡':'🎁';
   const typeName=isChance?'Wild Encounter':"Professor's Gift";
+  const cardSprite=isChance?63:175; // Abra for chance, Togepi for chest
 
   showModal(`
     <div class="card-display ${cardClass}">
-      <div class="card-icon">${icon}</div>
+      <img class="card-sprite" src="${SPRITE_URL(cardSprite)}" alt="">
       <div class="card-type">${typeName}</div>
       <div class="card-text">${card.text}</div>
     </div>
-    <p style="text-align:center;color:#aaa;font-size:.8em;margin:4px 0">${players[pi].name} drew this card</p>
+    <p style="text-align:center;color:#888;font-size:.75em;margin:4px 0">${players[pi].name} drew this card</p>
     <div class="modal-actions">
       <button class="btn" onclick="executeCard(${pi},'${type}',${cardIdx})">OK</button>
     </div>
@@ -1605,8 +1925,31 @@ document.getElementById('modal-overlay').addEventListener('click',e=>{
   if(e.target===document.getElementById('modal-overlay')) closeModal();
 });
 
+// ==================== PARTICLES ====================
+function initParticles(){
+  const container=document.getElementById('particles');
+  if(!container)return;
+  const symbols=['●','◆','★'];
+  for(let i=0;i<12;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    p.textContent=symbols[i%symbols.length];
+    p.style.left=Math.random()*100+'%';
+    p.style.fontSize=(6+Math.random()*10)+'px';
+    p.style.color=`hsl(${40+Math.random()*20},100%,${50+Math.random()*20}%)`;
+    p.style.animationDuration=(12+Math.random()*18)+'s';
+    p.style.animationDelay=(-Math.random()*20)+'s';
+    container.appendChild(p);
+  }
+}
+
 // ==================== INIT ====================
 initSetup();
+initParticles();
+// Initialize dice faces after DOM ready
+setTimeout(()=>{
+  if(document.getElementById('die1')) initDiceFaces();
+},0);
 </script>
 </body>
 </html>
