@@ -791,8 +791,16 @@ function renderActions(){
   if(!cp||cp.bankrupt)return;
 
   document.getElementById('roll-btn').style.display=(gamePhase==='rolling'&&!cp.inJail)?'':'none';
-  document.getElementById('buy-btn').style.display='none';
-  document.getElementById('auction-btn').style.display='none';
+  // Preserve buy/pass buttons during buying phase
+  if(gamePhase==='buying'){
+    const sp=BOARD[cp.position];
+    document.getElementById('buy-btn').style.display='';
+    document.getElementById('buy-btn').textContent=`Buy (${sp.price}₽)`;
+    document.getElementById('auction-btn').style.display='';
+  } else {
+    document.getElementById('buy-btn').style.display='none';
+    document.getElementById('auction-btn').style.display='none';
+  }
   document.getElementById('end-turn-btn').style.display=(gamePhase==='turnend')?'':'none';
   document.getElementById('build-btn').style.display=(gamePhase==='turnend')?'':'none';
   document.getElementById('trade-btn').style.display=(gamePhase==='turnend')?'':'none';
@@ -1943,9 +1951,108 @@ function initParticles(){
   }
 }
 
+// ==================== SAVE / RESTORE ====================
+const SAVE_KEY='pokemon_monopoly_save';
+
+function saveGame(){
+  if(gamePhase==='setup'||gamePhase==='gameover')return;
+  const state={
+    players:players.map(p=>({...p})),
+    currentPlayer,
+    gamePhase,
+    doublesCount,
+    lastDice:[...lastDice],
+    freeParkingPot,
+    boardState:BOARD.map(sp=>({owner:sp.owner,buildings:sp.buildings,mortgaged:sp.mortgaged})),
+    chestDeck:[...chestDeck],
+    chanceDeck:[...chanceDeck],
+    currentView
+  };
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(state))}catch(e){}
+}
+
+function loadGame(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return false;
+    const state=JSON.parse(raw);
+    if(!state||!state.players||state.players.length<2)return false;
+
+    players=state.players;
+    currentPlayer=state.currentPlayer;
+    gamePhase=state.gamePhase;
+    doublesCount=state.doublesCount;
+    lastDice=state.lastDice||[0,0];
+    freeParkingPot=state.freeParkingPot||0;
+    chestDeck=state.chestDeck||[];
+    chanceDeck=state.chanceDeck||[];
+    currentView=state.currentView||'list';
+
+    // Restore board ownership/buildings
+    if(state.boardState){
+      state.boardState.forEach((bs,i)=>{
+        BOARD[i].owner=bs.owner;
+        BOARD[i].buildings=bs.buildings;
+        BOARD[i].mortgaged=bs.mortgaged;
+      });
+    }
+
+    // If decks are empty, reinit
+    if(chestDeck.length===0) chestDeck=shuffleArray([...Array(CHEST_CARDS.length).keys()]);
+    if(chanceDeck.length===0) chanceDeck=shuffleArray([...Array(CHANCE_CARDS.length).keys()]);
+
+    return true;
+  }catch(e){return false}
+}
+
+function clearSave(){
+  try{localStorage.removeItem(SAVE_KEY)}catch(e){}
+}
+
+// Hook into key functions to auto-save after state changes
+const _origRenderAll=renderAll;
+renderAll=function(){
+  _origRenderAll();
+  saveGame();
+};
+
 // ==================== INIT ====================
-initSetup();
 initParticles();
+
+// Try to restore a saved game
+if(loadGame()){
+  // Restored! Switch to board screen
+  document.getElementById('setup-screen').classList.remove('active');
+  document.getElementById('board-screen').classList.add('active');
+  setView(currentView);
+  renderAll();
+  logMsg('Game restored from save!');
+
+  // If we were in the middle of buying, re-show the buttons
+  if(gamePhase==='buying'){
+    const sp=BOARD[players[currentPlayer].position];
+    document.getElementById('buy-btn').style.display='';
+    document.getElementById('buy-btn').textContent=`Buy (${sp.price}₽)`;
+    document.getElementById('auction-btn').style.display='';
+  }
+} else {
+  initSetup();
+}
+
+// Clear save when starting a new game
+const _origStartBtn=document.getElementById('start-game-btn').onclick;
+document.getElementById('start-game-btn').onclick=function(){
+  clearSave();
+  _origStartBtn();
+};
+
+// Clear save when game is won
+const _origCheckWin=checkWin;
+checkWin=function(){
+  _origCheckWin();
+  if(gamePhase==='gameover') clearSave();
+};
+
 // Initialize dice faces after DOM ready
 setTimeout(()=>{
   if(document.getElementById('die1')) initDiceFaces();
