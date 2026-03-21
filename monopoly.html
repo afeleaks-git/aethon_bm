@@ -267,8 +267,9 @@ h1{font-size:1.7em;margin:10px 0;text-align:center;text-shadow:0 0 30px rgba(255
 
   <div class="msg-log" id="msg-log"></div>
 
-  <div style="margin-top:4px">
-    <a href="index.html" class="btn small" style="text-decoration:none">Back to Menu</a>
+  <div style="margin-top:4px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+    <button class="btn small danger" onclick="confirmNewGame()">New Game</button>
+    <a href="index.html" class="btn small" style="text-decoration:none" onclick="clearSave()">Back to Menu</a>
   </div>
 </div>
 
@@ -276,8 +277,8 @@ h1{font-size:1.7em;margin:10px 0;text-align:center;text-shadow:0 0 30px rgba(255
 <div class="screen" id="win-screen">
   <h1>Game Over!</h1>
   <div id="win-msg" style="text-align:center;margin:16px 0"></div>
-  <button class="btn" onclick="location.reload()">Play Again</button>
-  <a href="index.html" class="btn small" style="text-decoration:none;text-align:center">Back to Menu</a>
+  <button class="btn" onclick="clearSave();location.reload()">Play Again</button>
+  <a href="index.html" class="btn small" style="text-decoration:none;text-align:center" onclick="clearSave()">Back to Menu</a>
 </div>
 
 <!-- LANDING CARD OVERLAY -->
@@ -1949,6 +1950,15 @@ function initParticles(){
     p.style.animationDelay=(-Math.random()*20)+'s';
     container.appendChild(p);
   }
+}
+
+function confirmNewGame(){
+  showModal(`<h3>Start New Game?</h3>
+    <p>This will end the current game. Are you sure?</p>
+    <div class="modal-actions">
+      <button class="btn small danger" onclick="clearSave();location.reload()">Yes, New Game</button>
+      <button class="btn small" onclick="closeModal()">Cancel</button>
+    </div>`);
 }
 
 // ==================== SAVE / RESTORE ====================
