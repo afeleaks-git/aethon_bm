@@ -213,8 +213,11 @@ the whole approach on-device before investing further.
   font, buttons, screen transitions, haptics, confetti, toasts, count-up.
 - ✅ **Monopoly street walk-up** before buying (three.js, `monopoly.html`).
 - ✅ **PWA**: installable + offline (`manifest.webmanifest`, `sw.js`, `icon.svg`).
-- ⏳ Next: deepen game-feel (money count-up, toasts, animated piece/token
-  movement), unified hub, accessibility/age modes. Sound deferred by request.
+- ✅ **Cutscene robustness**: render-immediately + three.js load fallback (no black screens).
+- ✅ **Game-feel juice**: chess piece glide (FLIP), Monopoly floating money
+  changes + event toasts (`GK.flyText`, `GK.toast`).
+- ⏳ Next: Monopoly token-hop movement, unified arcade hub, accessibility/age
+  modes. Sound deferred by request.
 - ⚠️ All visuals pending on-device verification (no browser/GPU in build env).
 
 ---
