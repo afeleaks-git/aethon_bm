@@ -124,7 +124,21 @@
     document.head.appendChild(s);
   }
 
-  window.GK={ haptic, toast, confetti, countUp, loadThree, reduceMotion, version:'1.1' };
+  // ---- Floating change text (money +/-, etc.) ----
+  function flyText(text,x,y,opts){
+    opts=opts||{};
+    try{
+      if(reduceMotion) return;
+      const d=document.createElement('div');
+      d.className='gk-flytext'; d.textContent=text;
+      d.style.left=x+'px'; d.style.top=y+'px';
+      if(opts.color) d.style.color=opts.color;
+      document.body.appendChild(d);
+      setTimeout(()=>d.remove(),1150);
+    }catch(e){}
+  }
+
+  window.GK={ haptic, toast, confetti, countUp, flyText, loadThree, reduceMotion, version:'1.2' };
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',autowire);
   else autowire();

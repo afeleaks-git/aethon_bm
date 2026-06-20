@@ -628,6 +628,7 @@ function hasLegal(b,col,cr,ep){
   for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(b[r][c]&&b[r][c].color===col&&legalMoves(b,r,c,cr,ep).length>0)return true;return false;
 }
 
+let glideFromTo=null;
 function executeMove(fR,fC,tR,tC,flag,promo){
   history.push({board:cloneBoard(board),turn,castleRights:cloneCR(castleRights),enPassantTarget:enPassantTarget?{...enPassantTarget}:null,lastMove:lastMove?{from:{...lastMove.from},to:{...lastMove.to}}:null,capturedPieces:{w:[...capturedPieces.w],b:[...capturedPieces.b]},gameOver});
   const piece=board[fR][fC],captured=board[tR][tC],col=piece.color,en=col==='w'?'b':'w';
@@ -650,6 +651,7 @@ function executeMove(fR,fC,tR,tC,flag,promo){
 
   enPassantTarget=flag==='double'?{r:(fR+tR)/2,c:tC}:null;
   lastMove={from:{r:fR,c:fC},to:{r:tR,c:tC}};
+  glideFromTo={from:{r:fR,c:fC},to:{r:tR,c:tC}};
   turn=en;selected=null;legalCache=[];
 
   updateStatus();renderGame();
@@ -890,6 +892,8 @@ function renderBars(){
 function render(){
   const bEl=document.getElementById('board');bEl.innerHTML='';
   const chk=inCheck(board,turn)?findKing(board,turn):null;
+  const cellW=bEl.clientWidth/8;
+  const canGlide=glideFromTo&&cellW&&!(window.GK&&GK.reduceMotion);
   for(let r=0;r<8;r++)for(let c=0;c<8;c++){
     const d=document.createElement('div');
     d.className='cell '+((r+c)%2===0?'light':'dark');
@@ -900,10 +904,16 @@ function render(){
     const cell=board[r][c];
     if(cell){
       const img=document.createElement('img');img.src=sprite(POKEMON[cell.color][cell.piece].id);img.alt=POKEMON[cell.color][cell.piece].name;img.draggable=false;d.appendChild(img);
+      if(canGlide&&r===glideFromTo.to.r&&c===glideFromTo.to.c){
+        const dx=(glideFromTo.from.c-c)*cellW, dy=(glideFromTo.from.r-r)*cellW;
+        img.style.transition='none'; img.style.transform=`translate(${dx}px,${dy}px)`;
+        requestAnimationFrame(()=>{ img.style.transition='transform .26s cubic-bezier(.3,1.1,.5,1)'; img.style.transform='translate(0,0)'; });
+      }
       const lbl=document.createElement('span');lbl.className='piece-label';lbl.textContent=POKEMON[cell.color][cell.piece].role;d.appendChild(lbl);
     }
     d.addEventListener('click',()=>onCellClick(r,c));bEl.appendChild(d);
   }
+  glideFromTo=null;
 }
 
 function renderControls(){
