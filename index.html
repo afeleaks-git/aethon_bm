@@ -134,6 +134,14 @@ h1{font-size:1.7em;margin:6px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 .title-pokeball{font-size:2.5em;margin:8px 0;animation:float 3s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(10deg)}}
 </style>
+<link rel="stylesheet" href="gamekit.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#10131f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PokéArcade">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
 <h1>Pok&eacute;mon Battle Arena</h1>
@@ -228,6 +236,23 @@ h1{font-size:1.7em;margin:6px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 
 <div id="promotion-overlay"><div id="promotion-box"><h2>Choose Evolution!</h2><div id="promotion-options"></div></div></div>
 <div id="move-announce"></div>
+
+<!-- Capture cinematic overlay (ChessFX) -->
+<style>
+#fx-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .25s;background:radial-gradient(circle at 50% 38%,rgba(30,16,52,.55),rgba(0,0,0,.92));cursor:pointer}
+#fx-overlay.show{display:flex}
+#fx-canvas,#fx-canvas2d{position:absolute;inset:0;width:100%;height:100%;display:block}
+#fx-caption{position:absolute;bottom:13%;left:0;right:0;text-align:center;font-size:1.45em;font-weight:bold;color:#fff;padding:0 16px;pointer-events:none;text-shadow:0 2px 8px #000,0 0 20px rgba(255,203,5,.55)}
+#fx-skip{position:absolute;top:14px;right:16px;font-size:.78em;color:rgba(255,255,255,.75);background:rgba(0,0,0,.4);padding:6px 12px;border-radius:14px;pointer-events:none}
+#fx-flash{position:fixed;inset:0;z-index:201;background:#fff;opacity:0;pointer-events:none}
+</style>
+<div id="fx-overlay">
+  <canvas id="fx-canvas"></canvas>
+  <canvas id="fx-canvas2d" style="display:none"></canvas>
+  <div id="fx-caption"></div>
+  <div id="fx-skip">Tap to skip &#9197;</div>
+</div>
+<div id="fx-flash"></div>
 
 <script>
 // ============================================================
@@ -627,8 +652,17 @@ function executeMove(fR,fC,tR,tC,flag,promo){
   lastMove={from:{r:fR,c:fC},to:{r:tR,c:tC}};
   turn=en;selected=null;legalCache=[];
 
-  if(didCapture)announceMove(col,piece.piece);
   updateStatus();renderGame();
+
+  if(didCapture){
+    const atkRole=piece.piece, atk=POKEMON[col]&&POKEMON[col][atkRole];
+    const dColor=captured?captured.color:en, dRole=captured?captured.piece:'P';
+    const def=POKEMON[dColor]&&POKEMON[dColor][dRole];
+    const cont=()=>{ if(aiMode&&!gameOver&&turn==='b')scheduleAI(); };
+    if(window.ChessFX&&atk&&def){ ChessFX.playCapture({atk,def,col,atkRole,onDone:cont}); }
+    else { announceMove(col,atkRole); cont(); }
+    return true;
+  }
 
   if(aiMode&&!gameOver&&turn==='b')scheduleAI();
   return true;
@@ -638,7 +672,7 @@ function updateStatus(){
   const chk=inCheck(board,turn),has=hasLegal(board,turn,castleRights,enPassantTarget);
   const winner=turn==='w'?'b':'w';
   if(!has){gameOver=true;
-    if(chk)setStatus(`Checkmate! ${esc(players[winner==='w'?0:1].name)} wins!`,'gameover');
+    if(chk){setStatus(`Checkmate! ${esc(players[winner==='w'?0:1].name)} wins!`,'gameover');if(window.GK&&(mode==='2player'||winner==='w'))GK.confetti();}
     else setStatus("Stalemate! It's a draw!",'gameover');
     if(mode==='campaign')setTimeout(showCampaignResult,1200);
   }else if(chk){setStatus(`Check! ${esc(players[turn==='w'?0:1].name)}'s turn`,'check');
@@ -878,6 +912,7 @@ function renderControls(){
   let html=`<button onclick="undoMove()">Undo</button>`;
   if(mode==='campaign')html+=`<button onclick="showCampaignMap()">Forfeit</button>`;
   else html+=`<button onclick="start2Player()">New Game</button>`;
+  if(window.ChessFX)html+=`<button onclick="toggleFx()">&#10024; ${ChessFX.label()}</button>`;
   ctrl.innerHTML=html;
 }
 
@@ -901,6 +936,256 @@ function preloadSprites(){
 
 // Preload avatars
 AVATARS.forEach(a=>{const i=new Image();i.src=sprite(a.id)});
+</script>
+<script src="gamekit.js"></script>
+
+<!-- ============================================================ -->
+<!-- ChessFX — 2.5D capture cinematics (three.js, lazy-loaded)    -->
+<!-- ============================================================ -->
+<script>
+(function(){
+  const KEY='pkmnChessFx';
+  const MODES=['full','lite','off'];
+  const LABELS={full:'Full',lite:'Lite',off:'Off'};
+  function getSetting(){ const v=localStorage.getItem(KEY); return MODES.indexOf(v)>=0?v:'full'; }
+  function setSetting(v){ try{localStorage.setItem(KEY,v);}catch(e){} }
+  function label(){ return 'FX: '+LABELS[getSetting()]; }
+  function cycleSetting(){ const n=MODES[(MODES.indexOf(getSetting())+1)%MODES.length]; setSetting(n); return n; }
+
+  const SPRITE='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+  const spriteUrl=id=>SPRITE+id+'.png';
+
+  function moveColorHex(move){
+    const m=(move||'').toLowerCase();
+    const map=[
+      [/(thunder|bolt|volt|charge|spark|zap|electro)/,'#ffe14d'],
+      [/(shadow|night|dark|hex|curse|daze)/,'#b06be6'],
+      [/(fire|blaze|ember|flame|burn|erupt|inferno|heat|flare|overheat)/,'#ff6b35'],
+      [/(water|hydro|bubble|aqua|surf|shell|splash|rain)/,'#4fc3f7'],
+      [/(psy|zen|future|mystical)/,'#ff6fae'],
+      [/(iron|metal|steel|gyro|bullet)/,'#b0bec5'],
+      [/(leaf|grass|seed|petal|leech|vine|solar|bloom|storm)/,'#66bb6a'],
+      [/(aura|fight|punch|kick|brick|close|focus|slam|headbutt)/,'#ff8a65'],
+      [/(dragon|spacial|outrage|draco|time|ascent)/,'#7e57c2'],
+      [/(ice|frost|freeze|avalanche|blizzard|aurora)/,'#81d4fa'],
+      [/(air|fly|wing|aero|gust|hurricane|sky|slash|cut)/,'#b3e5fc'],
+      [/(rock|stone|precipice|earth|ground|blade)/,'#c8a165'],
+      [/(fairy|moonblast|moon|dazzl|judgment|metronome)/,'#f8bbd0'],
+    ];
+    for(const [re,c] of map) if(re.test(m)) return c;
+    return '#ffcb05';
+  }
+  const hexToInt=h=>parseInt(h.replace('#',''),16);
+
+  let currentFinish=null;
+
+  function el(id){ return document.getElementById(id); }
+  function showOverlay(opts){
+    el('fx-caption').textContent=`${opts.atk.name} used ${opts.atk.move}!`;
+    el('fx-flash').style.opacity='0';
+    const ov=el('fx-overlay'); ov.classList.add('show');
+    requestAnimationFrame(()=>{ ov.style.opacity='1'; });
+  }
+  function hideOverlay(){
+    const ov=el('fx-overlay'); ov.style.opacity='0';
+    setTimeout(()=>ov.classList.remove('show'),260);
+  }
+
+  // ---- three.js lazy loader ----
+  let threeState=0, threeWaiters=[]; // 0 idle,1 loading,2 ready,3 failed
+  function ensureThree(cb){
+    if(window.THREE){ cb(window.THREE); return; }
+    if(threeState===3){ cb(null); return; }
+    threeWaiters.push(cb);
+    if(threeState===1) return;
+    threeState=1;
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    s.onload=()=>{ threeState=2; const w=threeWaiters; threeWaiters=[]; w.forEach(f=>f(window.THREE)); };
+    s.onerror=()=>{ threeState=3; const w=threeWaiters; threeWaiters=[]; w.forEach(f=>f(null)); };
+    document.head.appendChild(s);
+  }
+
+  function canvasTexture(THREE,draw,sz){
+    const cv=document.createElement('canvas'); cv.width=cv.height=sz||128;
+    draw(cv.getContext('2d'),cv.width);
+    const t=new THREE.CanvasTexture(cv); return t;
+  }
+  function loadTex(loader,url){ return new Promise((res,rej)=>loader.load(url,res,undefined,rej)); }
+
+  let renderer=null, camera=null;
+
+  function run3D(opts){
+    ensureThree(function(THREE){
+      if(!THREE){ runCanvas2D(opts); return; }
+      try{ scene3D(THREE,opts); }
+      catch(e){ console.warn('ChessFX 3D failed',e); runCanvas2D(opts); }
+    });
+  }
+
+  function scene3D(THREE,opts){
+    el('fx-canvas').style.display='block';
+    el('fx-canvas2d').style.display='none';
+    showOverlay(opts);
+    const canvas=el('fx-canvas');
+    if(!renderer){
+      renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+      camera=new THREE.PerspectiveCamera(50,1,0.1,100);
+    }
+    const W=window.innerWidth,H=window.innerHeight;
+    renderer.setSize(W,H,false);
+    const camBaseY=1.15, camBaseZ=4.6;
+    camera.aspect=W/H; camera.position.set(0,camBaseY,camBaseZ); camera.lookAt(0,0.8,0); camera.updateProjectionMatrix();
+
+    const scene=new THREE.Scene();
+    const colHex=moveColorHex(opts.atk.move), colInt=hexToInt(colHex);
+
+    const floorTex=canvasTexture(THREE,(ctx,s)=>{
+      const g=ctx.createRadialGradient(s/2,s/2,8,s/2,s/2,s/2);
+      g.addColorStop(0,colHex); g.addColorStop(0.5,colHex+'55'); g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,s,s);
+    },256);
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(15,9),new THREE.MeshBasicMaterial({map:floorTex,transparent:true,opacity:.7,depthWrite:false}));
+    floor.rotation.x=-Math.PI/2; scene.add(floor);
+
+    const dotTex=canvasTexture(THREE,(ctx,s)=>{
+      const g=ctx.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+      g.addColorStop(0,'#fff'); g.addColorStop(0.4,'#fff'); g.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,s,s);
+    },64);
+
+    const loader=new THREE.TextureLoader(); loader.crossOrigin='anonymous';
+    Promise.all([loadTex(loader,spriteUrl(opts.atk.id)),loadTex(loader,spriteUrl(opts.def.id))]).then(([atkTex,defTex])=>{
+      atkTex.magFilter=defTex.magFilter=THREE.NearestFilter;
+      const sz=1.7;
+      const atkMesh=new THREE.Mesh(new THREE.PlaneGeometry(sz,sz),new THREE.MeshBasicMaterial({map:atkTex,transparent:true,alphaTest:.05}));
+      const defMesh=new THREE.Mesh(new THREE.PlaneGeometry(sz,sz),new THREE.MeshBasicMaterial({map:defTex,transparent:true,alphaTest:.05}));
+      const baseY=sz/2;
+      atkMesh.scale.x=-1; atkMesh.position.set(-1.9,baseY,0);
+      defMesh.position.set(1.7,baseY,0);
+      scene.add(atkMesh,defMesh);
+
+      const proj=new THREE.Mesh(new THREE.SphereGeometry(0.2,12,12),new THREE.MeshBasicMaterial({color:colInt}));
+      proj.visible=false; scene.add(proj);
+
+      const N=70, pos=new Float32Array(N*3), vel=[];
+      for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2,sp=1+Math.random()*3.2; vel.push([Math.cos(a)*sp,1+Math.random()*3,Math.sin(a)*sp]); }
+      const pGeo=new THREE.BufferGeometry(); pGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+      const pMat=new THREE.PointsMaterial({color:colInt,size:.36,map:dotTex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
+      const points=new THREE.Points(pGeo,pMat); points.visible=false; points.position.set(1.6,baseY,0); scene.add(points);
+
+      const flash=el('fx-flash');
+      const T={in:.3,impact:.82,faintEnd:1.55,end:1.95};
+      const start=performance.now(); let impacted=false,pStart=0,finished=false,raf;
+
+      function finish(){
+        if(finished)return; finished=true; cancelAnimationFrame(raf);
+        scene.traverse(o=>{ if(o.geometry&&o.geometry.dispose)o.geometry.dispose(); if(o.material){ if(o.material.map&&o.material.map.dispose)o.material.map.dispose(); if(o.material.dispose)o.material.dispose(); } });
+        hideOverlay(); opts.onDone();
+      }
+      currentFinish=finish;
+
+      function frame(now){
+        const t=(now-start)/1000;
+        let ax=-1.9;
+        if(t>=T.in){ const k=Math.min(1,(t-T.in)/(T.impact-T.in)); ax=-1.9+(1-Math.pow(1-k,3))*1.3; }
+        if(t>T.impact){ const k=Math.min(1,(t-T.impact)/.4); ax=-0.6-k*0.7; }
+        atkMesh.position.x=ax; atkMesh.position.y=baseY+Math.sin(t*9)*0.05;
+        if(!impacted) defMesh.position.y=baseY+Math.sin(t*7+1)*0.05;
+
+        if(t>=T.impact-0.27 && t<T.impact){ proj.visible=true; const k=(t-(T.impact-0.27))/0.27; proj.position.set(ax+(1.6-ax)*k,baseY,0.05); }
+        else proj.visible=false;
+
+        if(t>=T.impact && !impacted){ impacted=true; pStart=now; points.visible=true; flash.style.opacity='0.85'; }
+        if(impacted){
+          const pt=(now-pStart)/1000, arr=pGeo.attributes.position.array;
+          for(let i=0;i<N;i++){ arr[i*3]+=vel[i][0]*0.016; arr[i*3+1]+=(vel[i][1]-pt*5)*0.016; arr[i*3+2]+=vel[i][2]*0.016; }
+          pGeo.attributes.position.needsUpdate=true; pMat.opacity=Math.max(0,1-pt*1.4);
+          flash.style.opacity=String(Math.max(0,0.85-pt*3));
+          const amp=Math.max(0,0.2*(1-pt*3.2));
+          camera.position.x=(Math.random()-0.5)*amp*2; camera.position.y=camBaseY+(Math.random()-0.5)*amp*2;
+          const fk=Math.min(1,(t-T.impact)/(T.faintEnd-T.impact));
+          defMesh.material.opacity=1-fk; defMesh.scale.set(1-fk*0.6,Math.max(0.05,1-fk),1);
+          defMesh.rotation.z=fk*0.6; defMesh.position.y=baseY*(1-fk*0.5);
+        }
+        renderer.render(scene,camera);
+        if(t>=T.end){ finish(); return; }
+        raf=requestAnimationFrame(frame);
+      }
+      raf=requestAnimationFrame(frame);
+    }).catch(e=>{ console.warn('ChessFX texture load failed',e); runCanvas2D(opts); });
+  }
+
+  // ---- 2D canvas fallback (also "Lite" mode) ----
+  function runCanvas2D(opts){
+    el('fx-canvas').style.display='none';
+    const c=el('fx-canvas2d'); c.style.display='block';
+    showOverlay(opts);
+    const ctx=c.getContext('2d');
+    const DPR=Math.min(window.devicePixelRatio||1,2), W=window.innerWidth, H=window.innerHeight;
+    c.width=W*DPR; c.height=H*DPR; c.style.width=W+'px'; c.style.height=H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    const colHex=moveColorHex(opts.atk.move);
+    const atkImg=new Image(), defImg=new Image();
+    atkImg.src=spriteUrl(opts.atk.id); defImg.src=spriteUrl(opts.def.id);
+    const cx=W/2, base=H*0.55, sz=Math.min(W,H)*0.27;
+    const flash=el('fx-flash');
+    let particles=null, impacted=false, finished=false, raf;
+    const start=performance.now();
+
+    function finish(){ if(finished)return; finished=true; cancelAnimationFrame(raf); hideOverlay(); opts.onDone(); }
+    currentFinish=finish;
+
+    function drawSprite(img,x,y,size,alpha,rot,flip){
+      if(!img.complete||!img.naturalWidth)return;
+      ctx.save(); ctx.globalAlpha=alpha; ctx.translate(x,y); ctx.rotate(rot); if(flip)ctx.scale(-1,1);
+      ctx.imageSmoothingEnabled=false; ctx.drawImage(img,-size/2,-size/2,size,size); ctx.restore();
+    }
+    function mkParticles(x,y){ const a=[]; for(let i=0;i<60;i++){ const ang=Math.random()*Math.PI*2,sp=2+Math.random()*6; a.push({x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp-3,r:2+Math.random()*4,life:1}); } return a; }
+
+    function frame(now){
+      const t=(now-start)/1000;
+      ctx.clearRect(0,0,W,H);
+      const g=ctx.createRadialGradient(cx,base+sz*0.4,8,cx,base+sz*0.4,W*0.6);
+      g.addColorStop(0,colHex+'66'); g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+      let ax=cx-sz*1.4; const dx=cx+sz*1.0;
+      if(t>=0.3){ const k=Math.min(1,(t-0.3)/0.52); ax=cx-sz*1.4+(1-Math.pow(1-k,3))*sz*1.0; }
+      if(t>0.82){ const k=Math.min(1,(t-0.82)/0.4); ax-=k*sz*0.5; }
+      const bob=Math.sin(t*9)*4;
+      if(t>=0.82&&!impacted){ impacted=true; flash.style.opacity='0.8'; particles=mkParticles(dx,base); }
+      let ds=1,da=1,dr=0,dy=0;
+      if(impacted){ const fk=Math.min(1,(t-0.82)/0.73); ds=Math.max(0.05,1-fk*0.9); da=1-fk; dr=fk*0.5; dy=fk*sz*0.3; }
+      drawSprite(defImg,dx,base+bob*0.6+dy,sz*ds,da,dr,false);
+      drawSprite(atkImg,ax,base+bob,sz,1,0,true);
+      if(particles){ ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.fillStyle=colHex; particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.3; p.life-=0.02; if(p.life>0){ ctx.globalAlpha=Math.max(0,p.life); ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,7); ctx.fill(); } }); ctx.restore(); }
+      if(impacted){ const pt=t-0.82; flash.style.opacity=String(Math.max(0,0.8-pt*3)); }
+      if(t>=1.95){ finish(); return; }
+      raf=requestAnimationFrame(frame);
+    }
+    raf=requestAnimationFrame(frame);
+  }
+
+  function playCapture(o){
+    const mode=getSetting();
+    let called=false; const raw=o.onDone;
+    const opts={atk:o.atk,def:o.def,col:o.col,atkRole:o.atkRole,onDone:()=>{ if(called)return; called=true; raw&&raw(); }};
+    if(mode==='off'){ if(window.announceMove)announceMove(opts.col,opts.atkRole); opts.onDone(); return; }
+    // safety net so the game never stalls if anything hangs
+    setTimeout(()=>{ if(!called){ if(currentFinish){const f=currentFinish;currentFinish=null;f();} else opts.onDone(); } },4500);
+    try{ if(mode==='lite') runCanvas2D(opts); else run3D(opts); }
+    catch(e){ console.warn('ChessFX error',e); hideOverlay(); opts.onDone(); }
+  }
+
+  window.ChessFX={ playCapture, label, getSetting, cycleSetting };
+  window.toggleFx=function(){ cycleSetting(); if(typeof renderControls==='function'){ try{renderControls();}catch(e){} } };
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    const ov=el('fx-overlay');
+    if(ov) ov.addEventListener('click',()=>{ if(currentFinish){ const f=currentFinish; currentFinish=null; f(); } });
+  });
+})();
 </script>
 </body>
 </html>

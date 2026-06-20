@@ -1,0 +1,76 @@
+/* ============================================================
+   GameKit — shared modern design system for both Pokémon games
+   Loaded AFTER each game's inline <style> so it enhances the
+   shared primitives (body, .btn, .screen) without a rewrite.
+   Purely additive: layout/structure untouched; if it fails to
+   load, the games look exactly as before.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap');
+
+:root{
+  --gk-font:'Fredoka','Segoe UI',Tahoma,system-ui,sans-serif;
+  --gk-gold:#ffcb05;
+  --gk-orange:#ff6b35;
+  --gk-ink:#10131f;
+  --gk-radius:16px;
+  --gk-radius-pill:999px;
+  --gk-shadow-sm:0 2px 8px rgba(0,0,0,.25);
+  --gk-shadow-md:0 6px 20px rgba(0,0,0,.35);
+  --gk-glass:rgba(255,255,255,.07);
+  --gk-glass-border:rgba(255,255,255,.14);
+  --gk-ease:cubic-bezier(.34,1.56,.64,1); /* springy */
+}
+
+/* Modern, kid-friendly rounded font everywhere */
+body{ font-family:var(--gk-font)!important; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+h1,h2,h3,.subtitle,.lc-name,.mr-name{ font-family:var(--gk-font)!important; letter-spacing:.2px; }
+
+/* Polished buttons (shared by both games' .btn and small variants) */
+.btn{
+  font-family:var(--gk-font)!important;
+  background:linear-gradient(145deg,rgba(255,203,5,.30),rgba(255,107,53,.22))!important;
+  box-shadow:var(--gk-shadow-sm),inset 0 1px 0 rgba(255,255,255,.18)!important;
+  transition:transform .12s var(--gk-ease),box-shadow .18s ease,filter .18s ease,background .18s ease!important;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:hover{ filter:brightness(1.08); box-shadow:var(--gk-shadow-md),inset 0 1px 0 rgba(255,255,255,.2)!important; }
+.btn:active{ transform:scale(.94)!important; filter:brightness(1.12); }
+#controls button,.actions-bar .btn{
+  transition:transform .12s var(--gk-ease),box-shadow .18s ease,filter .18s ease!important;
+  box-shadow:var(--gk-shadow-sm)!important;
+}
+#controls button:active{ transform:scale(.94)!important; }
+
+/* Smooth entrance animation on every screen change (both games use .screen.active) */
+.screen.active{ animation:gkScreenIn .38s var(--gk-ease) both; }
+@keyframes gkScreenIn{
+  from{ opacity:0; transform:translateY(14px) scale(.985); }
+  to{ opacity:1; transform:none; }
+}
+
+/* Nicer scrollbars */
+*::-webkit-scrollbar{ width:8px;height:8px; }
+*::-webkit-scrollbar-thumb{ background:linear-gradient(var(--gk-gold),var(--gk-orange));border-radius:8px; }
+*::-webkit-scrollbar-track{ background:rgba(255,255,255,.05); }
+
+/* ---- GameKit widgets (toasts, confetti, fly-text) ---- */
+#gk-confetti{ position:fixed; inset:0; z-index:9000; pointer-events:none; }
+#gk-toasts{ position:fixed; left:0; right:0; bottom:18px; z-index:9001; display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:none; padding:0 12px; }
+.gk-toast{
+  font-family:var(--gk-font); font-weight:600; font-size:.92em; color:#fff;
+  background:rgba(16,19,31,.86); border:1px solid var(--gk-glass-border);
+  padding:10px 18px; border-radius:var(--gk-radius-pill);
+  box-shadow:var(--gk-shadow-md); backdrop-filter:blur(8px);
+  max-width:92vw; text-align:center;
+  animation:gkToastIn .35s var(--gk-ease) both;
+}
+.gk-toast.gk-out{ animation:gkToastOut .3s ease forwards; }
+@keyframes gkToastIn{ from{ opacity:0; transform:translateY(16px) scale(.9);} to{ opacity:1; transform:none; } }
+@keyframes gkToastOut{ to{ opacity:0; transform:translateY(10px) scale(.95); } }
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion:reduce){
+  .screen.active{ animation:none; }
+  .btn,.btn:active,#controls button:active{ transition:none!important; transform:none!important; }
+  .gk-toast{ animation:none; }
+}
