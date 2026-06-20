@@ -203,3 +203,100 @@ the whole approach on-device before investing further.
 4. **Sound** — do you want battle SFX / little music stings, or keep it silent?
 5. **Where do the kids play it** — a hosted link (GitHub Pages) you can open from
    any device, or files on a specific device? Affects how we ship/test.
+
+---
+
+# Part 2 — Making the *whole thing* modern & cool
+
+The two cutscenes are "wow moments." This part is about the other 95% of the time —
+making every screen, tap, and transition feel like a polished modern app instead of
+a web page. The two games currently duplicate their own buttons, colors, and
+animations inline, so polish added to one doesn't reach the other.
+
+## The core idea: one shared foundation ("GameKit")
+
+Extract the common stuff out of both single-file games into **one small shared
+layer both games plug into** — still no heavy build step (a single `gamekit.js` +
+`gamekit.css`, or ES modules). The capture-FX engine already written for Chess is
+the first piece of this. Once GameKit exists, every improvement below lands in
+**both** games at once instead of being re-done twice.
+
+GameKit contains:
+- **Design tokens + components** (colors, type, buttons, cards, modals, toasts).
+- **The FX/cutscene engine** (the three.js overlay, billboards, particles).
+- **An audio engine** (SFX + music, one mute control).
+- **A motion kit** (screen transitions, spring/easing helpers, confetti, haptics).
+- **A settings + save store** (effects level, sound, age mode, progress).
+
+## Seven modernization tracks
+
+**1. Design system & UI refresh — "looks modern"**
+Replace ad-hoc inline styles with a cohesive Pokémon-themed design system: a real
+web font, consistent rounded "glass" cards, gradient/dark theme, a proper button
+component with press states, a unified header/HUD, nicer modals and toasts instead
+of plain text. Biggest perceived-quality jump per hour.
+
+**2. Motion & game feel — "feels alive"**
+Animate the things that currently snap: screen-to-screen transitions, chess pieces
+gliding between squares, Monopoly token hopping along the track, dice with a real
+tumble, money counters that tick up, win confetti, button micro-bounces, and
+**haptic feedback** (`navigator.vibrate`) on key actions. This is "juice" — cheap,
+and it's most of what makes apps feel premium.
+
+**3. 3D / WebGL moments & backgrounds — "wow"**
+The capture cinematic + street walk-up, plus lighter touches: a subtle animated
+shader/particle background behind menus, parallax on the boards, an optional 3D
+board view. All gated behind the Effects setting for weak devices.
+
+**4. Sound design — "alive, the part kids love most"**
+A Web Audio engine: move/capture/buy/win SFX, gentle region-themed background
+music, a single mute toggle. Often the single biggest "this feels like a real
+game" upgrade for kids — and currently entirely absent.
+
+**5. App-like delivery (PWA) — "it's a real app"**
+Make it **installable to the tablet home screen** with an icon and splash screen,
+runs full-screen with no browser chrome, and **works offline** via a service worker
+that caches the games + the in-use sprites. This is what turns "a link" into "an
+app the kids open." Pairs with the Phase 5 offline asset bundle.
+
+**6. A unified hub + onboarding — "one polished place"**
+A single modern home screen / arcade that launches either game, with an animated
+hero, the kid's avatar/profile, and progress. Add a short, skippable tutorial and a
+save system (profiles, campaign progress, achievements/badges).
+
+**7. Accessibility & mixed-ages polish — "works for every kid"**
+Bigger touch targets, readable contrast, colorblind-safe property colors,
+`prefers-reduced-motion` support (auto-calms animations), and the Little Kids / Big
+Kids modes wired through GameKit so both games respect them.
+
+## Suggested order (folds in the Part 1 phases)
+
+1. **Chess capture cinematic** *(done — proves the FX engine).*
+2. **Extract GameKit** from that work (design tokens + FX + settings store) so the
+   rest is build-once-use-twice.
+3. **Design-system refresh + motion kit** across both games — the broad "modern"
+   facelift (Tracks 1–2). Highest perceived payoff.
+4. **Sound engine** (Track 4) — big kid-delight per effort.
+5. **Monopoly street walk-up** (Part 1, Phase 2) on the shared engine.
+6. **PWA / installable / offline** (Track 5).
+7. **Unified hub + onboarding + saves** (Track 6).
+8. **Animated boards, accessibility, age modes, extra cutscenes** — ongoing polish.
+
+## Honest trade-offs
+
+- **Refactor cost:** extracting GameKit is upfront work that doesn't add a visible
+  feature, but it stops us building everything twice. Recommended early, right after
+  the chess cinematic proves the approach.
+- **Scope discipline:** all seven tracks is a lot. Tracks **1, 2, and 4**
+  (design system, motion, sound) deliver the biggest "whole thing feels modern and
+  cool" jump for the least risk — they touch every screen and don't depend on 3D.
+- **Mobile budget** still rules everything: every track ships with an Effects/Sound
+  off-switch and a graceful fallback.
+
+## What I'd build first for "modern & cool" (recommendation)
+
+If the goal is the whole experience feeling modern fast: do **Track 1 (design
+system) + Track 2 (motion) + Track 4 (sound)** next, as the GameKit foundation.
+That's the facelift that hits every screen of both games. The 3D cutscenes then sit
+on top as the showpieces. The PWA/install step is the final touch that makes it
+feel like a real app on the kids' tablets.
