@@ -1016,7 +1016,12 @@ AVATARS.forEach(a=>{const i=new Image();i.src=sprite(a.id)});
   let renderer=null, camera=null;
 
   function run3D(opts){
+    // Race three.js loading against a timeout so a slow/blocked CDN falls back
+    // to the 2D cutscene fast instead of showing nothing.
+    let started=false;
+    const to=setTimeout(()=>{ if(started)return; started=true; runCanvas2D(opts); },2600);
     ensureThree(function(THREE){
+      if(started)return; started=true; clearTimeout(to);
       if(!THREE){ runCanvas2D(opts); return; }
       try{ scene3D(THREE,opts); }
       catch(e){ console.warn('ChessFX 3D failed',e); runCanvas2D(opts); }

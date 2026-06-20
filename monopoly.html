@@ -2155,9 +2155,18 @@ setTimeout(()=>{
     const o={ name:sp.name, price:sp.price, color, spriteId, done:()=>{ if(called)return; called=true; _bypass=true; done&&done(); } };
     showOverlay(o);
     setTimeout(()=>{ if(!called){ if(currentFinish){ const f=currentFinish; currentFinish=null; f(); } else { hideOverlay(); o.done(); } } },5200);
-    if(getSetting()==='lite'){ run2D(o); }
-    else if(window.GK&&GK.loadThree){ GK.loadThree(THREE=>{ if(!THREE){ run2D(o); return; } try{ run3D(THREE,o); }catch(e){ console.warn('MonoFX 3D failed',e); run2D(o); } }); }
-    else { run2D(o); }
+    if(getSetting()==='lite'){ run2D(o); return; }
+    // Race three.js loading against a timeout so a slow/blocked CDN falls back
+    // to the 2D street fast instead of leaving the overlay black.
+    let started=false;
+    const to=setTimeout(()=>{ if(started)return; started=true; run2D(o); },2600);
+    if(window.GK&&GK.loadThree){
+      GK.loadThree(THREE=>{
+        if(started)return; started=true; clearTimeout(to);
+        if(!THREE){ run2D(o); return; }
+        try{ run3D(THREE,o); }catch(e){ console.warn('MonoFX 3D failed',e); run2D(o); }
+      });
+    } else { started=true; clearTimeout(to); run2D(o); }
   }
 
   function run3D(THREE,o){
@@ -2193,33 +2202,36 @@ setTimeout(()=>{
     const sign=new THREE.Mesh(new THREE.PlaneGeometry(4,2.2),new THREE.MeshBasicMaterial({map:signTex,transparent:true}));
     sign.position.set(0,3.5,-15.2); scene.add(sign);
 
+    // Load the town's Pokémon asynchronously and drop it in when ready —
+    // the scene renders immediately regardless, so a slow sprite never blanks it.
+    let poke=null, finished=false, raf;
     const loader=new THREE.TextureLoader(); loader.crossOrigin='anonymous';
-    loadTex(loader,SPRITE_URL(o.spriteId)).then(tex=>{ tex.magFilter=THREE.NearestFilter; addPokeAndRun(tex); }).catch(()=>addPokeAndRun(null));
+    loadTex(loader,SPRITE_URL(o.spriteId)).then(tex=>{
+      if(finished)return;
+      tex.magFilter=THREE.NearestFilter;
+      poke=new THREE.Mesh(new THREE.PlaneGeometry(2.5,2.5),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.05}));
+      poke.position.set(0,1.35,-13.6); scene.add(poke);
+    }).catch(()=>{});
 
-    function addPokeAndRun(tex){
-      let poke=null;
-      if(tex){ poke=new THREE.Mesh(new THREE.PlaneGeometry(2.5,2.5),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.05})); poke.position.set(0,1.35,-13.6); scene.add(poke); }
-      const start=performance.now(), DUR=2.3; let finished=false, raf;
-      const camFromZ=8.5, camToZ=-9, camY=1.6;
-      function finish(){
-        if(finished)return; finished=true; cancelAnimationFrame(raf);
-        scene.traverse(x=>{ if(x.geometry&&x.geometry.dispose)x.geometry.dispose(); if(x.material){ if(x.material.map&&x.material.map.dispose)x.material.map.dispose(); if(x.material.dispose)x.material.dispose(); } });
-        hideOverlay(); o.done();
-      }
-      currentFinish=finish;
-      function frame(now){
-        const t=(now-start)/1000, k=Math.min(1,t/DUR), e=1-Math.pow(1-k,2.4);
-        camera.position.set(Math.sin(now/650)*0.09, camY+Math.sin(now/320)*0.03, camFromZ+(camToZ-camFromZ)*e);
-        camera.lookAt(0,1.6,-15.2);
-        if(poke) poke.position.y=1.35+Math.sin(now/240)*0.07;
-        sign.position.y=3.5+Math.sin(now/420)*0.05;
-        renderer.render(scene,camera);
-        if(t>DUR-0.3) el('mfx-overlay').style.opacity=String(Math.max(0,(DUR-t)/0.3));
-        if(t>=DUR){ finish(); return; }
-        raf=requestAnimationFrame(frame);
-      }
+    const start=performance.now(), DUR=2.3, camFromZ=8.5, camToZ=-9, camY=1.6;
+    function finish(){
+      if(finished)return; finished=true; cancelAnimationFrame(raf);
+      scene.traverse(x=>{ if(x.geometry&&x.geometry.dispose)x.geometry.dispose(); if(x.material){ if(x.material.map&&x.material.map.dispose)x.material.map.dispose(); if(x.material.dispose)x.material.dispose(); } });
+      hideOverlay(); o.done();
+    }
+    currentFinish=finish;
+    function frame(now){
+      const t=(now-start)/1000, k=Math.min(1,t/DUR), e=1-Math.pow(1-k,2.4);
+      camera.position.set(Math.sin(now/650)*0.09, camY+Math.sin(now/320)*0.03, camFromZ+(camToZ-camFromZ)*e);
+      camera.lookAt(0,1.6,-15.2);
+      if(poke) poke.position.y=1.35+Math.sin(now/240)*0.07;
+      sign.position.y=3.5+Math.sin(now/420)*0.05;
+      renderer.render(scene,camera);
+      if(t>DUR-0.3) el('mfx-overlay').style.opacity=String(Math.max(0,(DUR-t)/0.3));
+      if(t>=DUR){ finish(); return; }
       raf=requestAnimationFrame(frame);
     }
+    raf=requestAnimationFrame(frame);
   }
 
   function run2D(o){
