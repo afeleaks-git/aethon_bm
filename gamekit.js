@@ -128,4 +128,9 @@
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',autowire);
   else autowire();
+
+  // ---- Register service worker (installable + offline). Guarded; no-op on file:// ----
+  if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
+    window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+  }
 })();

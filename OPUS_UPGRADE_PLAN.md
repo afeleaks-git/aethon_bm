@@ -206,6 +206,19 @@ the whole approach on-device before investing further.
 
 ---
 
+# Progress log
+
+- ✅ **Chess capture cinematics** (three.js 2.5D, `index.html`).
+- ✅ **GameKit** shared design system + motion (`gamekit.css`, `gamekit.js`):
+  font, buttons, screen transitions, haptics, confetti, toasts, count-up.
+- ✅ **Monopoly street walk-up** before buying (three.js, `monopoly.html`).
+- ✅ **PWA**: installable + offline (`manifest.webmanifest`, `sw.js`, `icon.svg`).
+- ⏳ Next: deepen game-feel (money count-up, toasts, animated piece/token
+  movement), unified hub, accessibility/age modes. Sound deferred by request.
+- ⚠️ All visuals pending on-device verification (no browser/GPU in build env).
+
+---
+
 # Part 2 — Making the *whole thing* modern & cool
 
 The two cutscenes are "wow moments." This part is about the other 95% of the time —
