@@ -216,8 +216,10 @@ the whole approach on-device before investing further.
 - ✅ **Cutscene robustness**: render-immediately + three.js load fallback (no black screens).
 - ✅ **Game-feel juice**: chess piece glide (FLIP), Monopoly floating money
   changes + event toasts (`GK.flyText`, `GK.toast`).
-- ⏳ Next: Monopoly token-hop movement, unified arcade hub, accessibility/age
-  modes. Sound deferred by request.
+- ✅ **Unified arcade hub**: `index.html` is now the front-door launcher
+  (profile, progress badges, both game cards); chess moved to `chess.html`.
+- ⏳ Next: Monopoly token-hop movement, accessibility/age modes, shared profile
+  editor on the hub. Sound deferred by request.
 - ⚠️ All visuals pending on-device verification (no browser/GPU in build env).
 
 ---

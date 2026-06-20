@@ -6,10 +6,11 @@
      cached on first use (cache-first) so replays work offline.
    Safe to remove: if it fails, the games just run online as before.
    ============================================================ */
-const VERSION = 'pkmn-arcade-v1';
+const VERSION = 'pkmn-arcade-v2';
 const SHELL = [
   './',
   './index.html',
+  './chess.html',
   './monopoly.html',
   './gamekit.css',
   './gamekit.js',
