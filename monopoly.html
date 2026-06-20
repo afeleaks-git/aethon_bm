@@ -214,6 +214,14 @@ h1{font-size:1.7em;margin:10px 0;text-align:center;text-shadow:0 0 30px rgba(255
   .landing-card .lc-sprite{width:56px;height:56px}
   .landing-card .lc-name{font-size:1.1em}
 }
+/* Street walk-up cinematic (MonoFX) */
+#mfx-overlay{position:fixed;inset:0;z-index:150;display:none;opacity:0;transition:opacity .25s;background:#05060d;cursor:pointer}
+#mfx-overlay.show{display:block}
+#mfx-canvas,#mfx-canvas2d{position:absolute;inset:0;width:100%;height:100%;display:block}
+#mfx-caption{position:absolute;bottom:11%;left:0;right:0;text-align:center;color:#fff;padding:0 18px;pointer-events:none;text-shadow:0 2px 8px #000,0 0 20px rgba(255,203,5,.5)}
+#mfx-caption .mfx-name{font-size:1.5em;font-weight:700}
+#mfx-caption .mfx-price{font-size:1.05em;color:#ffd95e;margin-top:2px}
+#mfx-skip{position:absolute;top:14px;right:16px;font-size:.78em;color:rgba(255,255,255,.75);background:rgba(0,0,0,.4);padding:6px 12px;border-radius:14px;pointer-events:none}
 </style>
 <link rel="stylesheet" href="gamekit.css">
 </head>
@@ -270,6 +278,7 @@ h1{font-size:1.7em;margin:10px 0;text-align:center;text-shadow:0 0 30px rgba(255
 
   <div style="margin-top:4px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
     <button class="btn small danger" onclick="confirmNewGame()">New Game</button>
+    <button class="btn small" id="mfx-btn" onclick="toggleMonoFx()">&#10024; FX: Full</button>
     <a href="index.html" class="btn small" style="text-decoration:none" onclick="clearSave()">Back to Menu</a>
   </div>
 </div>
@@ -285,6 +294,14 @@ h1{font-size:1.7em;margin:10px 0;text-align:center;text-shadow:0 0 30px rgba(255
 <!-- LANDING CARD OVERLAY -->
 <div class="landing-overlay" id="landing-overlay">
   <div class="landing-card" id="landing-card"></div>
+</div>
+
+<!-- Street walk-up cinematic overlay (MonoFX) -->
+<div id="mfx-overlay">
+  <canvas id="mfx-canvas"></canvas>
+  <canvas id="mfx-canvas2d" style="display:none"></canvas>
+  <div id="mfx-caption"></div>
+  <div id="mfx-skip">Tap to skip &#9197;</div>
 </div>
 
 <!-- FLOATING PARTICLES -->
@@ -955,6 +972,11 @@ let landingCardCallback=null;
 
 function showLandingCard(pi, spaceIdx, callback){
   const sp=BOARD[spaceIdx];
+  // Street walk-up cinematic before the buy decision (unowned purchasable spaces)
+  if(window.MonoFX && MonoFX.shouldPlay(sp)){
+    MonoFX.playStreet(sp, spaceIdx, ()=>showLandingCard(pi, spaceIdx, callback));
+    return;
+  }
   const p=players[pi];
   const overlay=document.getElementById('landing-overlay');
   const card=document.getElementById('landing-card');
@@ -2069,6 +2091,164 @@ checkWin=function(){
 setTimeout(()=>{
   if(document.getElementById('die1')) initDiceFaces();
 },0);
+</script>
+
+<!-- ============================================================ -->
+<!-- MonoFX — 3D "street walk-up" before buying (three.js)        -->
+<!-- ============================================================ -->
+<script>
+(function(){
+  const KEY='pkmnMonoFx';
+  const MODES=['full','lite','off'];
+  const LABELS={full:'Full',lite:'Lite',off:'Off'};
+  const getSetting=()=>{ const v=localStorage.getItem(KEY); return MODES.indexOf(v)>=0?v:'full'; };
+  const setSetting=v=>{ try{localStorage.setItem(KEY,v);}catch(e){} };
+  const enabled=()=>getSetting()!=='off';
+  const label=()=>'FX: '+LABELS[getSetting()];
+  const cycleSetting=()=>{ const n=MODES[(MODES.indexOf(getSetting())+1)%MODES.length]; setSetting(n); return n; };
+
+  let _bypass=false, currentFinish=null;
+  function shouldPlay(sp){
+    if(_bypass){ _bypass=false; return false; }
+    return enabled() && (sp.type==='property'||sp.type==='railroad'||sp.type==='utility') && sp.owner===-1;
+  }
+
+  const el=id=>document.getElementById(id);
+  function showOverlay(o){
+    el('mfx-caption').innerHTML=`<div class="mfx-name">${o.name}</div>`+(o.price?`<div class="mfx-price">${o.price}₽</div>`:'');
+    const ov=el('mfx-overlay'); ov.classList.add('show'); ov.style.opacity='0'; requestAnimationFrame(()=>ov.style.opacity='1');
+  }
+  function hideOverlay(){
+    const ov=el('mfx-overlay'); ov.style.opacity='0';
+    setTimeout(()=>{ ov.classList.remove('show'); el('mfx-canvas').style.display='block'; el('mfx-canvas2d').style.display='none'; },260);
+  }
+
+  function shade(hex,amt){
+    const n=parseInt(String(hex).replace('#',''),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+    const f=amt<0?0:255, p=Math.abs(amt);
+    r=Math.round(r+(f-r)*p); g=Math.round(g+(f-g)*p); b=Math.round(b+(f-b)*p);
+    return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+  }
+  function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function wrapText(ctx,text,cx,y,maxW,lh){
+    const words=String(text).split(' '); let line='',lines=[];
+    for(const w of words){ const test=line?line+' '+w:w; if(ctx.measureText(test).width>maxW&&line){ lines.push(line); line=w; } else line=test; }
+    if(line)lines.push(line); lines=lines.slice(0,2);
+    lines.forEach((l,i)=>ctx.fillText(l,cx,y+i*lh));
+  }
+  function canvasTexture(THREE,draw,w,h){ const cv=document.createElement('canvas'); cv.width=w; cv.height=h||w; draw(cv.getContext('2d'),cv.width,cv.height); return new THREE.CanvasTexture(cv); }
+  function loadTex(loader,url){ return new Promise((res,rej)=>loader.load(url,res,undefined,rej)); }
+
+  let renderer=null, camera=null;
+
+  function playStreet(sp,idx,done){
+    const color=(sp.group&&typeof GROUP_COLORS!=='undefined')?GROUP_COLORS[sp.group]:'#ffcb05';
+    const spriteId=(typeof SPACE_POKEMON!=='undefined'&&SPACE_POKEMON[idx])||25;
+    let called=false;
+    const o={ name:sp.name, price:sp.price, color, spriteId, done:()=>{ if(called)return; called=true; _bypass=true; done&&done(); } };
+    showOverlay(o);
+    setTimeout(()=>{ if(!called){ if(currentFinish){ const f=currentFinish; currentFinish=null; f(); } else { hideOverlay(); o.done(); } } },5200);
+    if(getSetting()==='lite'){ run2D(o); }
+    else if(window.GK&&GK.loadThree){ GK.loadThree(THREE=>{ if(!THREE){ run2D(o); return; } try{ run3D(THREE,o); }catch(e){ console.warn('MonoFX 3D failed',e); run2D(o); } }); }
+    else { run2D(o); }
+  }
+
+  function run3D(THREE,o){
+    el('mfx-canvas').style.display='block'; el('mfx-canvas2d').style.display='none';
+    const canvas=el('mfx-canvas');
+    if(!renderer){ renderer=new THREE.WebGLRenderer({canvas,antialias:true}); renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2)); camera=new THREE.PerspectiveCamera(58,1,0.1,100); }
+    const W=window.innerWidth,H=window.innerHeight; renderer.setSize(W,H,false); camera.aspect=W/H; camera.updateProjectionMatrix();
+    const scene=new THREE.Scene();
+    const sky=shade(o.color,-0.55); scene.background=new THREE.Color(sky); scene.fog=new THREE.Fog(sky,9,28);
+
+    const roadTex=canvasTexture(THREE,(ctx,w,h)=>{ ctx.fillStyle='#2b2b33'; ctx.fillRect(0,0,w,h); ctx.fillStyle='#ffd95e'; for(let y=0;y<h;y+=64)ctx.fillRect(w/2-6,y,12,36); ctx.fillStyle=o.color; ctx.fillRect(0,0,12,h); ctx.fillRect(w-12,0,12,h); },128,512);
+    roadTex.wrapS=roadTex.wrapT=THREE.RepeatWrapping; roadTex.repeat.set(1,6);
+    const road=new THREE.Mesh(new THREE.PlaneGeometry(6,42),new THREE.MeshBasicMaterial({map:roadTex}));
+    road.rotation.x=-Math.PI/2; road.position.z=-13; scene.add(road);
+
+    for(let i=0;i<9;i++){
+      for(const side of [-1,1]){
+        const ht=2+((i*7+(side>0?3:0))%5)*0.7;
+        const col=shade(o.color,(i%3-1)*0.18-0.08);
+        const m=new THREE.Mesh(new THREE.BoxGeometry(2.4,ht,2.2),new THREE.MeshBasicMaterial({color:col}));
+        m.position.set(side*3.5,ht/2,-2-i*2.0); scene.add(m);
+      }
+    }
+
+    const signTex=canvasTexture(THREE,(ctx,w,h)=>{
+      ctx.fillStyle='rgba(10,12,20,.93)'; roundRect(ctx,4,4,w-8,h-8,20); ctx.fill();
+      ctx.strokeStyle=o.color; ctx.lineWidth=4; roundRect(ctx,4,4,w-8,h-8,20); ctx.stroke();
+      ctx.fillStyle=o.color; ctx.fillRect(18,18,w-36,14);
+      ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.font='bold 34px Fredoka, sans-serif';
+      wrapText(ctx,o.name,w/2,78,w-44,38);
+      if(o.price){ ctx.fillStyle='#ffd95e'; ctx.font='bold 30px Fredoka, sans-serif'; ctx.fillText(o.price+'₽',w/2,h-26); }
+    },360,200);
+    const sign=new THREE.Mesh(new THREE.PlaneGeometry(4,2.2),new THREE.MeshBasicMaterial({map:signTex,transparent:true}));
+    sign.position.set(0,3.5,-15.2); scene.add(sign);
+
+    const loader=new THREE.TextureLoader(); loader.crossOrigin='anonymous';
+    loadTex(loader,SPRITE_URL(o.spriteId)).then(tex=>{ tex.magFilter=THREE.NearestFilter; addPokeAndRun(tex); }).catch(()=>addPokeAndRun(null));
+
+    function addPokeAndRun(tex){
+      let poke=null;
+      if(tex){ poke=new THREE.Mesh(new THREE.PlaneGeometry(2.5,2.5),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.05})); poke.position.set(0,1.35,-13.6); scene.add(poke); }
+      const start=performance.now(), DUR=2.3; let finished=false, raf;
+      const camFromZ=8.5, camToZ=-9, camY=1.6;
+      function finish(){
+        if(finished)return; finished=true; cancelAnimationFrame(raf);
+        scene.traverse(x=>{ if(x.geometry&&x.geometry.dispose)x.geometry.dispose(); if(x.material){ if(x.material.map&&x.material.map.dispose)x.material.map.dispose(); if(x.material.dispose)x.material.dispose(); } });
+        hideOverlay(); o.done();
+      }
+      currentFinish=finish;
+      function frame(now){
+        const t=(now-start)/1000, k=Math.min(1,t/DUR), e=1-Math.pow(1-k,2.4);
+        camera.position.set(Math.sin(now/650)*0.09, camY+Math.sin(now/320)*0.03, camFromZ+(camToZ-camFromZ)*e);
+        camera.lookAt(0,1.6,-15.2);
+        if(poke) poke.position.y=1.35+Math.sin(now/240)*0.07;
+        sign.position.y=3.5+Math.sin(now/420)*0.05;
+        renderer.render(scene,camera);
+        if(t>DUR-0.3) el('mfx-overlay').style.opacity=String(Math.max(0,(DUR-t)/0.3));
+        if(t>=DUR){ finish(); return; }
+        raf=requestAnimationFrame(frame);
+      }
+      raf=requestAnimationFrame(frame);
+    }
+  }
+
+  function run2D(o){
+    el('mfx-canvas').style.display='none';
+    const c=el('mfx-canvas2d'); c.style.display='block';
+    const ctx=c.getContext('2d'); const DPR=Math.min(window.devicePixelRatio||1,2), W=window.innerWidth, H=window.innerHeight;
+    c.width=W*DPR; c.height=H*DPR; c.style.width=W+'px'; c.style.height=H+'px'; ctx.setTransform(DPR,0,0,DPR,0,0);
+    const img=new Image(); img.src=SPRITE_URL(o.spriteId);
+    const start=performance.now(), DUR=2.3, horizon=H*0.42, vp=W/2; let finished=false, raf;
+    function finish(){ if(finished)return; finished=true; cancelAnimationFrame(raf); hideOverlay(); o.done(); }
+    currentFinish=finish;
+    function frame(now){
+      const t=(now-start)/1000, k=Math.min(1,t/DUR), e=1-Math.pow(1-k,2.4);
+      ctx.fillStyle=shade(o.color,-0.5); ctx.fillRect(0,0,W,horizon);
+      ctx.fillStyle='#23232b'; ctx.fillRect(0,horizon,W,H-horizon);
+      const roadTopW=44, roadBotW=W*0.92;
+      ctx.fillStyle='#2b2b33'; ctx.beginPath(); ctx.moveTo(vp-roadTopW/2,horizon); ctx.lineTo(vp+roadTopW/2,horizon); ctx.lineTo(vp+roadBotW/2,H); ctx.lineTo(vp-roadBotW/2,H); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#ffd95e';
+      for(let i=0;i<9;i++){ const f=((i/9)+e)%1; const y=horizon+(H-horizon)*f*f; const wd=2+f*12, hh=4+f*26; ctx.fillRect(vp-wd/2,y,wd,hh); }
+      for(let i=0;i<6;i++){ const f=((i/6)+e*0.85)%1, persp=f*f; const edge=roadTopW/2+(roadBotW/2-roadTopW/2)*persp; const by=horizon+(H-horizon)*persp; const bw=22+persp*130, bh=40+persp*280; ctx.fillStyle=shade(o.color,(i%3-1)*0.15-0.08); ctx.fillRect(vp-edge-bw,by-bh,bw,bh); ctx.fillRect(vp+edge,by-bh,bw,bh); }
+      if(img.complete&&img.naturalWidth){ const sz=Math.min(W,H)*(0.12+e*0.30); ctx.imageSmoothingEnabled=false; const sy=horizon+(H-horizon)*0.5+Math.sin(now/240)*4; ctx.drawImage(img,vp-sz/2,sy-sz/2,sz,sz); }
+      if(t>DUR-0.3) el('mfx-overlay').style.opacity=String(Math.max(0,(DUR-t)/0.3));
+      if(t>=DUR){ finish(); return; }
+      raf=requestAnimationFrame(frame);
+    }
+    raf=requestAnimationFrame(frame);
+  }
+
+  window.MonoFX={ playStreet, shouldPlay, label, getSetting, cycleSetting, enabled };
+  window.toggleMonoFx=function(){ cycleSetting(); const b=el('mfx-btn'); if(b)b.innerHTML='✨ '+label(); };
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    const b=el('mfx-btn'); if(b)b.innerHTML='✨ '+label();
+    const ov=el('mfx-overlay'); if(ov) ov.addEventListener('click',()=>{ if(currentFinish){ const f=currentFinish; currentFinish=null; f(); } });
+  });
+})();
 </script>
 <script src="gamekit.js"></script>
 </body>

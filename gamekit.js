@@ -109,7 +109,22 @@
     },{passive:true});
   }
 
-  window.GK={ haptic, toast, confetti, countUp, version:'1.0' };
+  // ---- Shared three.js lazy loader (used by 3D cutscenes) ----
+  let threeState=0, threeWaiters=[]; // 0 idle,1 loading,2 ready,3 failed
+  function loadThree(cb){
+    if(window.THREE){ cb(window.THREE); return; }
+    if(threeState===3){ cb(null); return; }
+    threeWaiters.push(cb);
+    if(threeState===1) return;
+    threeState=1;
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    s.onload=()=>{ threeState=2; const w=threeWaiters; threeWaiters=[]; w.forEach(f=>f(window.THREE)); };
+    s.onerror=()=>{ threeState=3; const w=threeWaiters; threeWaiters=[]; w.forEach(f=>f(null)); };
+    document.head.appendChild(s);
+  }
+
+  window.GK={ haptic, toast, confetti, countUp, loadThree, reduceMotion, version:'1.1' };
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',autowire);
   else autowire();
