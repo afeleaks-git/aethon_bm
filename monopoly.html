@@ -222,6 +222,8 @@ h1{font-size:1.7em;margin:10px 0;text-align:center;text-shadow:0 0 30px rgba(255
 #mfx-caption .mfx-name{font-size:1.5em;font-weight:700}
 #mfx-caption .mfx-price{font-size:1.05em;color:#ffd95e;margin-top:2px}
 #mfx-skip{position:absolute;top:14px;right:16px;font-size:.78em;color:rgba(255,255,255,.75);background:rgba(0,0,0,.4);padding:6px 12px;border-radius:14px;pointer-events:none}
+/* Hopping token overlay (token-hop movement) */
+#hop-token{position:fixed;z-index:85;display:none;pointer-events:none;image-rendering:pixelated;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
 </style>
 <link rel="stylesheet" href="gamekit.css">
 <link rel="manifest" href="manifest.webmanifest">
@@ -483,6 +485,7 @@ function initDecks(){
 let players = [];
 let currentPlayer = 0;
 let gamePhase = 'setup'; // setup, rolling, rolled, turnend, gameover
+let hoppingPlayer = -1;  // player index whose token is mid-hop (hidden in renderBoard)
 let doublesCount = 0;
 let lastDice = [0,0];
 let freeParkingPot = 0;
@@ -694,7 +697,7 @@ function renderBoard(){
         // Player tokens on this space
         let tokensHtml='<div class="tokens">';
         players.forEach((p,pi)=>{
-          if(!p.bankrupt&&p.position===idx){
+          if(!p.bankrupt&&p.position===idx&&pi!==hoppingPlayer){
             tokensHtml+=`<img src="${SPRITE_URL(p.token)}" title="${p.name}">`;
           }
         });
@@ -962,16 +965,62 @@ function movePlayer(pi, steps){
   const oldPos=p.position;
   const newPos=(oldPos+steps)%40;
 
-  // Check if passing GO
-  if(newPos<oldPos&&steps>0){
-    giveMoney(pi,200);
-    logMsg(`${p.name} passed Pokémon League Start! +200₽`);
-  }
+  const finishMove=()=>{
+    // Check if passing GO
+    if(newPos<oldPos&&steps>0){
+      giveMoney(pi,200);
+      logMsg(`${p.name} passed Pokémon League Start! +200₽`);
+    }
+    p.position=newPos;
+    logMsg(`${p.name} landed on ${BOARD[newPos].name}`);
+    renderAll();
+    showLandingCard(pi, newPos, ()=>handleLanding(pi));
+  };
 
-  p.position=newPos;
-  logMsg(`${p.name} landed on ${BOARD[newPos].name}`);
-  renderAll();
-  showLandingCard(pi, newPos, ()=>handleLanding(pi));
+  hopToken(pi, oldPos, steps, finishMove);
+}
+
+// Animate a token hopping space-by-space around the board, then continue.
+function hopToken(pi, fromIdx, steps, done){
+  const board=document.getElementById('board');
+  const reduce=window.GK&&GK.reduceMotion;
+  if(!board||steps<=0||reduce||currentView!=='board'){ done(); return; }
+  const rect=board.getBoundingClientRect();
+  if(!rect.width||!rect.height){ done(); return; }
+
+  hoppingPlayer=pi;
+  renderBoard(); // remove this player's static token while it hops
+
+  const cw=rect.width/11, ch=rect.height/11;
+  const center=idx=>{ const [c,r]=getBoardPosition(idx); return {x:rect.left+(c+0.5)*cw, y:rect.top+(r+0.5)*ch}; };
+  const path=[]; for(let s=1;s<=steps;s++) path.push((fromIdx+s)%40);
+
+  let tok=document.getElementById('hop-token');
+  if(!tok){ tok=document.createElement('img'); tok.id='hop-token'; tok.alt=''; document.body.appendChild(tok); }
+  tok.src=SPRITE_URL(players[pi].token);
+  const sz=Math.max(16,Math.min(30,cw*0.8));
+  tok.style.width=tok.style.height=sz+'px';
+  tok.style.display='block';
+
+  let prev=center(fromIdx), i=0;
+  tok.style.left=(prev.x-sz/2)+'px'; tok.style.top=(prev.y-sz/2)+'px';
+  const HOP=Math.max(70,Math.min(160, 1400/Math.max(1,path.length))); // snappy short moves, capped total for long ones
+
+  function finishHop(){ tok.style.display='none'; hoppingPlayer=-1; done(); }
+  function step(){
+    if(i>=path.length){ finishHop(); return; }
+    const target=center(path[i]), start=performance.now();
+    const x0=prev.x,y0=prev.y,x1=target.x,y1=target.y;
+    function frame(now){
+      const k=Math.min(1,(now-start)/HOP);
+      const x=x0+(x1-x0)*k, arc=Math.sin(k*Math.PI)*sz*0.85, y=y0+(y1-y0)*k-arc;
+      tok.style.left=(x-sz/2)+'px'; tok.style.top=(y-sz/2)+'px';
+      if(k<1) requestAnimationFrame(frame);
+      else { prev=target; i++; step(); }
+    }
+    requestAnimationFrame(frame);
+  }
+  step();
 }
 
 function moveToSpace(pi, target, collectGo){
