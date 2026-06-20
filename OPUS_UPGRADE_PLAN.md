@@ -218,8 +218,10 @@ the whole approach on-device before investing further.
   changes + event toasts (`GK.flyText`, `GK.toast`).
 - ✅ **Unified arcade hub**: `index.html` is now the front-door launcher
   (profile, progress badges, both game cards); chess moved to `chess.html`.
-- ⏳ Next: Monopoly token-hop movement, accessibility/age modes, shared profile
-  editor on the hub. Sound deferred by request.
+- ✅ **Monopoly token-hop**: the token now hops space-by-space (arc per hop)
+  across the board in Board view before landing.
+- ⏳ Next: shared profile editor on the hub, light accessibility polish.
+  (Little-Kids mode dropped — min age 7+. Sound deferred by request.)
 - ⚠️ All visuals pending on-device verification (no browser/GPU in build env).
 
 ---
