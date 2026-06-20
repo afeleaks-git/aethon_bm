@@ -215,6 +215,7 @@ h1{font-size:1.7em;margin:10px 0;text-align:center;text-shadow:0 0 30px rgba(255
   .landing-card .lc-name{font-size:1.1em}
 }
 </style>
+<link rel="stylesheet" href="gamekit.css">
 </head>
 <body>
 
@@ -1505,6 +1506,7 @@ function checkWin(){
     gamePhase='gameover';
     document.getElementById('board-screen').classList.remove('active');
     document.getElementById('win-screen').classList.add('active');
+    if(window.GK)GK.confetti();
     document.getElementById('win-msg').innerHTML=`
       <img src="${SPRITE_URL(alive[0].token)}" style="width:80px;height:80px;image-rendering:pixelated"><br>
       <h2 style="color:${alive[0].color};margin:8px 0">${alive[0].name} Wins!</h2>
@@ -2068,5 +2070,6 @@ setTimeout(()=>{
   if(document.getElementById('die1')) initDiceFaces();
 },0);
 </script>
+<script src="gamekit.js"></script>
 </body>
 </html>
