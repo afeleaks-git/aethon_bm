@@ -3,138 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Pok&eacute;mon Battle Arena</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;color:#fff;overflow-x:hidden;padding:8px;-webkit-tap-highlight-color:transparent;user-select:none}
-h1{font-size:1.7em;margin:6px 0;text-align:center;text-shadow:2px 2px 4px rgba(0,0,0,.5);background:linear-gradient(90deg,#ffcb05,#ff6b35,#ffcb05);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:420px}
-.screen.active{display:flex}
-.subtitle{color:#ffcb05;font-size:1.1em;margin:8px 0 4px;text-align:center}
-.section-label{color:#aaa;font-size:.8em;margin:10px 0 4px;text-transform:uppercase;letter-spacing:1px}
-.name-input{width:80%;max-width:260px;padding:9px 14px;border:2px solid #ffcb05;border-radius:12px;background:rgba(255,255,255,.08);color:#fff;font-size:1.05em;text-align:center;outline:none}
-.name-input::placeholder{color:rgba(255,255,255,.3)}
-.name-input:focus{border-color:#ff6b35}
-.avatar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0;width:100%;max-width:300px}
-.avatar-option{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:2px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.04);cursor:pointer;transition:all .15s}
-.avatar-option:active{transform:scale(.95)}
-.avatar-option.selected{border-color:#ffcb05;background:rgba(255,203,5,.15)}
-.avatar-option img{width:44px;height:44px;image-rendering:pixelated}
-.avatar-option span{font-size:.55em;color:#ccc;margin-top:1px}
-.region-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%;margin:4px 0}
-.region-card{border:2px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 6px;background:rgba(255,255,255,.04);cursor:pointer;transition:all .15s;text-align:center}
-.region-card:active{transform:scale(.97)}
-.region-card.selected{border-color:#ffcb05;background:rgba(255,203,5,.12)}
-.region-card .rname{font-weight:bold;color:#ffcb05;font-size:.9em;margin-bottom:4px}
-.region-card .rpoke{display:flex;justify-content:center;gap:1px;flex-wrap:wrap}
-.region-card .rpoke img{width:24px;height:24px;image-rendering:pixelated}
-.btn{padding:9px 24px;border:2px solid #ffcb05;border-radius:22px;background:linear-gradient(135deg,rgba(255,203,5,.18),rgba(255,107,53,.18));color:#ffcb05;font-size:1em;font-weight:bold;cursor:pointer;transition:all .2s;margin:10px 0}
-.btn:active{background:rgba(255,203,5,.4);transform:scale(.95)}
-.btn:disabled{opacity:.35;cursor:default}
-.btn.small{padding:7px 16px;font-size:.85em;margin:6px 4px}
-
-/* Campaign map */
-.map-scroll{width:100%;max-height:65vh;overflow-y:auto;padding:4px 0}
-.map-region{border:2px solid rgba(255,255,255,.1);border-radius:12px;margin:6px 0;padding:8px 10px;background:rgba(255,255,255,.04)}
-.map-region.locked{opacity:.4}
-.map-region.current{border-color:#ffcb05}
-.map-region .mr-name{font-weight:bold;color:#ffcb05;font-size:.95em;margin-bottom:4px}
-.map-region .mr-pokemon{display:flex;gap:2px;margin-bottom:6px}
-.map-region .mr-pokemon img{width:20px;height:20px;image-rendering:pixelated}
-.map-opp{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;margin:3px 0;background:rgba(255,255,255,.04);cursor:pointer;transition:all .15s}
-.map-opp:active{transform:scale(.98)}
-.map-opp.beaten{opacity:.55}
-.map-opp.beaten::after{content:'\\2713';color:#4caf50;font-weight:bold;margin-left:auto;font-size:1.1em}
-.map-opp.current-opp{border:1px solid #ffcb05;background:rgba(255,203,5,.1)}
-.map-opp.locked-opp{opacity:.3;pointer-events:none}
-.map-opp img{width:32px;height:32px;image-rendering:pixelated}
-.map-opp .mo-name{font-size:.8em;font-weight:bold}
-.map-opp .mo-type{font-size:.65em;color:#aaa}
-.map-final{border:2px solid #da70d6;background:rgba(218,112,214,.1);border-radius:12px;margin:6px 0;padding:10px;text-align:center;cursor:pointer}
-.map-final.locked{opacity:.3;pointer-events:none}
-.map-final img{width:48px;height:48px;image-rendering:pixelated}
-.map-final .mf-name{color:#da70d6;font-weight:bold;font-size:1.1em}
-
-/* Pre-battle */
-.prebattle-card{text-align:center;margin:10px 0;padding:16px;border:2px solid #ffcb05;border-radius:16px;background:rgba(255,255,255,.06);width:100%}
-.prebattle-card img{width:64px;height:64px;image-rendering:pixelated}
-.prebattle-card .pb-name{font-size:1.1em;font-weight:bold;color:#ffcb05;margin:6px 0 2px}
-.prebattle-card .pb-type{color:#aaa;font-size:.8em}
-.prebattle-card .pb-quote{color:#ccc;font-size:.85em;font-style:italic;margin:6px 0}
-.prebattle-card .pb-pokemon{display:flex;justify-content:center;gap:3px;margin-top:6px}
-.prebattle-card .pb-pokemon img{width:28px;height:28px}
-.tv-badge{background:#e040fb;color:#fff;font-size:.65em;padding:2px 8px;border-radius:10px;font-weight:bold;display:inline-block;margin:4px 0}
-
-/* VS screen */
-.vs-banner{display:flex;align-items:center;gap:14px;margin:16px 0}
-.vs-trainer{text-align:center}
-.vs-trainer img{width:56px;height:56px;image-rendering:pixelated}
-.vs-trainer .vs-name{font-weight:bold;font-size:.85em;color:#ffcb05}
-.vs-trainer .vs-region{font-size:.65em;color:#aaa}
-.vs-text{font-size:1.8em;font-weight:bold;color:#ff6b35;text-shadow:0 0 10px rgba(255,107,53,.5)}
-
-/* Game screen */
-#status{font-size:1em;margin:3px 0;padding:5px 16px;border-radius:18px;background:rgba(255,255,255,.1);backdrop-filter:blur(10px);text-align:center;min-height:30px;display:flex;align-items:center;justify-content:center;transition:background .3s}
-#status.red-turn{background:rgba(220,50,50,.3)}
-#status.blue-turn{background:rgba(50,100,220,.3)}
-#status.check{background:rgba(255,200,0,.4)}
-#status.gameover{background:rgba(255,215,0,.4)}
-.player-bar{display:flex;align-items:center;gap:5px;width:100%;max-width:420px;padding:3px 4px;font-size:.75em}
-.player-bar img.pav{width:26px;height:26px;image-rendering:pixelated;border-radius:50%;border:2px solid rgba(255,255,255,.2)}
-.player-bar.active-turn img.pav{border-color:#ffcb05}
-.player-bar .pname{font-weight:bold}
-.player-bar .pregion{color:#aaa;font-size:.8em}
-.player-bar .captured-row{display:flex;flex-wrap:wrap;gap:1px;margin-left:auto}
-.player-bar .captured-row img{width:16px;height:16px;image-rendering:pixelated}
-#board-container{position:relative;width:min(95vw,420px);height:min(95vw,420px)}
-#board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:100%;height:100%;border:3px solid #ffcb05;border-radius:6px;overflow:hidden;box-shadow:0 0 25px rgba(255,203,5,.3)}
-.cell{display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:background .15s}
-.cell.light{background:#f0d9b5}
-.cell.dark{background:#b58863}
-.cell.selected{background:#ffeb3b!important;box-shadow:inset 0 0 10px rgba(255,200,0,.6)}
-.cell.legal{background:radial-gradient(circle,rgba(0,0,0,.25) 22%,transparent 23%) center/100% 100% no-repeat,inherit}
-.cell.capture-legal{background:radial-gradient(circle,transparent 50%,rgba(0,0,0,.25) 51%) center/100% 100% no-repeat,inherit}
-.cell.last-from{background:rgba(255,255,100,.45)!important}
-.cell.last-to{background:rgba(255,255,100,.55)!important}
-.cell.in-check{background:radial-gradient(circle,#f00 0%,#ff000088 40%,transparent 70%) center/100% 100% no-repeat,inherit!important}
-.cell img{width:85%;height:85%;image-rendering:pixelated;pointer-events:none;filter:drop-shadow(1px 1px 2px rgba(0,0,0,.4));transition:transform .15s}
-.cell:active img{transform:scale(1.1)}
-.cell .piece-label{position:absolute;bottom:0;font-size:.4em;font-weight:bold;color:#333;text-shadow:0 0 3px #fff;pointer-events:none;line-height:1}
-#controls{margin:4px 0;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-#controls button{padding:6px 14px;border:2px solid #ffcb05;border-radius:18px;background:rgba(255,203,5,.12);color:#ffcb05;font-size:.8em;font-weight:bold;cursor:pointer;transition:all .2s}
-#controls button:active{background:rgba(255,203,5,.35);transform:scale(.95)}
-
-/* Promotion overlay */
-#promotion-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
-#promotion-overlay.active{display:flex}
-#promotion-box{background:linear-gradient(135deg,#2a2a4a,#1a1a3e);border:3px solid #ffcb05;border-radius:16px;padding:18px;text-align:center}
-#promotion-box h2{margin-bottom:12px;color:#ffcb05;font-size:1.1em}
-#promotion-options{display:flex;gap:8px;justify-content:center}
-.promo-choice{width:60px;height:60px;border:2px solid #ffcb05;border-radius:10px;background:rgba(255,255,255,.1);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3px}
-.promo-choice:active{background:rgba(255,203,5,.3);transform:scale(.95)}
-.promo-choice img{width:36px;height:36px;image-rendering:pixelated}
-.promo-choice span{font-size:.5em;color:#ccc;margin-top:1px}
-
-/* Capture move text */
-#move-announce{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);font-size:1.15em;font-weight:bold;color:#ffcb05;text-shadow:2px 2px 6px rgba(0,0,0,.9),0 0 20px rgba(255,203,5,.4);z-index:50;pointer-events:none;white-space:nowrap;opacity:0;transition:none}
-#move-announce.show{animation:moveAnim 1.6s ease-out forwards}
-@keyframes moveAnim{0%{opacity:1;transform:translate(-50%,-50%) scale(.8)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
-
-/* Legend */
-#legend{margin-top:3px;display:grid;grid-template-columns:1fr 1fr;gap:1px 14px;font-size:.62em;color:#aaa;max-width:420px;width:100%}
-.legend-item{display:flex;align-items:center;gap:3px}
-.legend-item img{width:16px;height:16px;image-rendering:pixelated}
-.legend-hdr{grid-column:1/-1;font-size:1.1em;color:#ffcb05;font-weight:bold;margin:3px 0 1px}
-
-/* Campaign complete */
-.champion-screen{text-align:center;padding:20px}
-.champion-screen img{width:80px;height:80px;image-rendering:pixelated}
-.champion-screen h2{color:#ffcb05;margin:10px 0}
-
-.title-pokeball{font-size:2.5em;margin:8px 0;animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(10deg)}}
-</style>
-<link rel="stylesheet" href="gamekit.css">
+<title>Pok&eacute;mon Arcade</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#10131f">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -142,1065 +11,154 @@ h1{font-size:1.7em;margin:6px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 <meta name="apple-mobile-web-app-title" content="PokéArcade">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+  min-height:100vh;color:#fff;overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;user-select:none;
+  display:flex;flex-direction:column;align-items:center;padding:16px 12px 28px;
+}
+/* drifting background pokéballs */
+.bg-orb{position:fixed;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.10),rgba(255,203,5,.06) 60%,transparent 70%);pointer-events:none;z-index:0;animation:drift linear infinite}
+@keyframes drift{0%{transform:translateY(20vh) scale(.8);opacity:0}10%{opacity:.7}90%{opacity:.7}100%{transform:translateY(-110vh) scale(1.1);opacity:0}}
+
+.wrap{width:100%;max-width:480px;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center}
+
+.hero{text-align:center;margin:10px 0 6px;animation:popIn .6s cubic-bezier(.34,1.56,.64,1) both}
+.hero .ball{font-size:2.6em;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));animation:bob 3s ease-in-out infinite}
+.hero h1{font-size:2.1em;margin:4px 0;background:linear-gradient(90deg,#ffcb05,#ff6b35,#ffcb05);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 2px 10px rgba(0,0,0,.3)}
+.hero .tag{color:#9fb3d1;font-size:.92em}
+
+.profile{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:8px 14px;margin:12px 0 4px;backdrop-filter:blur(8px);animation:popIn .6s .08s cubic-bezier(.34,1.56,.64,1) both}
+.profile img{width:40px;height:40px;image-rendering:pixelated;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+.profile .pf-text{font-size:.95em}
+.profile .pf-text b{color:#ffcb05}
+.profile .pf-sub{color:#9fb3d1;font-size:.78em}
+
+.cards{display:flex;flex-direction:column;gap:14px;width:100%;margin-top:14px}
+.game-card{
+  display:flex;align-items:center;gap:14px;text-decoration:none;color:#fff;
+  background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:16px;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);position:relative;overflow:hidden;
+  transition:transform .14s cubic-bezier(.34,1.56,.64,1),box-shadow .2s ease,border-color .2s ease;
+  animation:cardIn .55s cubic-bezier(.34,1.56,.64,1) both;
+}
+.game-card:active{transform:scale(.97)}
+.game-card.chess{--accent:#5bc0de}
+.game-card.monopoly{--accent:#e040fb}
+.game-card:nth-child(2){animation-delay:.12s}
+.game-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 90% 10%,var(--accent),transparent 60%);opacity:.16;pointer-events:none}
+.game-card .gc-art{width:74px;height:74px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);border-radius:16px;border:1px solid rgba(255,255,255,.1)}
+.game-card .gc-art img{width:60px;height:60px;image-rendering:pixelated;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));animation:bob 3.4s ease-in-out infinite}
+.game-card .gc-body{flex:1;min-width:0}
+.game-card .gc-title{font-size:1.25em;font-weight:700;color:var(--accent)}
+.game-card .gc-desc{font-size:.8em;color:#c4d2e6;margin:2px 0 6px;line-height:1.3}
+.game-card .gc-badge{display:inline-block;font-size:.72em;font-weight:600;color:#fff;background:rgba(0,0,0,.3);border:1px solid var(--accent);border-radius:999px;padding:3px 10px}
+.game-card .gc-go{font-size:1.4em;color:var(--accent);margin-left:4px;flex-shrink:0}
+
+.footer{margin-top:22px;color:#7e8aa3;font-size:.74em;text-align:center;line-height:1.5}
+
+@keyframes popIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes cardIn{from{opacity:0;transform:translateY(22px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@media (prefers-reduced-motion:reduce){
+  .bg-orb,.hero .ball,.game-card .gc-art img{animation:none}
+  .hero,.profile,.game-card{animation:none}
+}
+</style>
+<link rel="stylesheet" href="gamekit.css">
 </head>
 <body>
-<h1>Pok&eacute;mon Battle Arena</h1>
 
-<!-- TITLE -->
-<div class="screen active" id="screen-title">
-  <div class="title-pokeball">&#9898;</div>
-  <p style="color:#aaa;text-align:center;margin:6px 0;font-size:.9em">
-    Choose your game mode!
-  </p>
-  <div style="color:#ffcb05;font-size:1.1em;font-weight:bold;margin:8px 0 2px">&#9814; Pok&eacute;mon Chess</div>
-  <p style="color:#aaa;text-align:center;margin:0 0 4px;font-size:.78em">Battle with Pok&eacute;mon on the chessboard!</p>
-  <button class="btn" onclick="startCampaign()">Campaign Mode</button>
-  <button class="btn" onclick="start2Player()" style="border-color:#5bc0de;color:#5bc0de">2 Player Battle</button>
-  <div style="width:60%;height:1px;background:rgba(255,255,255,.15);margin:14px 0"></div>
-  <div style="color:#ffcb05;font-size:1.1em;font-weight:bold;margin:4px 0 2px">&#127922; Pok&eacute;mon Monopoly</div>
-  <p style="color:#aaa;text-align:center;margin:0 0 4px;font-size:.78em">Buy regions, build Gyms, and become the Pok&eacute;mon Champion!</p>
-  <button class="btn" onclick="window.location.href='monopoly.html'" style="border-color:#e040fb;color:#e040fb">Play Monopoly!</button>
+<div class="wrap">
+  <div class="hero">
+    <div class="ball">&#9898;</div>
+    <h1>Pok&eacute;mon Arcade</h1>
+    <div class="tag">Pick a game and let&rsquo;s battle!</div>
+  </div>
+
+  <div class="profile" id="profile">
+    <img id="pf-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="">
+    <div class="pf-text">
+      <div id="pf-greeting">Welcome, Trainer!</div>
+      <div class="pf-sub">Ready to play?</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <a class="game-card chess" href="chess.html">
+      <div class="gc-art"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png" alt="Chess"></div>
+      <div class="gc-body">
+        <div class="gc-title">&#9814; Pok&eacute;mon Chess</div>
+        <div class="gc-desc">Battle with Pok&eacute;mon on the chessboard &mdash; campaign or 2 players.</div>
+        <span class="gc-badge" id="chess-badge">New Adventure</span>
+      </div>
+      <div class="gc-go">&rsaquo;</div>
+    </a>
+
+    <a class="game-card monopoly" href="monopoly.html">
+      <div class="gc-art"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/52.png" alt="Monopoly"></div>
+      <div class="gc-body">
+        <div class="gc-title">&#127922; Pok&eacute;mon Monopoly</div>
+        <div class="gc-desc">Buy regions, build Gyms, and become the Pok&eacute;mon Champion!</div>
+        <span class="gc-badge" id="mono-badge">Start New</span>
+      </div>
+      <div class="gc-go">&rsaquo;</div>
+    </a>
+  </div>
+
+  <div class="footer">
+    Tip: add this to your home screen to play like a real app &mdash; even offline.
+  </div>
 </div>
 
-<!-- CAMPAIGN SETUP (player only) -->
-<div class="screen" id="screen-camp-setup">
-  <div class="subtitle">Create Your Trainer</div>
-  <div class="section-label">Your Name</div>
-  <input class="name-input" id="cs-name" placeholder="Enter name..." maxlength="16" autocomplete="off">
-  <div class="section-label">Partner Pok&eacute;mon</div>
-  <div class="avatar-grid" id="cs-avatars"></div>
-  <div class="section-label">Choose Your Region</div>
-  <div class="region-grid" id="cs-regions"></div>
-  <button class="btn" id="cs-go" disabled onclick="finishCampSetup()">Begin Journey!</button>
-</div>
-
-<!-- CAMPAIGN MAP -->
-<div class="screen" id="screen-map">
-  <div class="subtitle" id="map-title">Campaign Map</div>
-  <div class="map-scroll" id="map-scroll"></div>
-  <button class="btn small" onclick="showScreen('screen-title')">Back to Title</button>
-</div>
-
-<!-- PRE-BATTLE -->
-<div class="screen" id="screen-prebattle">
-  <div class="subtitle">Trainer Battle!</div>
-  <div class="prebattle-card" id="pb-card"></div>
-  <button class="btn" id="pb-battle" onclick="launchBattle()">Battle!</button>
-  <button class="btn small" onclick="showScreen('screen-map')">Back to Map</button>
-</div>
-
-<!-- VS SCREEN -->
-<div class="screen" id="screen-vs">
-  <div style="margin-top:16px;color:#aaa;font-size:.85em">GET READY!</div>
-  <div class="vs-banner" id="vs-banner"></div>
-</div>
-
-<!-- 2 PLAYER SETUP (P1) -->
-<div class="screen" id="screen-p1">
-  <div class="subtitle">Player 1 &mdash; Create Your Trainer</div>
-  <div class="section-label">Your Name</div>
-  <input class="name-input" id="p1-name" placeholder="Enter name..." maxlength="16" autocomplete="off">
-  <div class="section-label">Partner Pok&eacute;mon</div>
-  <div class="avatar-grid" id="p1-avatars"></div>
-  <div class="section-label">Choose Your Region</div>
-  <div class="region-grid" id="p1-regions"></div>
-  <button class="btn" id="p1-next" disabled onclick="finishP1()">Next &rarr;</button>
-</div>
-
-<!-- 2 PLAYER SETUP (P2) -->
-<div class="screen" id="screen-p2">
-  <div class="subtitle">Player 2 &mdash; Create Your Trainer</div>
-  <div class="section-label">Your Name</div>
-  <input class="name-input" id="p2-name" placeholder="Enter name..." maxlength="16" autocomplete="off">
-  <div class="section-label">Partner Pok&eacute;mon</div>
-  <div class="avatar-grid" id="p2-avatars"></div>
-  <div class="section-label">Choose Your Region</div>
-  <div class="region-grid" id="p2-regions"></div>
-  <button class="btn" id="p2-next" disabled onclick="finishP2()">Battle! &#9889;</button>
-</div>
-
-<!-- GAME -->
-<div class="screen" id="screen-game">
-  <div class="player-bar" id="bar-top"></div>
-  <div id="status"></div>
-  <div id="board-container"><div id="board"></div></div>
-  <div class="player-bar" id="bar-bottom"></div>
-  <div id="controls"></div>
-  <div id="legend"></div>
-</div>
-
-<!-- CHAMPION -->
-<div class="screen" id="screen-champion">
-  <div class="champion-screen" id="champ-content"></div>
-</div>
-
-<div id="promotion-overlay"><div id="promotion-box"><h2>Choose Evolution!</h2><div id="promotion-options"></div></div></div>
-<div id="move-announce"></div>
-
-<!-- Capture cinematic overlay (ChessFX) -->
-<style>
-#fx-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .25s;background:radial-gradient(circle at 50% 38%,rgba(30,16,52,.55),rgba(0,0,0,.92));cursor:pointer}
-#fx-overlay.show{display:flex}
-#fx-canvas,#fx-canvas2d{position:absolute;inset:0;width:100%;height:100%;display:block}
-#fx-caption{position:absolute;bottom:13%;left:0;right:0;text-align:center;font-size:1.45em;font-weight:bold;color:#fff;padding:0 16px;pointer-events:none;text-shadow:0 2px 8px #000,0 0 20px rgba(255,203,5,.55)}
-#fx-skip{position:absolute;top:14px;right:16px;font-size:.78em;color:rgba(255,255,255,.75);background:rgba(0,0,0,.4);padding:6px 12px;border-radius:14px;pointer-events:none}
-#fx-flash{position:fixed;inset:0;z-index:201;background:#fff;opacity:0;pointer-events:none}
-</style>
-<div id="fx-overlay">
-  <canvas id="fx-canvas"></canvas>
-  <canvas id="fx-canvas2d" style="display:none"></canvas>
-  <div id="fx-caption"></div>
-  <div id="fx-skip">Tap to skip &#9197;</div>
-</div>
-<div id="fx-flash"></div>
-
-<script>
-// ============================================================
-// POKÉMON CHESS — Campaign + 2-Player + AI Engine
-// ============================================================
-
-const S = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
-function sprite(id) { return S + id + '.png'; }
-
-// ===== REGIONS =====
-const REGIONS = {
-  kanto: { name:'Kanto', pieces:{
-    K:{id:25,name:'Pikachu',move:'Thunderbolt'},Q:{id:150,name:'Mewtwo',move:'Psystrike'},
-    R:{id:143,name:'Snorlax',move:'Body Slam'},B:{id:94,name:'Gengar',move:'Shadow Ball'},
-    N:{id:78,name:'Rapidash',move:'Fire Blast'},P:{id:133,name:'Eevee',move:'Quick Attack'}}},
-  johto: { name:'Johto', pieces:{
-    K:{id:157,name:'Typhlosion',move:'Eruption'},Q:{id:249,name:'Lugia',move:'Aeroblast'},
-    R:{id:208,name:'Steelix',move:'Iron Tail'},B:{id:196,name:'Espeon',move:'Psybeam'},
-    N:{id:234,name:'Stantler',move:'Zen Headbutt'},P:{id:175,name:'Togepi',move:'Metronome'}}},
-  hoenn: { name:'Hoenn', pieces:{
-    K:{id:257,name:'Blaziken',move:'Blaze Kick'},Q:{id:384,name:'Rayquaza',move:'Dragon Ascent'},
-    R:{id:306,name:'Aggron',move:'Iron Head'},B:{id:282,name:'Gardevoir',move:'Moonblast'},
-    N:{id:359,name:'Absol',move:'Night Slash'},P:{id:258,name:'Mudkip',move:'Water Gun'}}},
-  sinnoh: { name:'Sinnoh', pieces:{
-    K:{id:448,name:'Lucario',move:'Aura Sphere'},Q:{id:483,name:'Dialga',move:'Roar of Time'},
-    R:{id:411,name:'Bastiodon',move:'Metal Burst'},B:{id:468,name:'Togekiss',move:'Air Slash'},
-    N:{id:405,name:'Luxray',move:'Thunder Fang'},P:{id:393,name:'Piplup',move:'Bubble Beam'}}},
-  unova: { name:'Unova', pieces:{
-    K:{id:571,name:'Zoroark',move:'Night Daze'},Q:{id:644,name:'Zekrom',move:'Bolt Strike'},
-    R:{id:623,name:'Golurk',move:'Shadow Punch'},B:{id:609,name:'Chandelure',move:'Inferno'},
-    N:{id:523,name:'Zebstrika',move:'Wild Charge'},P:{id:501,name:'Oshawott',move:'Razor Shell'}}},
-  kalos: { name:'Kalos', pieces:{
-    K:{id:658,name:'Greninja',move:'Water Shuriken'},Q:{id:716,name:'Xerneas',move:'Moonblast'},
-    R:{id:713,name:'Avalugg',move:'Avalanche'},B:{id:655,name:'Delphox',move:'Mystical Fire'},
-    N:{id:673,name:'Gogoat',move:'Horn Leech'},P:{id:656,name:'Froakie',move:'Bubble'}}},
-  legendary: { name:'Legendary', pieces:{
-    K:{id:151,name:'Mew',move:'Psychic'},Q:{id:493,name:'Arceus',move:'Judgment'},
-    R:{id:383,name:'Groudon',move:'Precipice Blades'},B:{id:484,name:'Palkia',move:'Spacial Rend'},
-    N:{id:245,name:'Suicune',move:'Hydro Pump'},P:{id:251,name:'Celebi',move:'Leaf Storm'}}},
-};
-
-const ROLE = {K:'King',Q:'Queen',R:'Rook',B:'Bishop',N:'Knight',P:'Pawn'};
-
-const AVATARS = [
-  {id:25,name:'Pikachu'},{id:6,name:'Charizard'},{id:150,name:'Mewtwo'},{id:448,name:'Lucario'},
-  {id:133,name:'Eevee'},{id:658,name:'Greninja'},{id:384,name:'Rayquaza'},{id:94,name:'Gengar'},
-  {id:249,name:'Lugia'},{id:257,name:'Blaziken'},{id:571,name:'Zoroark'},{id:282,name:'Gardevoir'},
-];
-
-// ===== CAMPAIGN OPPONENTS =====
-const CAMPAIGN = [
-  // Kanto
-  {region:'kanto',name:'Bug Catcher Sam',avatarId:10,depth:2,mistakes:.45,quote:"My bugs are ready to battle!"},
-  {region:'kanto',name:'Lass Jenny',avatarId:35,depth:2,mistakes:.35,quote:"Don't underestimate me!"},
-  {region:'kanto',name:'Gym Leader Brock',avatarId:95,depth:2,mistakes:.18,quote:"My rock-solid defense is unbreakable!",gym:true},
-  // Johto
-  {region:'johto',name:'Youngster Joey',avatarId:19,depth:2,mistakes:.3,quote:"My Rattata is in the top percentage!"},
-  {region:'johto',name:'Kimono Girl Naoko',avatarId:197,depth:2,mistakes:.2,quote:"The dance of battle begins..."},
-  {region:'johto',name:'Gym Leader Whitney',avatarId:241,depth:2,mistakes:.1,quote:"Everyone says I'm really strong!",gym:true},
-  // Hoenn
-  {region:'hoenn',name:'Swimmer Darcy',avatarId:320,depth:2,mistakes:.18,quote:"The waves brought me a challenger!"},
-  {region:'hoenn',name:'Ninja Boy Hiro',avatarId:291,depth:3,mistakes:.25,quote:"You won't see my moves coming!"},
-  {region:'hoenn',name:'Gym Leader Norman',avatarId:289,depth:3,mistakes:.15,quote:"As a father and a leader, I won't hold back!",gym:true},
-  // Sinnoh
-  {region:'sinnoh',name:'Aroma Lady Rose',avatarId:407,depth:2,mistakes:.15,quote:"My garden taught me patience!"},
-  {region:'sinnoh',name:'Ace Trainer Kenji',avatarId:398,depth:3,mistakes:.15,quote:"I've trained for this moment!"},
-  {region:'sinnoh',name:'Gym Leader Volkner',avatarId:466,depth:3,mistakes:.05,quote:"Finally, a challenger worth my time!",gym:true},
-  // Unova
-  {region:'unova',name:'Scientist Colress',avatarId:601,depth:3,mistakes:.12,quote:"I shall analyze your every move!"},
-  {region:'unova',name:'Veteran Rosa',avatarId:612,depth:3,mistakes:.06,quote:"I've defeated countless trainers!"},
-  {region:'unova',name:'Gym Leader Elesa',avatarId:587,depth:3,mistakes:0,quote:"Prepare to be dazzled!",gym:true},
-  // Kalos
-  {region:'kalos',name:'Tourist Alexa',avatarId:695,depth:3,mistakes:.05,quote:"I've traveled the world for this!"},
-  {region:'kalos',name:'Battle Girl Korrina',avatarId:701,depth:3,mistakes:0,quote:"My fighting spirit is unmatched!"},
-  {region:'kalos',name:'Gym Leader Diantha',avatarId:700,depth:4,mistakes:.05,quote:"As Champion, I accept your challenge!",gym:true},
-  // Mew
-  {region:'legendary',name:'Mew',avatarId:151,depth:4,mistakes:0,quote:"Mew! Mew mew mew!",final:true},
-];
-
-const REGION_ORDER = ['kanto','johto','hoenn','sinnoh','unova','kalos'];
-
-// ===== TV CHARACTERS (5% random encounter) =====
-const TV_CHARS = [
-  {name:'Ash Ketchum',avatarId:25,region:'kanto',depth:3,mistakes:.1,quote:"I'm gonna be a Pokémon Master!"},
-  {name:'Misty',avatarId:121,region:'kanto',depth:2,mistakes:.15,quote:"I'm the Cerulean City Gym Leader!"},
-  {name:'Gary Oak',avatarId:9,region:'kanto',depth:3,mistakes:.05,quote:"Smell ya later! ...After I beat you!"},
-  {name:'Jessie & James',avatarId:52,region:null,depth:2,mistakes:.35,quote:"Prepare for trouble! And make it double!"},
-  {name:'May',avatarId:267,region:'hoenn',depth:2,mistakes:.2,quote:"I'm gonna win this contest... I mean battle!"},
-  {name:'Dawn',avatarId:394,region:'sinnoh',depth:2,mistakes:.2,quote:"No need to worry!"},
-  {name:'Cynthia',avatarId:445,region:'sinnoh',depth:4,mistakes:0,quote:"I, the Champion, accept your challenge!"},
-  {name:'Lance',avatarId:149,region:'johto',depth:3,mistakes:.05,quote:"I am Lance, the Dragon Master!"},
-];
-
-// ===== PIECE-SQUARE TABLES =====
-const MAT = {P:100,N:320,B:330,R:500,Q:900,K:20000};
-const PST = {
-  P:[0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,10,10,20,30,30,20,10,10,5,5,10,25,25,10,5,5,0,0,0,20,20,0,0,0,5,-5,-10,0,0,-10,-5,5,5,10,10,-20,-20,10,10,5,0,0,0,0,0,0,0,0],
-  N:[-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,0,0,0,-20,-40,-30,0,10,15,15,10,0,-30,-30,5,15,20,20,15,5,-30,-30,0,15,20,20,15,0,-30,-30,5,10,15,15,10,5,-30,-40,-20,0,5,5,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50],
-  B:[-20,-10,-10,-10,-10,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,10,10,10,10,0,-10,-10,5,5,10,10,5,5,-10,-10,0,5,10,10,5,0,-10,-10,10,5,10,10,5,10,-10,-10,5,0,0,0,0,5,-10,-20,-10,-10,-10,-10,-10,-10,-20],
-  R:[0,0,0,0,0,0,0,0,5,10,10,10,10,10,10,5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,0,0,0,5,5,0,0,0],
-  Q:[-20,-10,-10,-5,-5,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,5,5,5,0,-10,-5,0,5,5,5,5,0,-5,0,0,5,5,5,5,0,-5,-10,5,5,5,5,5,0,-10,-10,0,5,0,0,0,0,-10,-20,-10,-10,-5,-5,-10,-10,-20],
-  K:[-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-20,-30,-30,-40,-40,-30,-30,-20,-10,-20,-20,-20,-20,-20,-20,-10,20,20,0,0,0,0,20,20,20,30,10,0,0,10,30,20],
-};
-
-// ===== STATE =====
-let mode = ''; // 'campaign' | '2player'
-let players = [{name:'',avatarId:null,region:null},{name:'',avatarId:null,region:null}];
-let POKEMON = {w:{},b:{}};
-let board=[],turn='w',selected=null,legalCache=[],history=[],lastMove=null;
-let castleRights={w:{K:true,Q:true},b:{K:true,Q:true}};
-let enPassantTarget=null,capturedPieces={w:[],b:[]},gameOver=false,promotionPending=null;
-let aiMode=false,aiConfig=null,aiThinking=false;
-let campaignProgress=0, currentOpponent=null, isTvEncounter=false;
-
-// ===== SCREEN MANAGEMENT =====
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
-function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
-
-// ===== SAVE/LOAD =====
-function saveCampaign(){
-  localStorage.setItem('pokechess',JSON.stringify({progress:campaignProgress,player:players[0]}));
-}
-function loadCampaign(){
-  try{const d=JSON.parse(localStorage.getItem('pokechess'));if(d&&d.player&&d.player.name){players[0]=d.player;campaignProgress=d.progress||0;return true;}}catch(e){}return false;
-}
-
-// ===== CAMPAIGN FLOW =====
-function startCampaign(){
-  mode='campaign';
-  if(loadCampaign()){showCampaignMap();return;}
-  buildSetup('cs',0,false);
-  showScreen('screen-camp-setup');
-}
-
-function finishCampSetup(){
-  campaignProgress=0;saveCampaign();showCampaignMap();
-}
-
-function showCampaignMap(){
-  const scroll=document.getElementById('map-scroll');
-  scroll.innerHTML='';
-  document.getElementById('map-title').textContent=`${esc(players[0].name)}'s Journey`;
-
-  let allGymsBeaten=true;
-  REGION_ORDER.forEach((rk,ri)=>{
-    const reg=REGIONS[rk];
-    const opps=CAMPAIGN.filter(o=>o.region===rk);
-    const startIdx=CAMPAIGN.indexOf(opps[0]);
-    const regionUnlocked=campaignProgress>=startIdx;
-    if(opps.some(o=>o.gym&&CAMPAIGN.indexOf(o)>=campaignProgress))allGymsBeaten=false;
-
-    const div=document.createElement('div');
-    div.className='map-region'+(regionUnlocked?'':' locked')+(regionUnlocked&&campaignProgress>=startIdx&&campaignProgress<startIdx+opps.length?' current':'');
-
-    let pokHtml='';
-    for(const p of['K','Q','R','B','N','P'])pokHtml+=`<img src="${sprite(reg.pieces[p].id)}" alt="${reg.pieces[p].name}" title="${reg.pieces[p].name}">`;
-
-    let oppsHtml='';
-    opps.forEach((opp,oi)=>{
-      const idx=startIdx+oi;
-      const beaten=idx<campaignProgress;
-      const isCurrent=idx===campaignProgress&&regionUnlocked;
-      const locked=idx>campaignProgress;
-      oppsHtml+=`<div class="map-opp${beaten?' beaten':''}${isCurrent?' current-opp':''}${locked?' locked-opp':''}" onclick="${isCurrent?`selectOpponent(${idx})`:''}">
-        <img src="${sprite(opp.avatarId)}" alt="${esc(opp.name)}">
-        <div><div class="mo-name">${esc(opp.name)}</div><div class="mo-type">${opp.gym?'Gym Leader':'Trainer'}</div></div>
-      </div>`;
-    });
-
-    div.innerHTML=`<div class="mr-name">${regionUnlocked?'':'&#128274; '}${reg.name}</div><div class="mr-pokemon">${pokHtml}</div>${oppsHtml}`;
-    scroll.appendChild(div);
-  });
-
-  // Mew
-  const mewOpp=CAMPAIGN[CAMPAIGN.length-1];
-  const mewUnlocked=campaignProgress>=CAMPAIGN.length-1;
-  const mewDiv=document.createElement('div');
-  mewDiv.className='map-final'+(mewUnlocked?'':' locked');
-  mewDiv.innerHTML=`<img src="${sprite(151)}" alt="Mew"><div class="mf-name">${mewUnlocked?'Mew Awaits...':'???'}</div>`;
-  if(mewUnlocked)mewDiv.onclick=()=>selectOpponent(CAMPAIGN.length-1);
-  scroll.appendChild(mewDiv);
-
-  showScreen('screen-map');
-}
-
-function selectOpponent(idx){
-  let opp=CAMPAIGN[idx];
-  isTvEncounter=false;
-
-  // 5% TV character chance (not for gym leaders or Mew)
-  if(!opp.gym&&!opp.final&&Math.random()<0.05){
-    const tv=TV_CHARS[Math.floor(Math.random()*TV_CHARS.length)];
-    opp={...tv,region:tv.region||opp.region,_tvChar:true};
-    isTvEncounter=true;
-  }
-
-  currentOpponent={...opp,campIdx:idx};
-
-  // Build pre-battle card
-  const card=document.getElementById('pb-card');
-  const reg=REGIONS[opp.region];
-  let pokHtml='';
-  for(const p of['K','Q','R','B','N','P'])pokHtml+=`<img src="${sprite(reg.pieces[p].id)}" title="${reg.pieces[p].name}">`;
-
-  card.innerHTML=`
-    ${isTvEncounter?'<div class="tv-badge">TV CHARACTER!</div>':''}
-    <img src="${sprite(opp.avatarId)}" alt="${esc(opp.name)}">
-    <div class="pb-name">${esc(opp.name)}</div>
-    <div class="pb-type">${opp.gym?'Gym Leader':opp.final?'Final Boss':isTvEncounter?'Special Encounter':'Trainer'} &mdash; ${reg.name}</div>
-    <div class="pb-quote">"${esc(opp.quote)}"</div>
-    <div class="pb-pokemon">${pokHtml}</div>
-  `;
-  showScreen('screen-prebattle');
-}
-
-function launchBattle(){
-  const opp=currentOpponent;
-  const playerReg=REGIONS[players[0].region];
-  const oppReg=REGIONS[opp.region];
-
-  players[1]={name:opp.name,avatarId:opp.avatarId,region:opp.region};
-  POKEMON={w:{},b:{}};
-  for(const p of['K','Q','R','B','N','P']){
-    POKEMON.w[p]={...playerReg.pieces[p],role:ROLE[p]};
-    POKEMON.b[p]={...oppReg.pieces[p],role:ROLE[p]};
-  }
-  aiMode=true;
-  aiConfig={depth:opp.depth,mistakes:opp.mistakes};
-  preloadSprites();
-  initBoard();
-  showVsThen(()=>{showScreen('screen-game');renderGame();});
-}
-
-// ===== 2-PLAYER FLOW =====
-function start2Player(){
-  mode='2player';aiMode=false;
-  buildSetup('p1',0,false);showScreen('screen-p1');
-}
-function finishP1(){buildSetup('p2',1,true);showScreen('screen-p2')}
-function finishP2(){
-  const r1=REGIONS[players[0].region],r2=REGIONS[players[1].region];
-  POKEMON={w:{},b:{}};
-  for(const p of['K','Q','R','B','N','P']){
-    POKEMON.w[p]={...r1.pieces[p],role:ROLE[p]};
-    POKEMON.b[p]={...r2.pieces[p],role:ROLE[p]};
-  }
-  preloadSprites();initBoard();
-  showVsThen(()=>{showScreen('screen-game');renderGame();});
-}
-
-// ===== SETUP BUILDER =====
-function buildSetup(prefix,pIdx,excludeTaken){
-  players[pIdx]={name:'',avatarId:null,region:null};
-  const nameEl=document.getElementById(prefix+'-name');
-  const avEl=document.getElementById(prefix+'-avatars');
-  const rgEl=document.getElementById(prefix+'-regions');
-  const btn=document.getElementById(prefix+(prefix==='cs'?'-go':'-next'));
-  nameEl.value='';
-  btn.disabled=true;
-
-  avEl.innerHTML='';
-  AVATARS.forEach(av=>{
-    const d=document.createElement('div');d.className='avatar-option';
-    d.innerHTML=`<img src="${sprite(av.id)}" alt="${av.name}"><span>${av.name}</span>`;
-    d.onclick=()=>{avEl.querySelectorAll('.avatar-option').forEach(a=>a.classList.remove('selected'));d.classList.add('selected');players[pIdx].avatarId=av.id;checkBtn()};
-    avEl.appendChild(d);
-  });
-
-  rgEl.innerHTML='';
-  Object.keys(REGIONS).forEach(k=>{
-    if(k==='legendary')return;
-    const r=REGIONS[k],taken=excludeTaken&&players[1-pIdx].region===k;
-    const card=document.createElement('div');card.className='region-card';
-    let imgs='';for(const p of['K','Q','R','B','N','P'])imgs+=`<img src="${sprite(r.pieces[p].id)}">`;
-    card.innerHTML=`<div class="rname">${r.name}</div><div class="rpoke">${imgs}</div>`;
-    if(taken){card.style.opacity='.3';card.style.pointerEvents='none';}
-    else card.onclick=()=>{rgEl.querySelectorAll('.region-card').forEach(c=>c.classList.remove('selected'));card.classList.add('selected');players[pIdx].region=k;checkBtn()};
-    rgEl.appendChild(card);
-  });
-
-  nameEl.oninput=()=>{players[pIdx].name=nameEl.value.trim();checkBtn()};
-  function checkBtn(){btn.disabled=!(players[pIdx].name&&players[pIdx].avatarId&&players[pIdx].region)}
-}
-
-// ===== VS SCREEN =====
-function showVsThen(cb){
-  const b=document.getElementById('vs-banner');
-  b.innerHTML=`
-    <div class="vs-trainer"><img src="${sprite(players[0].avatarId)}"><div class="vs-name">${esc(players[0].name)}</div><div class="vs-region">${REGIONS[players[0].region].name}</div></div>
-    <div class="vs-text">VS</div>
-    <div class="vs-trainer"><img src="${sprite(players[1].avatarId)}"><div class="vs-name">${esc(players[1].name)}</div><div class="vs-region">${REGIONS[players[1].region].name}</div></div>`;
-  showScreen('screen-vs');
-  setTimeout(cb,2000);
-}
-
-// ===== CAPTURE MOVE ANNOUNCEMENT =====
-function announceMove(color,piece){
-  const info=POKEMON[color][piece];
-  if(!info||!info.move)return;
-  const el=document.getElementById('move-announce');
-  el.textContent=`${info.name} used ${info.move}!`;
-  el.classList.remove('show');
-  void el.offsetWidth;
-  el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),1700);
-}
-
-// ============================================================
-// CHESS ENGINE
-// ============================================================
-
-function initBoard(){
-  const back=['R','N','B','Q','K','B','N','R'];
-  board=Array.from({length:8},()=>Array(8).fill(null));
-  for(let c=0;c<8;c++){
-    board[0][c]={color:'b',piece:back[c]};board[1][c]={color:'b',piece:'P'};
-    board[6][c]={color:'w',piece:'P'};board[7][c]={color:'w',piece:back[c]};
-  }
-  turn='w';selected=null;legalCache=[];history=[];lastMove=null;
-  castleRights={w:{K:true,Q:true},b:{K:true,Q:true}};
-  enPassantTarget=null;capturedPieces={w:[],b:[]};gameOver=false;promotionPending=null;aiThinking=false;
-}
-
-function cloneBoard(b){return b.map(r=>r.map(c=>c?{...c}:null))}
-function cloneCR(cr){return{w:{...cr.w},b:{...cr.b}}}
-
-function findKing(b,col){
-  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(b[r][c]&&b[r][c].color===col&&b[r][c].piece==='K')return{r,c};
-  return null;
-}
-
-function isAttacked(b,r,c,by){
-  const pd=by==='w'?1:-1;
-  for(const dc of[-1,1]){const pr=r+pd,pc=c+dc;if(pr>=0&&pr<8&&pc>=0&&pc<8){const p=b[pr][pc];if(p&&p.color===by&&p.piece==='P')return true}}
-  for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const p=b[nr][nc];if(p&&p.color===by&&p.piece==='N')return true}}
-  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const p=b[nr][nc];if(p&&p.color===by&&p.piece==='K')return true}}
-  for(const[dr,dc]of[[0,1],[0,-1],[1,0],[-1,0]]){let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){const p=b[nr][nc];if(p){if(p.color===by&&(p.piece==='R'||p.piece==='Q'))return true;break}nr+=dr;nc+=dc}}
-  for(const[dr,dc]of[[1,1],[1,-1],[-1,1],[-1,-1]]){let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){const p=b[nr][nc];if(p){if(p.color===by&&(p.piece==='B'||p.piece==='Q'))return true;break}nr+=dr;nc+=dc}}
-  return false;
-}
-
-function inCheck(b,col){const k=findKing(b,col);return k?isAttacked(b,k.r,k.c,col==='w'?'b':'w'):false}
-
-function pseudoMoves(b,r,c,cr,ep){
-  const cell=b[r][c];if(!cell)return[];
-  const mv=[],col=cell.color,en=col==='w'?'b':'w';
-  const add=(tr,tc,f)=>{if(tr>=0&&tr<8&&tc>=0&&tc<8)mv.push({r:tr,c:tc,flag:f})};
-  switch(cell.piece){
-    case'P':{const d=col==='w'?-1:1,sr=col==='w'?6:1;
-      if(!b[r+d]?.[c]){add(r+d,c);if(r===sr&&!b[r+2*d]?.[c])add(r+2*d,c,'double')}
-      for(const dc of[-1,1]){const tr=r+d,tc=c+dc;if(tr>=0&&tr<8&&tc>=0&&tc<8){if(b[tr][tc]&&b[tr][tc].color===en)add(tr,tc);if(ep&&ep.r===tr&&ep.c===tc)add(tr,tc,'ep')}}break}
-    case'N':for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8&&(!b[nr][nc]||b[nr][nc].color===en))add(nr,nc)}break;
-    case'B':for(const[dr,dc]of[[1,1],[1,-1],[-1,1],[-1,-1]]){let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){if(b[nr][nc]){if(b[nr][nc].color===en)add(nr,nc);break}add(nr,nc);nr+=dr;nc+=dc}}break;
-    case'R':for(const[dr,dc]of[[0,1],[0,-1],[1,0],[-1,0]]){let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){if(b[nr][nc]){if(b[nr][nc].color===en)add(nr,nc);break}add(nr,nc);nr+=dr;nc+=dc}}break;
-    case'Q':for(const[dr,dc]of[[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]]){let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){if(b[nr][nc]){if(b[nr][nc].color===en)add(nr,nc);break}add(nr,nc);nr+=dr;nc+=dc}}break;
-    case'K':
-      for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8&&(!b[nr][nc]||b[nr][nc].color===en))add(nr,nc)}
-      if(cr[col].K&&!inCheck(b,col)){if(!b[r][5]&&!b[r][6]&&b[r][7]&&b[r][7].piece==='R'&&b[r][7].color===col&&!isAttacked(b,r,5,en)&&!isAttacked(b,r,6,en))mv.push({r,c:6,flag:'castleK'});if(!b[r][3]&&!b[r][2]&&!b[r][1]&&b[r][0]&&b[r][0].piece==='R'&&b[r][0].color===col&&!isAttacked(b,r,3,en)&&!isAttacked(b,r,2,en))mv.push({r,c:2,flag:'castleQ'})}break;
-  }
-  return mv;
-}
-
-function legalMoves(b,r,c,cr,ep){
-  const mvs=pseudoMoves(b,r,c,cr,ep),col=b[r][c].color;
-  return mvs.filter(m=>{const nb=cloneBoard(b);nb[m.r][m.c]=nb[r][c];nb[r][c]=null;
-    if(m.flag==='ep')nb[col==='w'?m.r+1:m.r-1][m.c]=null;
-    if(m.flag==='castleK'){nb[m.r][5]=nb[m.r][7];nb[m.r][7]=null}
-    if(m.flag==='castleQ'){nb[m.r][3]=nb[m.r][0];nb[m.r][0]=null}
-    return!inCheck(nb,col)});
-}
-
-function hasLegal(b,col,cr,ep){
-  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(b[r][c]&&b[r][c].color===col&&legalMoves(b,r,c,cr,ep).length>0)return true;return false;
-}
-
-let glideFromTo=null;
-function executeMove(fR,fC,tR,tC,flag,promo){
-  history.push({board:cloneBoard(board),turn,castleRights:cloneCR(castleRights),enPassantTarget:enPassantTarget?{...enPassantTarget}:null,lastMove:lastMove?{from:{...lastMove.from},to:{...lastMove.to}}:null,capturedPieces:{w:[...capturedPieces.w],b:[...capturedPieces.b]},gameOver});
-  const piece=board[fR][fC],captured=board[tR][tC],col=piece.color,en=col==='w'?'b':'w';
-  let didCapture=false;
-
-  if(captured){capturedPieces[col].push({color:captured.color,piece:captured.piece});didCapture=true}
-  if(flag==='ep'){const eR=col==='w'?tR+1:tR-1;const ec=board[eR][tC];if(ec)capturedPieces[col].push({color:ec.color,piece:ec.piece});board[eR][tC]=null;didCapture=true}
-  board[tR][tC]=piece;board[fR][fC]=null;
-  if(flag==='castleK'){board[tR][5]=board[tR][7];board[tR][7]=null}
-  if(flag==='castleQ'){board[tR][3]=board[tR][0];board[tR][0]=null}
-
-  if(piece.piece==='P'&&(tR===0||tR===7)){
-    if(promo){board[tR][tC]={color:col,piece:promo}}
-    else{promotionPending={fR,fC,tR,tC,flag,didCapture};showPromotionDialog(col);return false}
-  }
-
-  if(piece.piece==='K'){castleRights[col].K=false;castleRights[col].Q=false}
-  if(piece.piece==='R'){if(fC===0)castleRights[col].Q=false;if(fC===7)castleRights[col].K=false}
-  if(captured&&captured.piece==='R'){if(tC===0&&tR===(en==='w'?7:0))castleRights[en].Q=false;if(tC===7&&tR===(en==='w'?7:0))castleRights[en].K=false}
-
-  enPassantTarget=flag==='double'?{r:(fR+tR)/2,c:tC}:null;
-  lastMove={from:{r:fR,c:fC},to:{r:tR,c:tC}};
-  glideFromTo={from:{r:fR,c:fC},to:{r:tR,c:tC}};
-  turn=en;selected=null;legalCache=[];
-
-  updateStatus();renderGame();
-
-  if(didCapture){
-    const atkRole=piece.piece, atk=POKEMON[col]&&POKEMON[col][atkRole];
-    const dColor=captured?captured.color:en, dRole=captured?captured.piece:'P';
-    const def=POKEMON[dColor]&&POKEMON[dColor][dRole];
-    const cont=()=>{ if(aiMode&&!gameOver&&turn==='b')scheduleAI(); };
-    if(window.ChessFX&&atk&&def){ ChessFX.playCapture({atk,def,col,atkRole,onDone:cont}); }
-    else { announceMove(col,atkRole); cont(); }
-    return true;
-  }
-
-  if(aiMode&&!gameOver&&turn==='b')scheduleAI();
-  return true;
-}
-
-function updateStatus(){
-  const chk=inCheck(board,turn),has=hasLegal(board,turn,castleRights,enPassantTarget);
-  const winner=turn==='w'?'b':'w';
-  if(!has){gameOver=true;
-    if(chk){setStatus(`Checkmate! ${esc(players[winner==='w'?0:1].name)} wins!`,'gameover');if(window.GK&&(mode==='2player'||winner==='w'))GK.confetti();}
-    else setStatus("Stalemate! It's a draw!",'gameover');
-    if(mode==='campaign')setTimeout(showCampaignResult,1200);
-  }else if(chk){setStatus(`Check! ${esc(players[turn==='w'?0:1].name)}'s turn`,'check');
-  }else{setStatus(`${esc(players[turn==='w'?0:1].name)}'s Turn`,turn==='w'?'red-turn':'blue-turn')}
-}
-
-function setStatus(t,cls){const el=document.getElementById('status');el.innerHTML=t;el.className=cls||''}
-
-function showPromotionDialog(col){
-  const ov=document.getElementById('promotion-overlay'),opts=document.getElementById('promotion-options');
-  ov.classList.add('active');opts.innerHTML='';
-  for(const p of['Q','R','B','N']){
-    const d=document.createElement('div');d.className='promo-choice';
-    d.innerHTML=`<img src="${sprite(POKEMON[col][p].id)}" alt="${POKEMON[col][p].name}"><span>${POKEMON[col][p].name}</span>`;
-    d.onclick=()=>{ov.classList.remove('active');completePromotion(p)};
-    opts.appendChild(d);
-  }
-}
-
-function completePromotion(choice){
-  if(!promotionPending)return;
-  const pp=promotionPending;promotionPending=null;
-  const col=board[pp.tR][pp.tC].color,en=col==='w'?'b':'w';
-  board[pp.tR][pp.tC]={color:col,piece:choice};
-  enPassantTarget=null;lastMove={from:{r:pp.fR,c:pp.fC},to:{r:pp.tR,c:pp.tC}};
-  turn=en;selected=null;legalCache=[];
-  if(pp.didCapture)announceMove(col,'P');
-  updateStatus();renderGame();
-  if(aiMode&&!gameOver&&turn==='b')scheduleAI();
-}
-
-function undoMove(){
-  if(!history.length||promotionPending||aiThinking)return;
-  // In campaign mode, undo both player and AI move
-  if(aiMode&&history.length>=2&&turn==='w'){
-    history.pop();// undo AI
-    const prev=history.pop();// undo player
-    board=prev.board;turn=prev.turn;castleRights=prev.castleRights;enPassantTarget=prev.enPassantTarget;lastMove=prev.lastMove;capturedPieces=prev.capturedPieces;gameOver=prev.gameOver;
-  }else{
-    const prev=history.pop();board=prev.board;turn=prev.turn;castleRights=prev.castleRights;enPassantTarget=prev.enPassantTarget;lastMove=prev.lastMove;capturedPieces=prev.capturedPieces;gameOver=prev.gameOver;
-  }
-  selected=null;legalCache=[];
-  if(!gameOver)setStatus(`${esc(players[turn==='w'?0:1].name)}'s Turn`,turn==='w'?'red-turn':'blue-turn');
-  renderGame();
-}
-
-function onCellClick(r,c){
-  if(gameOver||promotionPending||aiThinking)return;
-  if(aiMode&&turn==='b')return;
-  const cell=board[r][c];
-  if(selected){
-    const mv=legalCache.find(m=>m.r===r&&m.c===c);
-    if(mv){executeMove(selected.r,selected.c,r,c,mv.flag);return}
-    if(cell&&cell.color===turn){selected={r,c};legalCache=legalMoves(board,r,c,castleRights,enPassantTarget);render();return}
-    selected=null;legalCache=[];render();return;
-  }
-  if(cell&&cell.color===turn){selected={r,c};legalCache=legalMoves(board,r,c,castleRights,enPassantTarget);render()}
-}
-
-// ===== CAMPAIGN RESULT =====
-function showCampaignResult(){
-  const playerWon=!hasLegal(board,turn==='w'?'w':'w',castleRights,enPassantTarget);
-  // Figure out who won: if turn's side has no moves and is in check, the OTHER side won.
-  // gameOver is true, check who won
-  const loser=turn; // the side whose turn it is has no moves
-  const winnerColor=loser==='w'?'b':'w';
-  const isStalemate=!inCheck(board,loser);
-
-  const ctrl=document.getElementById('controls');
-  if(isStalemate||winnerColor==='b'){
-    // Player lost or draw
-    ctrl.innerHTML=`<button onclick="retryBattle()">Try Again</button><button onclick="showCampaignMap()">Back to Map</button>`;
-  }else{
-    // Player won!
-    if(currentOpponent.final){
-      // Beat Mew!
-      campaignProgress=CAMPAIGN.length;saveCampaign();
-      showChampionScreen();return;
-    }
-    campaignProgress=currentOpponent.campIdx+1;saveCampaign();
-    ctrl.innerHTML=`<button onclick="showCampaignMap()">Continue</button>`;
-  }
-}
-
-function retryBattle(){selectOpponent(currentOpponent.campIdx)}
-
-function showChampionScreen(){
-  const el=document.getElementById('champ-content');
-  el.innerHTML=`
-    <img src="${sprite(151)}" alt="Mew">
-    <h2>CHAMPION!</h2>
-    <p style="color:#ccc;margin:8px 0">${esc(players[0].name)} has defeated Mew and conquered all regions!</p>
-    <p style="color:#ffcb05;font-size:1.2em">You are the Pok&eacute;mon Chess Champion!</p>
-    <button class="btn" onclick="showScreen('screen-title')">Back to Title</button>
-    <button class="btn small" onclick="resetCampaign()">New Campaign</button>
-  `;
-  showScreen('screen-champion');
-}
-
-function resetCampaign(){localStorage.removeItem('pokechess');startCampaign()}
-
-// ============================================================
-// AI ENGINE (Minimax + Alpha-Beta)
-// ============================================================
-
-function evaluate(b){
-  let score=0;
-  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
-    const cell=b[r][c];if(!cell)continue;
-    const sign=cell.color==='w'?1:-1;
-    const idx=cell.color==='w'?r*8+c:(7-r)*8+c;
-    score+=sign*(MAT[cell.piece]+PST[cell.piece][idx]);
-  }
-  return score;
-}
-
-function getAllMoves(b,col,cr,ep){
-  const mvs=[];
-  for(let r=0;r<8;r++)for(let c=0;c<8;c++)
-    if(b[r][c]&&b[r][c].color===col){
-      const legal=legalMoves(b,r,c,cr,ep);
-      for(const m of legal)mvs.push({fR:r,fC:c,tR:m.r,tC:m.c,flag:m.flag});
-    }
-  // Order: captures first (MVV-LVA)
-  mvs.sort((a,mb)=>{
-    const va=b[a.tR][a.tC]?MAT[b[a.tR][a.tC].piece]:0;
-    const vb=b[mb.tR][mb.tC]?MAT[b[mb.tR][mb.tC].piece]:0;
-    return vb-va;
-  });
-  return mvs;
-}
-
-function applyMove(b,mv,cr,ep){
-  const nb=cloneBoard(b);
-  const piece=nb[mv.fR][mv.fC],col=piece.color;
-  nb[mv.tR][mv.tC]=piece;nb[mv.fR][mv.fC]=null;
-  if(mv.flag==='ep')nb[col==='w'?mv.tR+1:mv.tR-1][mv.tC]=null;
-  if(mv.flag==='castleK'){nb[mv.tR][5]=nb[mv.tR][7];nb[mv.tR][7]=null}
-  if(mv.flag==='castleQ'){nb[mv.tR][3]=nb[mv.tR][0];nb[mv.tR][0]=null}
-  if(piece.piece==='P'&&(mv.tR===0||mv.tR===7))nb[mv.tR][mv.tC]={color:col,piece:'Q'};
-  const ncr=cloneCR(cr);
-  if(piece.piece==='K'){ncr[col].K=false;ncr[col].Q=false}
-  if(piece.piece==='R'){if(mv.fC===0)ncr[col].Q=false;if(mv.fC===7)ncr[col].K=false}
-  const nep=mv.flag==='double'?{r:(mv.fR+mv.tR)/2,c:mv.tC}:null;
-  return[nb,ncr,nep];
-}
-
-function minimax(b,depth,alpha,beta,isMax,cr,ep){
-  if(depth===0)return evaluate(b);
-  const col=isMax?'w':'b';
-  const mvs=getAllMoves(b,col,cr,ep);
-  if(mvs.length===0){
-    if(inCheck(b,col))return isMax?-99999+depth:99999-depth;
-    return 0;
-  }
-  if(isMax){
-    let best=-Infinity;
-    for(const mv of mvs){const[nb,ncr,nep]=applyMove(b,mv,cr,ep);const val=minimax(nb,depth-1,alpha,beta,false,ncr,nep);best=Math.max(best,val);alpha=Math.max(alpha,val);if(beta<=alpha)break}
-    return best;
-  }else{
-    let best=Infinity;
-    for(const mv of mvs){const[nb,ncr,nep]=applyMove(b,mv,cr,ep);const val=minimax(nb,depth-1,alpha,beta,true,ncr,nep);best=Math.min(best,val);beta=Math.min(beta,val);if(beta<=alpha)break}
-    return best;
-  }
-}
-
-function findBestMove(){
-  const mvs=getAllMoves(board,'b',castleRights,enPassantTarget);
-  if(mvs.length===0)return null;
-  // Mistake: random move
-  if(Math.random()<aiConfig.mistakes)return mvs[Math.floor(Math.random()*mvs.length)];
-  let bestScore=Infinity,bestMvs=[];
-  for(const mv of mvs){
-    const[nb,ncr,nep]=applyMove(board,mv,castleRights,enPassantTarget);
-    const score=minimax(nb,aiConfig.depth-1,-Infinity,Infinity,true,ncr,nep);
-    if(score<bestScore){bestScore=score;bestMvs=[mv]}
-    else if(score===bestScore)bestMvs.push(mv);
-  }
-  return bestMvs[Math.floor(Math.random()*bestMvs.length)];
-}
-
-function scheduleAI(){
-  aiThinking=true;
-  setStatus(`${esc(players[1].name)} is thinking...`,'blue-turn');
-  setTimeout(()=>{
-    const mv=findBestMove();
-    aiThinking=false;
-    if(mv){
-      const piece=board[mv.tR][mv.tC];
-      const promo=(board[mv.fR][mv.fC].piece==='P'&&(mv.tR===0||mv.tR===7))?'Q':undefined;
-      executeMove(mv.fR,mv.fC,mv.tR,mv.tC,mv.flag,promo);
-    }
-  },400);
-}
-
-// ============================================================
-// RENDERING
-// ============================================================
-
-function renderGame(){
-  renderBars();render();renderControls();renderLegend();
-}
-
-function renderBars(){
-  for(const[barId,pIdx,col]of[['bar-top',1,'b'],['bar-bottom',0,'w']]){
-    const bar=document.getElementById(barId),p=players[pIdx];
-    const isAct=turn===col&&!gameOver;
-    bar.className='player-bar'+(isAct?' active-turn':'');
-    let capHtml='';
-    for(const cap of capturedPieces[col])capHtml+=`<img src="${sprite(POKEMON[cap.color][cap.piece].id)}">`;
-    bar.innerHTML=`<img class="pav" src="${sprite(p.avatarId)}"><div><div class="pname">${esc(p.name)}</div><div class="pregion">${REGIONS[p.region].name}</div></div><div class="captured-row">${capHtml}</div>`;
-  }
-}
-
-function render(){
-  const bEl=document.getElementById('board');bEl.innerHTML='';
-  const chk=inCheck(board,turn)?findKing(board,turn):null;
-  const cellW=bEl.clientWidth/8;
-  const canGlide=glideFromTo&&cellW&&!(window.GK&&GK.reduceMotion);
-  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
-    const d=document.createElement('div');
-    d.className='cell '+((r+c)%2===0?'light':'dark');
-    if(selected&&selected.r===r&&selected.c===c)d.classList.add('selected');
-    if(legalCache.some(m=>m.r===r&&m.c===c)){d.classList.add(board[r][c]||legalCache.find(m=>m.r===r&&m.c===c)?.flag==='ep'?'capture-legal':'legal')}
-    if(lastMove){if(lastMove.from.r===r&&lastMove.from.c===c)d.classList.add('last-from');if(lastMove.to.r===r&&lastMove.to.c===c)d.classList.add('last-to')}
-    if(chk&&chk.r===r&&chk.c===c)d.classList.add('in-check');
-    const cell=board[r][c];
-    if(cell){
-      const img=document.createElement('img');img.src=sprite(POKEMON[cell.color][cell.piece].id);img.alt=POKEMON[cell.color][cell.piece].name;img.draggable=false;d.appendChild(img);
-      if(canGlide&&r===glideFromTo.to.r&&c===glideFromTo.to.c){
-        const dx=(glideFromTo.from.c-c)*cellW, dy=(glideFromTo.from.r-r)*cellW;
-        img.style.transition='none'; img.style.transform=`translate(${dx}px,${dy}px)`;
-        requestAnimationFrame(()=>{ img.style.transition='transform .26s cubic-bezier(.3,1.1,.5,1)'; img.style.transform='translate(0,0)'; });
-      }
-      const lbl=document.createElement('span');lbl.className='piece-label';lbl.textContent=POKEMON[cell.color][cell.piece].role;d.appendChild(lbl);
-    }
-    d.addEventListener('click',()=>onCellClick(r,c));bEl.appendChild(d);
-  }
-  glideFromTo=null;
-}
-
-function renderControls(){
-  const ctrl=document.getElementById('controls');
-  if(mode==='campaign'&&gameOver)return; // campaign result handles this
-  let html=`<button onclick="undoMove()">Undo</button>`;
-  if(mode==='campaign')html+=`<button onclick="showCampaignMap()">Forfeit</button>`;
-  else html+=`<button onclick="start2Player()">New Game</button>`;
-  if(window.ChessFX)html+=`<button onclick="toggleFx()">&#10024; ${ChessFX.label()}</button>`;
-  ctrl.innerHTML=html;
-}
-
-function renderLegend(){
-  const el=document.getElementById('legend');el.innerHTML='';
-  for(const[col,pIdx]of[['w',0],['b',1]]){
-    const hdr=document.createElement('div');hdr.className='legend-hdr';
-    hdr.textContent=`${players[pIdx].name} (${REGIONS[players[pIdx].region].name})`;
-    el.appendChild(hdr);
-    for(const p of['K','Q','R','B','N','P']){
-      const item=document.createElement('div');item.className='legend-item';
-      item.innerHTML=`<img src="${sprite(POKEMON[col][p].id)}"> ${POKEMON[col][p].name} = ${POKEMON[col][p].role}`;
-      el.appendChild(item);
-    }
-  }
-}
-
-function preloadSprites(){
-  for(const col of['w','b'])for(const p of['K','Q','R','B','N','P']){const i=new Image();i.src=sprite(POKEMON[col][p].id)}
-}
-
-// Preload avatars
-AVATARS.forEach(a=>{const i=new Image();i.src=sprite(a.id)});
-</script>
-<script src="gamekit.js"></script>
-
-<!-- ============================================================ -->
-<!-- ChessFX — 2.5D capture cinematics (three.js, lazy-loaded)    -->
-<!-- ============================================================ -->
+<!-- drifting background orbs -->
 <script>
 (function(){
-  const KEY='pkmnChessFx';
-  const MODES=['full','lite','off'];
-  const LABELS={full:'Full',lite:'Lite',off:'Off'};
-  function getSetting(){ const v=localStorage.getItem(KEY); return MODES.indexOf(v)>=0?v:'full'; }
-  function setSetting(v){ try{localStorage.setItem(KEY,v);}catch(e){} }
-  function label(){ return 'FX: '+LABELS[getSetting()]; }
-  function cycleSetting(){ const n=MODES[(MODES.indexOf(getSetting())+1)%MODES.length]; setSetting(n); return n; }
-
-  const SPRITE='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
-  const spriteUrl=id=>SPRITE+id+'.png';
-
-  function moveColorHex(move){
-    const m=(move||'').toLowerCase();
-    const map=[
-      [/(thunder|bolt|volt|charge|spark|zap|electro)/,'#ffe14d'],
-      [/(shadow|night|dark|hex|curse|daze)/,'#b06be6'],
-      [/(fire|blaze|ember|flame|burn|erupt|inferno|heat|flare|overheat)/,'#ff6b35'],
-      [/(water|hydro|bubble|aqua|surf|shell|splash|rain)/,'#4fc3f7'],
-      [/(psy|zen|future|mystical)/,'#ff6fae'],
-      [/(iron|metal|steel|gyro|bullet)/,'#b0bec5'],
-      [/(leaf|grass|seed|petal|leech|vine|solar|bloom|storm)/,'#66bb6a'],
-      [/(aura|fight|punch|kick|brick|close|focus|slam|headbutt)/,'#ff8a65'],
-      [/(dragon|spacial|outrage|draco|time|ascent)/,'#7e57c2'],
-      [/(ice|frost|freeze|avalanche|blizzard|aurora)/,'#81d4fa'],
-      [/(air|fly|wing|aero|gust|hurricane|sky|slash|cut)/,'#b3e5fc'],
-      [/(rock|stone|precipice|earth|ground|blade)/,'#c8a165'],
-      [/(fairy|moonblast|moon|dazzl|judgment|metronome)/,'#f8bbd0'],
-    ];
-    for(const [re,c] of map) if(re.test(m)) return c;
-    return '#ffcb05';
-  }
-  const hexToInt=h=>parseInt(h.replace('#',''),16);
-
-  let currentFinish=null;
-
-  function el(id){ return document.getElementById(id); }
-  function showOverlay(opts){
-    el('fx-caption').textContent=`${opts.atk.name} used ${opts.atk.move}!`;
-    el('fx-flash').style.opacity='0';
-    const ov=el('fx-overlay'); ov.classList.add('show');
-    requestAnimationFrame(()=>{ ov.style.opacity='1'; });
-  }
-  function hideOverlay(){
-    const ov=el('fx-overlay'); ov.style.opacity='0';
-    setTimeout(()=>ov.classList.remove('show'),260);
-  }
-
-  // ---- three.js lazy loader ----
-  let threeState=0, threeWaiters=[]; // 0 idle,1 loading,2 ready,3 failed
-  function ensureThree(cb){
-    if(window.THREE){ cb(window.THREE); return; }
-    if(threeState===3){ cb(null); return; }
-    threeWaiters.push(cb);
-    if(threeState===1) return;
-    threeState=1;
-    const s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-    s.onload=()=>{ threeState=2; const w=threeWaiters; threeWaiters=[]; w.forEach(f=>f(window.THREE)); };
-    s.onerror=()=>{ threeState=3; const w=threeWaiters; threeWaiters=[]; w.forEach(f=>f(null)); };
-    document.head.appendChild(s);
-  }
-
-  function canvasTexture(THREE,draw,sz){
-    const cv=document.createElement('canvas'); cv.width=cv.height=sz||128;
-    draw(cv.getContext('2d'),cv.width);
-    const t=new THREE.CanvasTexture(cv); return t;
-  }
-  function loadTex(loader,url){ return new Promise((res,rej)=>loader.load(url,res,undefined,rej)); }
-
-  let renderer=null, camera=null;
-
-  function run3D(opts){
-    // Race three.js loading against a timeout so a slow/blocked CDN falls back
-    // to the 2D cutscene fast instead of showing nothing.
-    let started=false;
-    const to=setTimeout(()=>{ if(started)return; started=true; runCanvas2D(opts); },2600);
-    ensureThree(function(THREE){
-      if(started)return; started=true; clearTimeout(to);
-      if(!THREE){ runCanvas2D(opts); return; }
-      try{ scene3D(THREE,opts); }
-      catch(e){ console.warn('ChessFX 3D failed',e); runCanvas2D(opts); }
-    });
-  }
-
-  function scene3D(THREE,opts){
-    el('fx-canvas').style.display='block';
-    el('fx-canvas2d').style.display='none';
-    showOverlay(opts);
-    const canvas=el('fx-canvas');
-    if(!renderer){
-      renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-      camera=new THREE.PerspectiveCamera(50,1,0.1,100);
+  // Background orbs
+  try{
+    for(let i=0;i<6;i++){
+      const o=document.createElement('div'); o.className='bg-orb';
+      const s=40+Math.random()*90;
+      o.style.width=o.style.height=s+'px';
+      o.style.left=Math.random()*100+'vw';
+      o.style.animationDuration=(12+Math.random()*12)+'s';
+      o.style.animationDelay=(-Math.random()*16)+'s';
+      document.body.appendChild(o);
     }
-    const W=window.innerWidth,H=window.innerHeight;
-    renderer.setSize(W,H,false);
-    const camBaseY=1.15, camBaseZ=4.6;
-    camera.aspect=W/H; camera.position.set(0,camBaseY,camBaseZ); camera.lookAt(0,0.8,0); camera.updateProjectionMatrix();
+  }catch(e){}
 
-    const scene=new THREE.Scene();
-    const colHex=moveColorHex(opts.atk.move), colInt=hexToInt(colHex);
+  const SPRITE=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 
-    const floorTex=canvasTexture(THREE,(ctx,s)=>{
-      const g=ctx.createRadialGradient(s/2,s/2,8,s/2,s/2,s/2);
-      g.addColorStop(0,colHex); g.addColorStop(0.5,colHex+'55'); g.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=g; ctx.fillRect(0,0,s,s);
-    },256);
-    const floor=new THREE.Mesh(new THREE.PlaneGeometry(15,9),new THREE.MeshBasicMaterial({map:floorTex,transparent:true,opacity:.7,depthWrite:false}));
-    floor.rotation.x=-Math.PI/2; scene.add(floor);
-
-    const dotTex=canvasTexture(THREE,(ctx,s)=>{
-      const g=ctx.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
-      g.addColorStop(0,'#fff'); g.addColorStop(0.4,'#fff'); g.addColorStop(1,'rgba(255,255,255,0)');
-      ctx.fillStyle=g; ctx.fillRect(0,0,s,s);
-    },64);
-
-    const loader=new THREE.TextureLoader(); loader.crossOrigin='anonymous';
-    Promise.all([loadTex(loader,spriteUrl(opts.atk.id)),loadTex(loader,spriteUrl(opts.def.id))]).then(([atkTex,defTex])=>{
-      atkTex.magFilter=defTex.magFilter=THREE.NearestFilter;
-      const sz=1.7;
-      const atkMesh=new THREE.Mesh(new THREE.PlaneGeometry(sz,sz),new THREE.MeshBasicMaterial({map:atkTex,transparent:true,alphaTest:.05}));
-      const defMesh=new THREE.Mesh(new THREE.PlaneGeometry(sz,sz),new THREE.MeshBasicMaterial({map:defTex,transparent:true,alphaTest:.05}));
-      const baseY=sz/2;
-      atkMesh.scale.x=-1; atkMesh.position.set(-1.9,baseY,0);
-      defMesh.position.set(1.7,baseY,0);
-      scene.add(atkMesh,defMesh);
-
-      const proj=new THREE.Mesh(new THREE.SphereGeometry(0.2,12,12),new THREE.MeshBasicMaterial({color:colInt}));
-      proj.visible=false; scene.add(proj);
-
-      const N=70, pos=new Float32Array(N*3), vel=[];
-      for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2,sp=1+Math.random()*3.2; vel.push([Math.cos(a)*sp,1+Math.random()*3,Math.sin(a)*sp]); }
-      const pGeo=new THREE.BufferGeometry(); pGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));
-      const pMat=new THREE.PointsMaterial({color:colInt,size:.36,map:dotTex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
-      const points=new THREE.Points(pGeo,pMat); points.visible=false; points.position.set(1.6,baseY,0); scene.add(points);
-
-      const flash=el('fx-flash');
-      const T={in:.3,impact:.82,faintEnd:1.55,end:1.95};
-      const start=performance.now(); let impacted=false,pStart=0,finished=false,raf;
-
-      function finish(){
-        if(finished)return; finished=true; cancelAnimationFrame(raf);
-        scene.traverse(o=>{ if(o.geometry&&o.geometry.dispose)o.geometry.dispose(); if(o.material){ if(o.material.map&&o.material.map.dispose)o.material.map.dispose(); if(o.material.dispose)o.material.dispose(); } });
-        hideOverlay(); opts.onDone();
-      }
-      currentFinish=finish;
-
-      function frame(now){
-        const t=(now-start)/1000;
-        let ax=-1.9;
-        if(t>=T.in){ const k=Math.min(1,(t-T.in)/(T.impact-T.in)); ax=-1.9+(1-Math.pow(1-k,3))*1.3; }
-        if(t>T.impact){ const k=Math.min(1,(t-T.impact)/.4); ax=-0.6-k*0.7; }
-        atkMesh.position.x=ax; atkMesh.position.y=baseY+Math.sin(t*9)*0.05;
-        if(!impacted) defMesh.position.y=baseY+Math.sin(t*7+1)*0.05;
-
-        if(t>=T.impact-0.27 && t<T.impact){ proj.visible=true; const k=(t-(T.impact-0.27))/0.27; proj.position.set(ax+(1.6-ax)*k,baseY,0.05); }
-        else proj.visible=false;
-
-        if(t>=T.impact && !impacted){ impacted=true; pStart=now; points.visible=true; flash.style.opacity='0.85'; }
-        if(impacted){
-          const pt=(now-pStart)/1000, arr=pGeo.attributes.position.array;
-          for(let i=0;i<N;i++){ arr[i*3]+=vel[i][0]*0.016; arr[i*3+1]+=(vel[i][1]-pt*5)*0.016; arr[i*3+2]+=vel[i][2]*0.016; }
-          pGeo.attributes.position.needsUpdate=true; pMat.opacity=Math.max(0,1-pt*1.4);
-          flash.style.opacity=String(Math.max(0,0.85-pt*3));
-          const amp=Math.max(0,0.2*(1-pt*3.2));
-          camera.position.x=(Math.random()-0.5)*amp*2; camera.position.y=camBaseY+(Math.random()-0.5)*amp*2;
-          const fk=Math.min(1,(t-T.impact)/(T.faintEnd-T.impact));
-          defMesh.material.opacity=1-fk; defMesh.scale.set(1-fk*0.6,Math.max(0.05,1-fk),1);
-          defMesh.rotation.z=fk*0.6; defMesh.position.y=baseY*(1-fk*0.5);
-        }
-        renderer.render(scene,camera);
-        if(t>=T.end){ finish(); return; }
-        raf=requestAnimationFrame(frame);
-      }
-      raf=requestAnimationFrame(frame);
-    }).catch(e=>{ console.warn('ChessFX texture load failed',e); runCanvas2D(opts); });
-  }
-
-  // ---- 2D canvas fallback (also "Lite" mode) ----
-  function runCanvas2D(opts){
-    el('fx-canvas').style.display='none';
-    const c=el('fx-canvas2d'); c.style.display='block';
-    showOverlay(opts);
-    const ctx=c.getContext('2d');
-    const DPR=Math.min(window.devicePixelRatio||1,2), W=window.innerWidth, H=window.innerHeight;
-    c.width=W*DPR; c.height=H*DPR; c.style.width=W+'px'; c.style.height=H+'px';
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-    const colHex=moveColorHex(opts.atk.move);
-    const atkImg=new Image(), defImg=new Image();
-    atkImg.src=spriteUrl(opts.atk.id); defImg.src=spriteUrl(opts.def.id);
-    const cx=W/2, base=H*0.55, sz=Math.min(W,H)*0.27;
-    const flash=el('fx-flash');
-    let particles=null, impacted=false, finished=false, raf;
-    const start=performance.now();
-
-    function finish(){ if(finished)return; finished=true; cancelAnimationFrame(raf); hideOverlay(); opts.onDone(); }
-    currentFinish=finish;
-
-    function drawSprite(img,x,y,size,alpha,rot,flip){
-      if(!img.complete||!img.naturalWidth)return;
-      ctx.save(); ctx.globalAlpha=alpha; ctx.translate(x,y); ctx.rotate(rot); if(flip)ctx.scale(-1,1);
-      ctx.imageSmoothingEnabled=false; ctx.drawImage(img,-size/2,-size/2,size,size); ctx.restore();
+  // Profile from chess save (name + avatar)
+  try{
+    const d=JSON.parse(localStorage.getItem('pokechess')||'null');
+    if(d&&d.player&&d.player.name){
+      document.getElementById('pf-greeting').innerHTML='Welcome back, <b>'+
+        d.player.name.replace(/[<>&]/g,'')+'</b>!';
+      if(d.player.avatarId) document.getElementById('pf-img').src=SPRITE(d.player.avatarId);
     }
-    function mkParticles(x,y){ const a=[]; for(let i=0;i<60;i++){ const ang=Math.random()*Math.PI*2,sp=2+Math.random()*6; a.push({x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp-3,r:2+Math.random()*4,life:1}); } return a; }
-
-    function frame(now){
-      const t=(now-start)/1000;
-      ctx.clearRect(0,0,W,H);
-      const g=ctx.createRadialGradient(cx,base+sz*0.4,8,cx,base+sz*0.4,W*0.6);
-      g.addColorStop(0,colHex+'66'); g.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-      let ax=cx-sz*1.4; const dx=cx+sz*1.0;
-      if(t>=0.3){ const k=Math.min(1,(t-0.3)/0.52); ax=cx-sz*1.4+(1-Math.pow(1-k,3))*sz*1.0; }
-      if(t>0.82){ const k=Math.min(1,(t-0.82)/0.4); ax-=k*sz*0.5; }
-      const bob=Math.sin(t*9)*4;
-      if(t>=0.82&&!impacted){ impacted=true; flash.style.opacity='0.8'; particles=mkParticles(dx,base); }
-      let ds=1,da=1,dr=0,dy=0;
-      if(impacted){ const fk=Math.min(1,(t-0.82)/0.73); ds=Math.max(0.05,1-fk*0.9); da=1-fk; dr=fk*0.5; dy=fk*sz*0.3; }
-      drawSprite(defImg,dx,base+bob*0.6+dy,sz*ds,da,dr,false);
-      drawSprite(atkImg,ax,base+bob,sz,1,0,true);
-      if(particles){ ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.fillStyle=colHex; particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.3; p.life-=0.02; if(p.life>0){ ctx.globalAlpha=Math.max(0,p.life); ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,7); ctx.fill(); } }); ctx.restore(); }
-      if(impacted){ const pt=t-0.82; flash.style.opacity=String(Math.max(0,0.8-pt*3)); }
-      if(t>=1.95){ finish(); return; }
-      raf=requestAnimationFrame(frame);
+    // Chess progress badge
+    if(d&&typeof d.progress==='number'&&d.progress>0){
+      document.getElementById('chess-badge').textContent='▶ Continue · '+d.progress+' won';
     }
-    raf=requestAnimationFrame(frame);
-  }
+  }catch(e){}
 
-  function playCapture(o){
-    const mode=getSetting();
-    let called=false; const raw=o.onDone;
-    const opts={atk:o.atk,def:o.def,col:o.col,atkRole:o.atkRole,onDone:()=>{ if(called)return; called=true; raw&&raw(); }};
-    if(mode==='off'){ if(window.announceMove)announceMove(opts.col,opts.atkRole); opts.onDone(); return; }
-    // safety net so the game never stalls if anything hangs
-    setTimeout(()=>{ if(!called){ if(currentFinish){const f=currentFinish;currentFinish=null;f();} else opts.onDone(); } },4500);
-    try{ if(mode==='lite') runCanvas2D(opts); else run3D(opts); }
-    catch(e){ console.warn('ChessFX error',e); hideOverlay(); opts.onDone(); }
-  }
+  // Monopoly resume badge
+  try{
+    if(localStorage.getItem('pokemon_monopoly_save')){
+      document.getElementById('mono-badge').textContent='▶ Resume Game';
+    }
+  }catch(e){}
 
-  window.ChessFX={ playCapture, label, getSetting, cycleSetting };
-  window.toggleFx=function(){ cycleSetting(); if(typeof renderControls==='function'){ try{renderControls();}catch(e){} } };
-
-  document.addEventListener('DOMContentLoaded',()=>{
-    const ov=el('fx-overlay');
-    if(ov) ov.addEventListener('click',()=>{ if(currentFinish){ const f=currentFinish; currentFinish=null; f(); } });
+  // Light haptic on card tap (if GameKit present)
+  document.querySelectorAll('.game-card').forEach(c=>{
+    c.addEventListener('click',()=>{ if(window.GK&&GK.haptic)GK.haptic(10); });
   });
 })();
 </script>
+<script src="gamekit.js"></script>
 </body>
 </html>
