@@ -220,7 +220,11 @@ the whole approach on-device before investing further.
   (profile, progress badges, both game cards); chess moved to `chess.html`.
 - ✅ **Monopoly token-hop**: the token now hops space-by-space (arc per hop)
   across the board in Board view before landing.
-- ⏳ Next: shared profile editor on the hub, light accessibility polish.
+- ✅ **More cutscene moments**: pawn→Queen evolution flash, full-screen
+  Checkmate finisher, Mew "Legendary Boss" VS flourish.
+- ✅ **Settings & quality**: one ⚙ Settings modal per game (effects level +
+  "Reduce animations" honored across all GameKit motion).
+- ⏳ Next: progression/rewards (trophies, unlocks), shared profile editor.
   (Little-Kids mode dropped — min age 7+. Sound deferred by request.)
 - ⚠️ All visuals pending on-device verification (no browser/GPU in build env).
 
