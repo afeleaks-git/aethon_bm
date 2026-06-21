@@ -134,6 +134,30 @@ h1{font-size:1.7em;margin:6px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
 .title-pokeball{font-size:2.5em;margin:8px 0;animation:float 3s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(10deg)}}
 </style>
+<style>
+/* ---- New cutscene moments ---- */
+@keyframes evolveFlash{
+  0%{filter:brightness(1);transform:scale(1)}
+  20%{filter:brightness(4) drop-shadow(0 0 12px #fff);transform:scale(1.25)}
+  45%{filter:brightness(7) drop-shadow(0 0 22px #ffe14d);transform:scale(.85)}
+  70%{filter:brightness(3) drop-shadow(0 0 16px #ffe14d);transform:scale(1.15)}
+  100%{filter:brightness(1);transform:scale(1)}
+}
+.cell img.evolving{animation:evolveFlash 1s ease-in-out}
+
+#ckmate-banner{position:fixed;inset:0;z-index:190;display:none;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity .3s;background:radial-gradient(circle at 50% 40%,rgba(40,20,60,.55),rgba(0,0,0,.9));pointer-events:none}
+#ckmate-banner.show{display:flex;opacity:1}
+#ckmate-banner img{width:clamp(96px,30vw,140px);height:clamp(96px,30vw,140px);image-rendering:pixelated;filter:drop-shadow(0 6px 18px rgba(0,0,0,.6));animation:ckPop .6s cubic-bezier(.34,1.6,.5,1) both}
+#ckmate-banner .ck-title{font-size:2.4em;font-weight:800;margin-top:10px;background:linear-gradient(90deg,#ffcb05,#ff6b35,#ffcb05);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ckPop .5s .1s cubic-bezier(.34,1.6,.5,1) both}
+#ckmate-banner .ck-sub{color:#fff;font-size:1.15em;margin-top:4px;text-shadow:0 2px 6px #000;animation:ckPop .5s .2s both}
+@keyframes ckPop{from{opacity:0;transform:scale(.5) translateY(20px)}to{opacity:1;transform:none}}
+
+.vs-banner.vs-boss{position:relative}
+.vs-boss .vs-boss-tag{position:absolute;top:-26px;left:0;right:0;color:#e040fb;font-weight:800;letter-spacing:2px;font-size:.85em;text-align:center;text-shadow:0 0 12px rgba(224,64,251,.7);animation:bossPulse 1.2s ease-in-out infinite}
+.vs-boss .vs-trainer:last-child img{box-shadow:0 0 0 3px #e040fb,0 0 22px rgba(224,64,251,.8);border-radius:50%;animation:bossPulse 1.2s ease-in-out infinite}
+@keyframes bossPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.4)}}
+@media (prefers-reduced-motion:reduce){.cell img.evolving,#ckmate-banner img,#ckmate-banner .ck-title,.vs-boss .vs-boss-tag,.vs-boss .vs-trainer:last-child img{animation:none}}
+</style>
 <link rel="stylesheet" href="gamekit.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#10131f">
@@ -251,6 +275,7 @@ h1{font-size:1.7em;margin:6px 0;text-align:center;text-shadow:2px 2px 4px rgba(0
   <div id="fx-skip">Tap to skip &#9197;</div>
 </div>
 <div id="fx-flash"></div>
+<div id="ckmate-banner"></div>
 
 <script>
 // ============================================================
@@ -538,12 +563,14 @@ function buildSetup(prefix,pIdx,excludeTaken){
 // ===== VS SCREEN =====
 function showVsThen(cb){
   const b=document.getElementById('vs-banner');
-  b.innerHTML=`
+  const isBoss=players[1]&&(players[1].avatarId===151||players[1].name==='Mew');
+  b.classList.toggle('vs-boss',!!isBoss);
+  b.innerHTML=`${isBoss?`<div class="vs-boss-tag">&#10024; LEGENDARY BOSS &#10024;</div>`:''}
     <div class="vs-trainer"><img src="${sprite(players[0].avatarId)}"><div class="vs-name">${esc(players[0].name)}</div><div class="vs-region">${REGIONS[players[0].region].name}</div></div>
     <div class="vs-text">VS</div>
     <div class="vs-trainer"><img src="${sprite(players[1].avatarId)}"><div class="vs-name">${esc(players[1].name)}</div><div class="vs-region">${REGIONS[players[1].region].name}</div></div>`;
   showScreen('screen-vs');
-  setTimeout(cb,2000);
+  setTimeout(cb,isBoss?2800:2000);
 }
 
 // ===== CAPTURE MOVE ANNOUNCEMENT =====
@@ -672,7 +699,7 @@ function updateStatus(){
   const chk=inCheck(board,turn),has=hasLegal(board,turn,castleRights,enPassantTarget);
   const winner=turn==='w'?'b':'w';
   if(!has){gameOver=true;
-    if(chk){setStatus(`Checkmate! ${esc(players[winner==='w'?0:1].name)} wins!`,'gameover');if(window.GK&&(mode==='2player'||winner==='w'))GK.confetti();}
+    if(chk){setStatus(`Checkmate! ${esc(players[winner==='w'?0:1].name)} wins!`,'gameover');showCheckmateBanner(winner);if(window.GK&&(mode==='2player'||winner==='w'))GK.confetti();}
     else setStatus("Stalemate! It's a draw!",'gameover');
     if(mode==='campaign')setTimeout(showCampaignResult,1200);
   }else if(chk){setStatus(`Check! ${esc(players[turn==='w'?0:1].name)}'s turn`,'check');
@@ -680,6 +707,18 @@ function updateStatus(){
 }
 
 function setStatus(t,cls){const el=document.getElementById('status');el.innerHTML=t;el.className=cls||''}
+
+// Full-screen "Checkmate!" finisher with the winning King Pokémon
+function showCheckmateBanner(winner){
+  try{
+    const b=document.getElementById('ckmate-banner'); if(!b)return;
+    const w=players[winner==='w'?0:1];
+    const king=POKEMON[winner]&&POKEMON[winner]['K'];
+    b.innerHTML=`<img src="${king?sprite(king.id):''}" alt=""><div class="ck-title">CHECKMATE!</div><div class="ck-sub">${esc(w.name)} wins!</div>`;
+    b.classList.add('show');
+    setTimeout(()=>b.classList.remove('show'),2400);
+  }catch(e){}
+}
 
 function showPromotionDialog(col){
   const ov=document.getElementById('promotion-overlay'),opts=document.getElementById('promotion-options');
@@ -701,7 +740,21 @@ function completePromotion(choice){
   turn=en;selected=null;legalCache=[];
   if(pp.didCapture)announceMove(col,'P');
   updateStatus();renderGame();
+  playEvolution(pp.tR,pp.tC,col,choice);
   if(aiMode&&!gameOver&&turn==='b')scheduleAI();
+}
+
+// Pokémon "evolution" flash when a pawn promotes
+function playEvolution(r,c,col,piece){
+  try{
+    const info=POKEMON[col]&&POKEMON[col][piece];
+    if(info&&window.GK&&GK.toast) GK.toast('✨ Evolved into '+info.name+'!',{duration:1800});
+    if(window.GK&&GK.reduceMotion) return;
+    const bEl=document.getElementById('board');
+    const cell=bEl&&bEl.children[r*8+c];
+    const img=cell&&cell.querySelector('img');
+    if(img){ img.classList.add('evolving'); setTimeout(()=>img.classList.remove('evolving'),1000); }
+  }catch(e){}
 }
 
 function undoMove(){
@@ -920,7 +973,7 @@ function renderControls(){
   let html=`<button onclick="undoMove()">Undo</button>`;
   if(mode==='campaign')html+=`<button onclick="showCampaignMap()">Forfeit</button>`;
   else html+=`<button onclick="start2Player()">New Game</button>`;
-  if(window.ChessFX)html+=`<button onclick="toggleFx()">&#10024; ${ChessFX.label()}</button>`;
+  if(window.GK&&window.ChessFX)html+=`<button onclick="openGameSettings()" title="Settings">&#9881;</button>`;
   ctrl.innerHTML=html;
 }
 
@@ -1191,8 +1244,9 @@ AVATARS.forEach(a=>{const i=new Image();i.src=sprite(a.id)});
     catch(e){ console.warn('ChessFX error',e); hideOverlay(); opts.onDone(); }
   }
 
-  window.ChessFX={ playCapture, label, getSetting, cycleSetting };
+  window.ChessFX={ playCapture, label, getSetting, setSetting, cycleSetting };
   window.toggleFx=function(){ cycleSetting(); if(typeof renderControls==='function'){ try{renderControls();}catch(e){} } };
+  window.openGameSettings=function(){ if(window.GK&&GK.openSettings) GK.openSettings({ fx:{ get:getSetting, set:setSetting }, fxHint:'Full = 3D capture cutscenes · Lite = 2D · Off = none.' }); };
 
   document.addEventListener('DOMContentLoaded',()=>{
     const ov=el('fx-overlay');

@@ -287,7 +287,7 @@ h1{font-size:1.7em;margin:10px 0;text-align:center;text-shadow:0 0 30px rgba(255
 
   <div style="margin-top:4px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
     <button class="btn small danger" onclick="confirmNewGame()">New Game</button>
-    <button class="btn small" id="mfx-btn" onclick="toggleMonoFx()">&#10024; FX: Full</button>
+    <button class="btn small" id="mfx-btn" onclick="openGameSettings()">&#9881; Settings</button>
     <a href="index.html" class="btn small" style="text-decoration:none" onclick="clearSave()">Back to Menu</a>
   </div>
 </div>
@@ -2325,11 +2325,11 @@ setTimeout(()=>{
     raf=requestAnimationFrame(frame);
   }
 
-  window.MonoFX={ playStreet, shouldPlay, label, getSetting, cycleSetting, enabled };
+  window.MonoFX={ playStreet, shouldPlay, label, getSetting, setSetting, cycleSetting, enabled };
   window.toggleMonoFx=function(){ cycleSetting(); const b=el('mfx-btn'); if(b)b.innerHTML='✨ '+label(); };
+  window.openGameSettings=function(){ if(window.GK&&GK.openSettings) GK.openSettings({ fx:{ get:getSetting, set:setSetting }, fxHint:'Full = 3D street walk-up · Lite = 2D · Off = none.' }); };
 
   document.addEventListener('DOMContentLoaded',()=>{
-    const b=el('mfx-btn'); if(b)b.innerHTML='✨ '+label();
     const ov=el('mfx-overlay'); if(ov) ov.addEventListener('click',()=>{ if(currentFinish){ const f=currentFinish; currentFinish=null; f(); } });
   });
 })();

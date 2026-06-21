@@ -9,11 +9,14 @@
    ============================================================ */
 (function(){
   'use strict';
-  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const osReduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function getCalm(){ try{ return localStorage.getItem('gkCalm')==='1'; }catch(e){ return false; } }
+  function setCalm(v){ try{ localStorage.setItem('gkCalm', v?'1':'0'); }catch(e){} }
+  function isReduced(){ return osReduce || getCalm(); } // OS setting OR manual "reduce animations"
 
   // ---- Haptics ----
   function haptic(ms){
-    try{ if(!reduceMotion && navigator.vibrate) navigator.vibrate(ms||8); }catch(e){}
+    try{ if(!isReduced() && navigator.vibrate) navigator.vibrate(ms||8); }catch(e){}
   }
 
   // ---- Toasts ----
@@ -39,7 +42,7 @@
   let confettiRunning=false;
   function confetti(opts){
     opts=opts||{};
-    if(reduceMotion){ return; }
+    if(isReduced()){ return; }
     if(confettiRunning) return;
     try{
       confettiRunning=true;
@@ -90,7 +93,7 @@
     const from=(opts.from!=null)?opts.from:(parseFloat(String(el.textContent).replace(/[^0-9.-]/g,''))||0);
     const dur=opts.duration||600;
     const prefix=opts.prefix||'', suffix=opts.suffix||'';
-    if(reduceMotion){ el.textContent=prefix+Math.round(to)+suffix; return; }
+    if(isReduced()){ el.textContent=prefix+Math.round(to)+suffix; return; }
     const start=performance.now();
     function step(now){
       const k=Math.min(1,(now-start)/dur);
@@ -128,7 +131,7 @@
   function flyText(text,x,y,opts){
     opts=opts||{};
     try{
-      if(reduceMotion) return;
+      if(isReduced()) return;
       const d=document.createElement('div');
       d.className='gk-flytext'; d.textContent=text;
       d.style.left=x+'px'; d.style.top=y+'px';
@@ -138,7 +141,36 @@
     }catch(e){}
   }
 
-  window.GK={ haptic, toast, confetti, countUp, flyText, loadThree, reduceMotion, version:'1.2' };
+  // ---- Shared settings modal (effects level + reduce animations) ----
+  function openSettings(opts){
+    opts=opts||{};
+    try{
+      const ov=document.createElement('div'); ov.className='gk-modal-ov';
+      const fx=opts.fx;
+      let h='<div class="gk-modal"><div class="gk-modal-title">&#9881; Settings</div>';
+      if(fx){
+        let cur='full'; try{ cur=fx.get(); }catch(e){}
+        h+='<div class="gk-set-lbl">Visual effects</div><div class="gk-seg" id="gk-fx">';
+        [['full','Full'],['lite','Lite'],['off','Off']].forEach(o=>{ h+='<button data-v="'+o[0]+'"'+(o[0]===cur?' class="on"':'')+'>'+o[1]+'</button>'; });
+        h+='</div><div class="gk-set-hint">'+(opts.fxHint||'Full = 3D cutscenes · Lite = 2D · Off = none.')+'</div>';
+      }
+      h+='<label class="gk-set-row"><span>Reduce animations</span><input type="checkbox" id="gk-calm"'+(getCalm()?' checked':'')+'></label>';
+      h+='<div class="gk-set-row gk-muted"><span>Sound</span><span>Off</span></div>';
+      h+='<button class="gk-modal-done" id="gk-done">Done</button></div>';
+      ov.innerHTML=h;
+      document.body.appendChild(ov);
+      requestAnimationFrame(()=>ov.classList.add('show'));
+      if(fx){ ov.querySelectorAll('#gk-fx button').forEach(b=>b.addEventListener('click',()=>{ try{fx.set(b.getAttribute('data-v'));}catch(e){} ov.querySelectorAll('#gk-fx button').forEach(x=>x.classList.toggle('on',x===b)); haptic(8); })); }
+      const calmBox=ov.querySelector('#gk-calm'); if(calmBox) calmBox.addEventListener('change',e=>setCalm(e.target.checked));
+      const close=()=>{ ov.classList.remove('show'); setTimeout(()=>ov.remove(),200); };
+      ov.querySelector('#gk-done').addEventListener('click',close);
+      ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+    }catch(e){}
+  }
+
+  const GK={ haptic, toast, confetti, countUp, flyText, loadThree, openSettings, getCalm, setCalm, version:'1.3' };
+  Object.defineProperty(GK,'reduceMotion',{ get:isReduced, enumerable:true });
+  window.GK=GK;
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',autowire);
   else autowire();
